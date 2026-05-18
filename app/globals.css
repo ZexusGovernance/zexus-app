@@ -4221,6 +4221,52 @@ input[data-burn-slider]::-moz-range-thumb {
   animation-delay: calc(var(--stagger, 0) * 45ms);
 }
 
+/* ══════════════════════════════════════════════════════
+   FEED CARD — DESKTOP POLISH ≥ 701 px
+   Mobile не затрагивается.
+   ══════════════════════════════════════════════════════ */
+@media (min-width: 701px) {
+  /* Hero: compact — карточки одинаковее по высоте */
+  .feed-card .card-hero img { height: 112px; }
+
+  /* Hero: тёмный виньет чтобы яркие (белые) скрины не резали */
+  .card-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(11,10,9,0.28) 0%,
+      transparent 40%,
+      rgba(11,10,9,0.18) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Заголовок: крупнее и жирнее — читается сразу */
+  .feed-card .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+
+  /* Текст: строже — 3 строки максимум на десктопе */
+  .feed-card .card-text { max-height: 54px; }
+
+  /* Trust score pill: НЕ растягиваем на всю ширину */
+  .feed-card .score-pill { align-self: flex-start; }
+
+  /* Длинные хэши/ссылки в списках не ломают layout */
+  .rt-list-item span { overflow-wrap: anywhere; }
+
+  /* Футер чуть плотнее */
+  .feed-card .card-footer { padding-top: 8px; margin-top: 8px; }
+
+  /* Сетка: чуть больший gap на большом экране */
+  .feed-posts-grid { gap: 14px; }
+}
+
 
 /* ── Daily Check-In Modal ──────────────────────────────── */
 .checkin-overlay {
