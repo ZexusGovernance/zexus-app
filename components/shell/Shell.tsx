@@ -11,18 +11,70 @@ import ProfilePage from '@/components/profile/ProfilePage'
 import PredictPage from '@/components/predict/PredictPage'
 import type { PageName } from '@/lib/types'
 
+const PAGE_LABELS: Record<string, string> = {
+  feed: 'Feed', projects: 'Projects', alerts: 'Alerts',
+  staking: 'Staking', profile: 'Profile', predict: 'Predict',
+}
+
+// Feed in center (position 3 of 5) — statistically highest engagement
+const BOTTOM_NAV = [
+  { page: 'staking',  icon: 'ti-coin',               label: 'Staking'  },
+  { page: 'projects', icon: 'ti-building-community', label: 'Projects' },
+  { page: 'feed',     icon: 'ti-layout-dashboard',   label: 'Feed'     },
+  { page: 'predict',  icon: 'ti-chart-candle',       label: 'Predict'  },
+  { page: 'profile',  icon: 'ti-user-circle',        label: 'Profile'  },
+]
+
+function CheckInModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="checkin-overlay" onClick={onClose}>
+      <div className="checkin-modal" onClick={e => e.stopPropagation()}>
+        <button className="checkin-close" onClick={onClose} aria-label="Close">
+          <i className="ti ti-x" />
+        </button>
+
+        <div className="checkin-flame-icon">
+          <i className="ti ti-flame" />
+        </div>
+
+        <div className="checkin-title">Daily Check-In</div>
+        <div className="checkin-sub">Keep your streak alive</div>
+
+        <div className="checkin-streak-row">
+          <div className="checkin-streak-cell">
+            <span className="checkin-streak-num">0</span>
+            <span className="checkin-streak-label">day streak</span>
+          </div>
+          <div className="checkin-divider" />
+          <div className="checkin-streak-cell">
+            <span className="checkin-streak-num">0</span>
+            <span className="checkin-streak-label">total days</span>
+          </div>
+        </div>
+
+        <div className="checkin-reward-badge">
+          <i className="ti ti-coin" style={{ fontSize: 13 }} />
+          &nbsp;+10 ZXP reward
+        </div>
+
+        <button className="checkin-btn" disabled>
+          <i className="ti ti-calendar-check" />
+          Check In Today
+        </button>
+        <div className="checkin-note">Connect wallet to track your streak</div>
+      </div>
+    </div>
+  )
+}
+
 export default function Shell() {
-  const [currentPage,    setCurrentPage]    = useState<PageName>('feed')
-  const [searchOpen,     setSearchOpen]     = useState(false)
-  const [navOpen,        setNavOpen]        = useState(false)
-  const [initialPostId,  setInitialPostId]  = useState<string | null>(null)
+  const [currentPage,   setCurrentPage]   = useState<PageName>('feed')
+  const [searchOpen,    setSearchOpen]    = useState(false)
+  const [checkInOpen,   setCheckInOpen]   = useState(false)
+  const [initialPostId, setInitialPostId] = useState<string | null>(null)
 
-  const navigate = (page: string) => {
-    setCurrentPage(page as PageName)
-    setNavOpen(false)
-  }
+  const navigate = (page: string) => setCurrentPage(page as PageName)
 
-  // Handle ?post=ID deep links
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
@@ -45,9 +97,6 @@ export default function Shell() {
         e.preventDefault()
         setSearchOpen(true)
       }
-      if (e.key === 'Escape') {
-        setNavOpen(false)
-      }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
@@ -67,41 +116,46 @@ export default function Shell() {
 
   return (
     <div className="shell">
-      {/* Mobile-only top bar */}
+      {/* Mobile top bar */}
       <header className="mobile-topbar">
-        <button
-          className="mob-btn"
-          onClick={() => setNavOpen(v => !v)}
-          aria-label="Open menu"
-        >
-          <i className={`ti ${navOpen ? 'ti-x' : 'ti-menu-2'}`} />
-        </button>
+        <span className="mob-page-title">{PAGE_LABELS[currentPage] ?? 'Zexus'}</span>
         <span className="mob-brand">ZEXUS</span>
-        {!navOpen && (
-          <button
-            className="mob-btn mob-btn-gold"
-            onClick={() => setSearchOpen(true)}
-            aria-label="Search"
-          >
+        <div className="mob-topbar-actions">
+          <button className="mob-btn mob-btn-gold" onClick={() => setSearchOpen(true)} aria-label="Search">
             <i className="ti ti-search" />
           </button>
-        )}
+          <button className="mob-btn mob-btn-checkin" onClick={() => setCheckInOpen(true)} aria-label="Daily check-in">
+            <i className="ti ti-flame" />
+          </button>
+        </div>
       </header>
 
-      {/* Backdrop — closes nav on tap */}
-      <div
-        className={`nav-backdrop${navOpen ? ' visible' : ''}`}
-        onClick={() => setNavOpen(false)}
-      />
-
+      {/* Sidebar nav — desktop/tablet only (hidden on mobile via CSS) */}
       <Nav
         currentPage={currentPage}
         onNavigate={navigate}
         onSearchOpen={() => setSearchOpen(true)}
-        isOpen={navOpen}
+        isOpen={false}
       />
 
       {renderPage()}
+
+      {/* Mobile bottom navigation */}
+      <nav className="mobile-bottom-nav" aria-label="Main navigation">
+        {BOTTOM_NAV.map(item => (
+          <button
+            key={item.page}
+            className={`mob-nav-item${currentPage === item.page ? ' active' : ''}`}
+            onClick={() => navigate(item.page)}
+            aria-label={item.label}
+          >
+            <i className={`ti ${item.icon}`} />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {checkInOpen && <CheckInModal onClose={() => setCheckInOpen(false)} />}
 
       <SearchOverlay
         isOpen={searchOpen}

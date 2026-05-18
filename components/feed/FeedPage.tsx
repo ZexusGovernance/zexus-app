@@ -147,12 +147,12 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
     <div className="page active" id="page-feed">
       <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="page-header">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
+          <div className="feed-header-row">
+            <div className="feed-title-wrapper">
               <div className="page-title">Feed</div>
-              <div className="page-sub">All platform events in real time</div>
+              <div className="page-sub feed-page-sub">All platform events in real time</div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', paddingBottom: '16px' }}>
+            <div className="feed-header-actions">
               {(['All', 'Verdicts', 'Updates', 'Alerts'] as FilterType[]).map(f => (
                 <button
                   key={f}
@@ -164,7 +164,7 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
               ))}
               {userRole === 'project' && (
                 <button
-                  className="create-post-btn"
+                  className="create-post-btn create-post-btn-desktop"
                   onClick={() => setCreateOpen(true)}
                   aria-label="Create post"
                 >
@@ -179,11 +179,12 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
           <div className="feed-posts-grid">
             {loading
               ? Array.from({ length: 6 }).map((_, i) => <PostCardSkeleton key={i} />)
-              : filtered.map(post => (
+              : filtered.map((post, i) => (
                   <PostCard
                     key={post.id}
                     post={post}
                     onClick={() => setSelectedPost(post)}
+                    index={i}
                   />
                 ))
             }
@@ -199,6 +200,14 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
       <div className="right">
         <FeedDashboard posts={dbPosts} />
       </div>
+
+      <button
+        className="create-post-fab"
+        onClick={() => { if (userRole === 'project' && adminProject) setCreateOpen(true) }}
+        aria-label="Create post"
+      >
+        <i className="ti ti-pencil-plus" />
+      </button>
 
       {selectedPost && (
         <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
