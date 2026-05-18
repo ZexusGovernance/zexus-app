@@ -9,11 +9,6 @@ const nextConfig: NextConfig = {
       porto: false,
       'porto/internal': false,
     }
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@base-org/account': false,
-      '@metamask/connect-evm': false,
-    }
     return config
   },
 };
