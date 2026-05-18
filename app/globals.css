@@ -3975,6 +3975,18 @@ input[data-burn-slider]::-moz-range-thumb {
   .post-modal { max-width: 100%; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 }
 
+/* ── Mobile nav: hide brand, keep only search ── */
+@media (max-width: 720px) {
+  .nav .nav-brand-name,
+  .nav .nav-brand-sub {
+    display: none;
+  }
+  .nav .nav-brand {
+    padding: 6px 10px 10px;
+    margin-bottom: 8px;
+  }
+}
+
 /* ── Very small phones ≤ 380 px ────────────────────────── */
 @media (max-width: 380px) {
   .mob-brand { font-size: 13px; letter-spacing: 2px; }

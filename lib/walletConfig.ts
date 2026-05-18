@@ -10,7 +10,6 @@ export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [base]
 export const wagmiAdapter = new WagmiAdapter({
   networks,
   projectId,
-  ssr: true,
 })
 
 createAppKit({
@@ -21,7 +20,7 @@ createAppKit({
     name: 'Zexus',
     description: 'Zexus Governance — Trust Scores, Voting, ZXP Staking on Base Mainnet',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://app.zexus.xyz',
-    icons: [],
+    icons: ['https://app.zexus.xyz/apple-touch-icon.png'],
   },
   features: {
     analytics: false,

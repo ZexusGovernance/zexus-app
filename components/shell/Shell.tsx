@@ -77,13 +77,15 @@ export default function Shell() {
           <i className={`ti ${navOpen ? 'ti-x' : 'ti-menu-2'}`} />
         </button>
         <span className="mob-brand">ZEXUS</span>
-        <button
-          className="mob-btn mob-btn-gold"
-          onClick={() => setSearchOpen(true)}
-          aria-label="Search"
-        >
-          <i className="ti ti-search" />
-        </button>
+        {!navOpen && (
+          <button
+            className="mob-btn mob-btn-gold"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search"
+          >
+            <i className="ti ti-search" />
+          </button>
+        )}
       </header>
 
       {/* Backdrop — closes nav on tap */}
