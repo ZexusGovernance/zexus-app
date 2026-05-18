@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       accounts: false,
+      porto: false,
       'porto/internal': false,
     }
     return config
