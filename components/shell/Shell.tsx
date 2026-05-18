@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAppKitAccount } from '@reown/appkit/react'
 import Nav from '@/components/nav/Nav'
 import SearchOverlay from '@/components/search/SearchOverlay'
 import FeedPage from '@/components/feed/FeedPage'
@@ -16,8 +17,7 @@ const PAGE_LABELS: Record<string, string> = {
   staking: 'Staking', profile: 'Profile', predict: 'Predict',
 }
 
-// Feed in center (position 3 of 5) — statistically highest engagement
-const BOTTOM_NAV = [
+const BASE_NAV = [
   { page: 'staking',  icon: 'ti-coin',               label: 'Staking'  },
   { page: 'projects', icon: 'ti-building-community', label: 'Projects' },
   { page: 'feed',     icon: 'ti-layout-dashboard',   label: 'Feed'     },
@@ -71,9 +71,27 @@ export default function Shell() {
   const [currentPage,   setCurrentPage]   = useState<PageName>('feed')
   const [searchOpen,    setSearchOpen]    = useState(false)
   const [checkInOpen,   setCheckInOpen]   = useState(false)
+  const [composeOpen,   setComposeOpen]   = useState(false)
   const [initialPostId, setInitialPostId] = useState<string | null>(null)
 
+  const { address } = useAppKitAccount()
+  const [userRole,     setUserRole]     = useState<'user' | 'project'>('user')
+  const [adminProject, setAdminProject] = useState<{ name: string } | null>(null)
+  const isProjectAdmin = userRole === 'project' && !!adminProject
+
   const navigate = (page: string) => setCurrentPage(page as PageName)
+
+  // Role check whenever wallet changes
+  useEffect(() => {
+    if (!address) { setUserRole('user'); setAdminProject(null); return }
+    fetch(`/api/check-role?wallet=${address}`)
+      .then(r => r.json())
+      .then((data: { role: 'user' | 'project'; project: { name: string } | null }) => {
+        setUserRole(data.role)
+        setAdminProject(data.project ?? null)
+      })
+      .catch(() => setUserRole('user'))
+  }, [address])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -102,15 +120,35 @@ export default function Shell() {
     return () => document.removeEventListener('keydown', handler)
   }, [searchOpen])
 
+  // Center nav item becomes "Post" when user is project-admin AND on feed tab
+  const bottomNav = BASE_NAV.map(item => {
+    if (item.page === 'feed' && currentPage === 'feed' && isProjectAdmin) {
+      return { ...item, icon: 'ti-pencil-plus', label: 'Post', isCompose: true }
+    }
+    return { ...item, isCompose: false }
+  })
+
   const renderPage = () => {
+    const feedPage = (
+      <FeedPage
+        onNavigate={navigate}
+        initialPostId={initialPostId}
+        composeOpen={composeOpen}
+        onComposeOpen={() => setComposeOpen(true)}
+        onComposeClose={() => setComposeOpen(false)}
+        isProjectAdmin={isProjectAdmin}
+        adminProject={adminProject}
+        walletAddress={address}
+      />
+    )
     switch (currentPage) {
-      case 'feed':     return <FeedPage onNavigate={navigate} initialPostId={initialPostId} />
+      case 'feed':     return feedPage
       case 'projects': return <ProjectsPage onNavigate={navigate} />
       case 'alerts':   return <AlertsPage />
       case 'staking':  return <StakingPage />
       case 'profile':  return <ProfilePage />
       case 'predict':  return <PredictPage />
-      default:         return <FeedPage onNavigate={navigate} initialPostId={initialPostId} />
+      default:         return feedPage
     }
   }
 
@@ -130,7 +168,7 @@ export default function Shell() {
         </div>
       </header>
 
-      {/* Sidebar nav — desktop/tablet only (hidden on mobile via CSS) */}
+      {/* Sidebar nav — desktop/tablet only */}
       <Nav
         currentPage={currentPage}
         onNavigate={navigate}
@@ -142,11 +180,15 @@ export default function Shell() {
 
       {/* Mobile bottom navigation */}
       <nav className="mobile-bottom-nav" aria-label="Main navigation">
-        {BOTTOM_NAV.map(item => (
+        {bottomNav.map(item => (
           <button
             key={item.page}
-            className={`mob-nav-item${currentPage === item.page ? ' active' : ''}`}
-            onClick={() => navigate(item.page)}
+            className={[
+              'mob-nav-item',
+              !item.isCompose && currentPage === item.page ? 'active' : '',
+              item.isCompose ? 'mob-nav-compose' : '',
+            ].filter(Boolean).join(' ')}
+            onClick={() => item.isCompose ? setComposeOpen(true) : navigate(item.page)}
             aria-label={item.label}
           >
             <i className={`ti ${item.icon}`} />

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAppKitAccount } from '@reown/appkit/react'
 import PostCard from './PostCard'
 import PostDetailModal from './PostDetailModal'
 import CreatePostModal from './CreatePostModal'
@@ -81,20 +80,31 @@ function dbToFeed(row: DbPost): FeedPost {
 }
 
 interface FeedPageProps {
-  onNavigate:     (page: string) => void
-  initialPostId?: string | null
+  onNavigate:      (page: string) => void
+  initialPostId?:  string | null
+  // Compose modal — controlled from Shell
+  composeOpen?:    boolean
+  onComposeOpen?:  () => void
+  onComposeClose?: () => void
+  isProjectAdmin?: boolean
+  adminProject?:   { name: string } | null
+  walletAddress?:  string
 }
 
-export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: FeedPageProps) {
+export default function FeedPage({
+  onNavigate: _onNavigate,
+  initialPostId,
+  composeOpen = false,
+  onComposeOpen,
+  onComposeClose,
+  isProjectAdmin = false,
+  adminProject,
+  walletAddress,
+}: FeedPageProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
-  const [createOpen,   setCreateOpen]   = useState(false)
   const [dbPosts,      setDbPosts]      = useState<FeedPost[]>([])
   const [loading,      setLoading]      = useState(true)
-
-  const { address } = useAppKitAccount()
-  const [userRole,     setUserRole]     = useState<'user' | 'project'>('user')
-  const [adminProject, setAdminProject] = useState<{ name: string } | null>(null)
 
   // Load posts from API
   useEffect(() => {
@@ -110,10 +120,8 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
   // Open a specific post from a deep link (?post=ID)
   useEffect(() => {
     if (!initialPostId) return
-    // Try to find it in already-loaded posts
     const found = dbPosts.find(p => p.id === initialPostId)
     if (found) { setSelectedPost(found); return }
-    // Not in cache — fetch via API
     fetch(`/api/posts?id=${encodeURIComponent(initialPostId)}`)
       .then(r => r.json())
       .then(({ posts }: { posts: DbPost[] }) => {
@@ -121,22 +129,6 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
       })
       .catch(() => {})
   }, [initialPostId, dbPosts])
-
-  // Role check on wallet change
-  useEffect(() => {
-    if (!address) {
-      setUserRole('user')
-      setAdminProject(null)
-      return
-    }
-    fetch(`/api/check-role?wallet=${address}`)
-      .then(r => r.json())
-      .then((data: { role: 'user' | 'project'; project: { name: string } | null }) => {
-        setUserRole(data.role)
-        setAdminProject(data.project ?? null)
-      })
-      .catch(() => setUserRole('user'))
-  }, [address])
 
   const filtered = dbPosts.filter(post => {
     const types = FILTER_TYPES[activeFilter]
@@ -162,10 +154,10 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
                   {f}
                 </button>
               ))}
-              {userRole === 'project' && (
+              {isProjectAdmin && (
                 <button
                   className="create-post-btn create-post-btn-desktop"
-                  onClick={() => setCreateOpen(true)}
+                  onClick={() => onComposeOpen?.()}
                   aria-label="Create post"
                 >
                   <i className="ti ti-pencil-plus" /> Post
@@ -201,22 +193,14 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
         <FeedDashboard posts={dbPosts} />
       </div>
 
-      <button
-        className="create-post-fab"
-        onClick={() => { if (userRole === 'project' && adminProject) setCreateOpen(true) }}
-        aria-label="Create post"
-      >
-        <i className="ti ti-pencil-plus" />
-      </button>
-
       {selectedPost && (
         <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
       )}
-      {createOpen && address && adminProject && (
+      {composeOpen && walletAddress && adminProject && (
         <CreatePostModal
-          onClose={() => setCreateOpen(false)}
-          onPublish={post => setDbPosts(prev => [post, ...prev])}
-          walletAddress={address}
+          onClose={() => onComposeClose?.()}
+          onPublish={post => { setDbPosts(prev => [post, ...prev]); onComposeClose?.() }}
+          walletAddress={walletAddress}
           projectName={adminProject.name}
         />
       )}
