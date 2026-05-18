@@ -1554,9 +1554,9 @@ body::after {
   display: none;
 }
 .shell {
-  grid-template-columns: 220px minmax(0, 1fr) 280px;
+  grid-template-columns: 240px minmax(0, 1fr) 300px;
   width: 100%;
-  max-width: 1060px;
+  max-width: 1220px;
   height: 100dvh;
   min-height: 100vh;
   margin: 0 auto;
