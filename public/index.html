@@ -1731,6 +1731,9 @@
         .page.active {
           grid-template-columns: 1fr;
         }
+        #feed-posts-container {
+          grid-template-columns: 1fr !important;
+        }
       }
 
       /* Global sidebar search */
@@ -2342,15 +2345,8 @@
         border-color: rgba(225, 184, 94, 0.22);
         font-weight: 700;
       }
-      .wallet-pill::before {
-        content: "Connect Wallet";
-        color: var(--text);
-        font-size: 12px;
-        margin-right: auto;
-      }
-      .wallet-pill .w-addr {
-        display: none;
-      }
+      .wallet-pill::before { content: none; }
+      .wallet-pill .w-addr { display: inline; }
       .nav-search {
         min-height: 42px;
         border-radius: 14px;
@@ -2934,28 +2930,17 @@
       }
 
 
-      /* ═══ Feed 2-column grid ═══ */
-      #page-feed .scroll {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: start;
-        gap: 14px;
-        overflow-y: auto;
-        flex: unset;
-      }
-      #page-feed .scroll .card {
+      /* ═══ Feed card two-column grid ═══ */
+      #feed-posts-container .card {
         min-width: 0;
         overflow: hidden;
         word-break: break-word;
       }
-      #page-feed .scroll .card .card-text {
+      #feed-posts-container .card .card-text {
         overflow: hidden;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 4;
         -webkit-box-orient: vertical;
-      }
-      @media (max-width: 960px) {
-        #page-feed .scroll { grid-template-columns: 1fr; }
       }
 
       /* ═══ APY Block compact ═══ */
@@ -3075,6 +3060,423 @@
         cursor: pointer;
       }
 
+
+      /* ── Search Overlay ── */
+      .search-overlay {
+        position: fixed; inset: 0; z-index: 1000;
+        background: rgba(11,10,9,0.88);
+        backdrop-filter: blur(6px);
+        display: none; align-items: flex-start; justify-content: center;
+        padding-top: 80px;
+      }
+      .search-overlay.active { display: flex; }
+      .search-modal {
+        width: 480px; max-width: 90vw;
+        background: var(--surface2);
+        border: 0.5px solid var(--border2);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+      }
+      .search-input-wrap {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 16px;
+        border-bottom: 0.5px solid var(--border);
+      }
+      .search-input-wrap .ti-search { font-size: 16px; color: var(--muted); flex-shrink:0; }
+      .search-input {
+        flex: 1; background: none; border: none; outline: none;
+        font-size: 14px; color: var(--text); font-family: inherit;
+      }
+      .search-input::placeholder { color: var(--muted2); }
+      .search-esc {
+        font-size: 10px; padding: 3px 7px; border-radius: 5px;
+        border: 0.5px solid var(--border2); color: var(--muted2);
+        background: var(--surface); cursor: pointer; flex-shrink: 0;
+        font-family: inherit;
+      }
+      .search-results { padding: 8px 0; max-height: 320px; overflow-y: auto; }
+      .search-section-title {
+        font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+        color: var(--muted2); padding: 6px 16px 4px;
+      }
+      .search-result-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 16px; cursor: pointer;
+        transition: background 0.12s;
+      }
+      .search-result-item:hover { background: rgba(255,255,255,0.03); }
+      .search-result-name { font-size: 13px; font-weight: 500; color: var(--text); }
+      .search-result-cat { font-size: 11px; color: var(--muted); margin-top: 1px; }
+      .search-empty { padding: 28px 16px; text-align: center; font-size: 12px; color: var(--muted2); }
+
+      /* ── Profile: Settings section ── */
+      .prof-settings-section {
+        background: var(--surface);
+        border: 0.5px solid var(--border2);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .settings-group { border-bottom: 0.5px solid var(--border); }
+      .settings-group:last-child { border-bottom: none; }
+      .settings-group-title {
+        font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+        color: var(--muted2); padding: 10px 14px 6px;
+      }
+      .settings-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px;
+        border-top: 0.5px solid var(--border);
+      }
+      .settings-row-info { flex: 1; min-width: 0; }
+      .settings-row-name { font-size: 12px; font-weight: 500; color: var(--text); }
+      .settings-row-desc { font-size: 10px; color: var(--muted2); margin-top: 1px; }
+      .settings-toggle {
+        width: 32px; height: 18px; border-radius: 9px;
+        background: var(--border2); cursor: pointer;
+        position: relative; flex-shrink: 0; transition: background 0.2s;
+      }
+      .settings-toggle::after {
+        content: ''; position: absolute;
+        width: 12px; height: 12px; border-radius: 50%;
+        background: var(--muted2); top: 3px; left: 3px;
+        transition: left 0.2s, background 0.2s;
+      }
+      .settings-toggle.on { background: rgba(201,165,90,0.22); }
+      .settings-toggle.on::after { left: 17px; background: var(--gold); }
+      .settings-btn {
+        font-size: 11px; padding: 4px 10px;
+        border-radius: 7px; border: 0.5px solid var(--border2);
+        background: transparent; color: var(--muted);
+        cursor: pointer; white-space: nowrap; font-family: inherit;
+      }
+      .settings-btn:hover { color: var(--text); }
+
+      /* ── Profile: Achievements full card ── */
+      .ach-full-card {
+        background: var(--surface);
+        border: 0.5px solid var(--border2);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .ach-full-list { display: flex; flex-direction: column; }
+      .ach-full-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 14px;
+        border-top: 0.5px solid var(--border);
+      }
+      .ach-full-row:first-child { border-top: none; }
+      .ach-full-row.ach-locked { opacity: 0.42; }
+      .ach-full-icon {
+        width: 36px; height: 36px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 17px; flex-shrink: 0;
+      }
+      .ach-full-body { flex: 1; min-width: 0; }
+      .ach-full-name { font-size: 12px; font-weight: 500; color: var(--text); }
+      .ach-full-desc { font-size: 10px; color: var(--muted2); margin-top: 2px; }
+      .ach-badge-ok {
+        font-size: 10px; padding: 2px 8px; border-radius: 7px;
+        background: rgba(76,175,61,0.09); color: var(--green);
+        border: 0.5px solid rgba(76,175,61,0.22); flex-shrink: 0;
+      }
+      .ach-badge-lock {
+        font-size: 10px; padding: 2px 8px; border-radius: 7px;
+        background: var(--surface2); color: var(--muted2);
+        border: 0.5px solid var(--border); flex-shrink: 0;
+      }
+
+      /* ── Profile: Watchlist tab enhanced ── */
+      .watch-tab-header {
+        display: flex; align-items: center; gap: 8px;
+        padding: 10px 14px 0; flex-wrap: wrap;
+      }
+      .watch-filter-chip {
+        font-size: 10px; padding: 3px 9px; border-radius: 12px;
+        border: 0.5px solid var(--border2); background: transparent;
+        color: var(--muted); cursor: pointer; font-family: inherit;
+      }
+      .watch-filter-chip.wc-active {
+        border-color: rgba(201,165,90,0.4); color: var(--gold);
+        background: rgba(201,165,90,0.07);
+      }
+      .wrow-alert-btn {
+        font-size: 10px; padding: 2px 7px; border-radius: 6px;
+        border: 0.5px solid var(--border); background: transparent;
+        color: var(--muted2); cursor: pointer; font-family: inherit; white-space: nowrap;
+      }
+      .wrow-alert-btn.alert-on { color: var(--gold); border-color: rgba(201,165,90,0.3); }
+
+      /* ── Compose box ── */
+      .compose-box {
+        background: var(--surface); border: 0.5px solid var(--border2);
+        border-radius: 10px; padding: 12px 15px;
+        display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+      }
+      .compose-top { display: flex; gap: 10px; align-items: flex-start; }
+      .compose-textarea {
+        flex: 1; background: transparent; border: none; outline: none;
+        color: var(--text); font-size: 13px; font-family: inherit;
+        resize: none; line-height: 1.5; min-height: 36px;
+      }
+      .compose-textarea::placeholder { color: var(--muted2); }
+      .compose-footer {
+        display: flex; align-items: center; gap: 8px;
+        border-top: 0.5px solid var(--border); padding-top: 10px;
+      }
+      .compose-attach {
+        display: flex; align-items: center; justify-content: center;
+        color: var(--muted); cursor: pointer; font-size: 17px;
+        padding: 4px 6px; border-radius: 6px; transition: color 0.15s;
+      }
+      .compose-attach:hover { color: var(--gold); }
+      .compose-submit {
+        background: rgba(201,165,90,0.1); border: 0.5px solid rgba(201,165,90,0.35);
+        color: var(--gold); font-size: 12px; padding: 6px 16px;
+        border-radius: 8px; cursor: pointer; font-family: inherit;
+        font-weight: 500; margin-left: auto;
+      }
+      .compose-submit:hover { background: rgba(201,165,90,0.18); }
+      .compose-thumb-wrap { position: relative; display: inline-flex; margin-top: 2px; }
+      .compose-thumb-wrap img {
+        width: 80px; height: 60px; object-fit: cover;
+        border-radius: 7px; border: 0.5px solid var(--border2);
+      }
+      .compose-thumb-remove {
+        position: absolute; top: -5px; right: -5px;
+        width: 16px; height: 16px; background: var(--red); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 10px; color: white; border: none; line-height: 1;
+      }
+
+      /* ── Feed card thumbnail ── */
+      .card-thumb {
+        width: 68px; height: 50px; object-fit: cover; border-radius: 7px;
+        border: 0.5px solid var(--border2); cursor: pointer; flex-shrink: 0;
+      }
+
+      /* ── Image lightbox ── */
+      #img-lightbox {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+        z-index: 2000; display: none; align-items: center; justify-content: center;
+      }
+      #img-lightbox.active { display: flex; }
+      #img-lightbox img {
+        max-width: 90vw; max-height: 88vh; border-radius: 10px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      }
+      #img-lightbox-close {
+        position: absolute; top: 18px; right: 22px;
+        color: rgba(255,255,255,0.7); font-size: 30px;
+        cursor: pointer; line-height: 1; user-select: none;
+      }
+
+      /* ── Wallet modal ── */
+      #wallet-modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+        z-index: 300; display: none; align-items: center; justify-content: center;
+      }
+      #wallet-modal-overlay.active { display: flex; }
+      .wallet-modal {
+        background: var(--surface); border: 0.5px solid var(--border2);
+        border-radius: 14px; padding: 24px; width: 300px;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .wallet-modal-title {
+        font-size: 15px; font-weight: 600; color: var(--text);
+        text-align: center; margin-bottom: 4px;
+      }
+      .wallet-modal-sub {
+        font-size: 11px; color: var(--muted);
+        text-align: center; margin-top: -4px; margin-bottom: 4px;
+      }
+      .wallet-option {
+        display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+        background: var(--bg); border: 0.5px solid var(--border2);
+        border-radius: 10px; cursor: pointer; font-family: inherit;
+        color: var(--text); font-size: 13px; font-weight: 500;
+        width: 100%; text-align: left; transition: border-color 0.15s;
+      }
+      .wallet-option:hover { border-color: rgba(201,165,90,0.5); }
+      .wallet-option-icon {
+        width: 34px; height: 34px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; flex-shrink: 0;
+      }
+      .wallet-modal-cancel {
+        text-align: center; font-size: 11px; color: var(--muted);
+        cursor: pointer; padding-top: 2px;
+      }
+      .wallet-modal-cancel:hover { color: var(--text); }
+
+      /* ── Toast ── */
+      #zx-toast {
+        position: fixed; bottom: 28px; left: 50%;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--surface2); border: 0.5px solid var(--border2);
+        color: var(--text); font-size: 12px; padding: 8px 18px;
+        border-radius: 20px; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+        z-index: 1000; pointer-events: none; white-space: nowrap;
+      }
+      #zx-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      /* ── Milestone missed dot ── */
+      .ms-dot.missed { background: var(--red); }
+      .mss-missed { background: rgba(224,112,112,0.1); color: var(--red); }
+
+      /* ── Create Post Modal ── */
+      .create-post-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 200;
+        display: none; align-items: center; justify-content: center; padding: 16px;
+      }
+      .create-post-overlay.active { display: flex; }
+      .create-post-modal {
+        background: var(--surface); border: 0.5px solid var(--border2);
+        border-radius: 12px; width: 520px; max-width: 100%; padding: 24px;
+        display: flex; flex-direction: column; gap: 16px;
+      }
+      .cpm-header {
+        display: flex; align-items: center; gap: 10px; padding-bottom: 16px;
+        border-bottom: 0.5px solid var(--border);
+      }
+      .cpm-title { font-size: 15px; font-weight: 600; flex: 1; color: var(--text); }
+      .cpm-close {
+        width: 28px; height: 28px; border-radius: 6px; border: none;
+        background: var(--surface2); color: var(--muted); cursor: pointer;
+        font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center;
+      }
+      .cpm-close:hover { color: var(--text); }
+      .type-row { display: flex; gap: 6px; }
+      .post-type-btn {
+        flex: 1; padding: 8px 4px; border-radius: 7px; border: 0.5px solid var(--border2);
+        background: var(--surface2); color: var(--muted); font-size: 12px; font-weight: 500;
+        cursor: pointer; transition: all 0.15s; font-family: inherit;
+      }
+      .post-type-btn.t-update { border-color: rgba(90,130,201,0.45); background: rgba(90,130,201,0.07); color: var(--blue); }
+      .post-type-btn.t-verdict { border-color: rgba(201,165,90,0.45); background: rgba(201,165,90,0.07); color: var(--gold); }
+      .post-type-btn.t-alert { border-color: rgba(224,112,112,0.45); background: rgba(224,112,112,0.07); color: var(--red); }
+      .cpm-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 5px; }
+      .cpm-input {
+        width: 100%; background: var(--surface2); border: 0.5px solid var(--border2);
+        border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 13px;
+        font-family: inherit; outline: none; resize: vertical;
+      }
+      .cpm-input:focus { border-color: rgba(201,165,90,0.35); }
+      .cpm-input::placeholder { color: var(--muted2); }
+      .cpm-tsc-row { display: flex; align-items: flex-start; gap: 12px; }
+      .cpm-tsc-input {
+        width: 72px; text-align: center; background: var(--surface2); flex-shrink: 0;
+        border: 0.5px solid var(--border2); border-radius: 7px; padding: 7px 8px;
+        color: var(--text); font-size: 13px; font-family: inherit; outline: none;
+      }
+      .cpm-tsc-input:focus { border-color: rgba(201,165,90,0.35); }
+      .cpm-footer {
+        display: flex; justify-content: flex-end; gap: 8px;
+        padding-top: 12px; border-top: 0.5px solid var(--border);
+      }
+      .cpm-cancel {
+        padding: 8px 16px; border-radius: 7px; border: 0.5px solid var(--border2);
+        background: none; color: var(--muted); font-size: 13px; cursor: pointer; font-family: inherit;
+      }
+      .cpm-cancel:hover { color: var(--text); }
+      .cpm-submit {
+        padding: 8px 20px; border-radius: 7px; border: none;
+        background: rgba(201,165,90,0.14); color: var(--gold); font-size: 13px;
+        font-weight: 500; cursor: pointer; transition: background 0.15s; font-family: inherit;
+        display: flex; align-items: center; gap: 5px;
+      }
+      .cpm-submit:hover { background: rgba(201,165,90,0.24); }
+      .cpm-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      /* ── Project compose badge ── */
+      .compose-project-tag {
+        display: inline-flex; align-items: center; gap: 5px; margin-bottom: 7px;
+        padding: 3px 8px; border-radius: 5px;
+        background: rgba(201,165,90,0.07); border: 0.5px solid rgba(201,165,90,0.2);
+        font-size: 10px; color: var(--gold); font-weight: 500;
+      }
+      .compose-open-btn {
+        flex: 1; background: var(--surface2); border: 0.5px solid var(--border2);
+        border-radius: 8px; padding: 10px 14px; color: var(--muted); font-size: 13px;
+        text-align: left; cursor: pointer; font-family: inherit; transition: border-color 0.15s;
+      }
+      .compose-open-btn:hover { border-color: rgba(201,165,90,0.3); color: var(--text); }
+
+      /* ── Reactions ── */
+      .reactions { display: flex; align-items: center; gap: 2px; flex: 1; }
+      .reaction-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 9px; border-radius: 5px; border: 0.5px solid transparent;
+        background: none; color: var(--muted); font-size: 12px; cursor: pointer;
+        transition: all 0.12s; font-family: inherit;
+      }
+      .reaction-btn:hover { background: var(--surface2); color: var(--text); }
+      .reaction-btn.liked { color: var(--green); border-color: rgba(76,175,61,0.25); background: rgba(76,175,61,0.06); }
+      .reaction-btn.disliked { color: var(--red); border-color: rgba(224,112,112,0.25); background: rgba(224,112,112,0.06); }
+
+      /* ── Comments ── */
+      .comments-section {
+        border-top: 0.5px solid var(--border); margin-top: 6px; padding-top: 12px;
+      }
+      .comments-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+      .comment-item {
+        padding: 8px 10px; background: var(--surface2); border-radius: 6px;
+        border: 0.5px solid var(--border);
+      }
+      .comment-author { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+      .comment-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+      .comment-input-row { display: flex; gap: 6px; margin-top: 4px; }
+      .comment-input {
+        flex: 1; background: var(--surface2); border: 0.5px solid var(--border2);
+        border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 12px;
+        font-family: inherit; outline: none;
+      }
+      .comment-input:focus { border-color: rgba(201,165,90,0.3); }
+      .comment-input::placeholder { color: var(--muted2); }
+      .comment-send {
+        padding: 7px 12px; border-radius: 6px; border: none; flex-shrink: 0;
+        background: rgba(201,165,90,0.12); color: var(--gold); font-size: 12px;
+        cursor: pointer; font-family: inherit; transition: background 0.15s;
+      }
+      .comment-send:hover { background: rgba(201,165,90,0.22); }
+
+      /* ── Feed two-column grid ── */
+      #feed-posts-container {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        align-items: start;
+        width: 100%;
+      }
+
+      /* ── Feed loading / empty states ── */
+      .posts-loading {
+        display: flex; align-items: center; justify-content: center;
+        padding: 40px 16px; color: var(--muted); font-size: 13px; gap: 8px;
+        grid-column: 1 / -1;
+      }
+      .posts-empty { padding: 40px 16px; text-align: center; color: var(--muted); font-size: 13px; grid-column: 1 / -1; }
+
+      @media (max-width: 640px) {
+        #feed-posts-container,
+        #static-demo-cards { grid-template-columns: 1fr !important; }
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .spin { animation: spin 0.9s linear infinite; display: inline-block; }
+
+      /* ── Admin badge in profile ── */
+      .badge-admin {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 9px; border-radius: 5px; font-size: 10px; font-weight: 600;
+        background: rgba(201,165,90,0.12); color: var(--gold);
+        border: 0.5px solid rgba(201,165,90,0.3); cursor: pointer;
+        transition: background 0.15s; text-decoration: none;
+      }
+      .badge-admin:hover { background: rgba(201,165,90,0.22); }
+
+      /* ── Edit Project modal (reuses .create-post-modal layout) ── */
+      #edit-project-overlay { z-index: 200; }
       </style>
   </head>
   <body>
@@ -3519,9 +3921,9 @@
               <span style="color: var(--muted2)">to T3: +260</span>
             </div>
           </div>
-          <div class="wallet-pill">
-            <div class="w-dot"></div>
-            <span class="w-addr">0x4f2a...9c1b</span>
+          <div class="wallet-pill" id="wallet-pill" onclick="openWalletModal()" style="cursor:pointer;" title="Connect wallet">
+            <i class="ti ti-wallet" style="font-size:14px;color:var(--gold);"></i>
+            <span class="w-addr" style="color:var(--gold);">Connect Wallet</span>
           </div>
         </div>
       </nav>
@@ -3567,281 +3969,20 @@
             </div>
           </div>
           <div class="scroll">
-            <!-- ── ALERT ── -->
-            <div class="card c-alert">
-              <div class="card-head">
-                <div class="proj-av av-red">N</div>
-                <div style="flex: 1">
-                  <div
-                    style="
-                      font-size: 13px;
-                      font-weight: 500;
-                      color: var(--text);
-                    "
-                  >
-                    NovaDEX
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted)">
-                    DEX · Base Mainnet
-                  </div>
-                </div>
-                <span class="type-badge tb-alert"
-                  ><i class="ti ti-alert-triangle" style="font-size: 9px"></i>
-                  Alert</span
-                >
-                <div class="card-time">10 min ago</div>
+            <!-- ── COMPOSE (project-only) ── -->
+            <div class="compose-box" id="compose-box" style="display:none">
+              <div class="compose-project-tag">
+                <i class="ti ti-shield-check" style="font-size:9px"></i>
+                <span id="compose-project-badge">Project</span>
               </div>
-              <div class="card-title">Deadline missed - no response for 48h</div>
-              <div class="card-text">
-                The project did not confirm the Liquidity Pool v2 milestone. Trust
-                Score was reduced automatically.
-              </div>
-              <span class="score-pill sp-down"
-                ><i class="ti ti-trending-down" style="font-size: 11px"></i> −18
-                pts &nbsp;·&nbsp; Trust Score: 41</span
-              >
-              <div class="card-footer">
-                <div class="foot-btn danger">
-                  <i class="ti ti-alert-triangle"></i> Emergency Call
-                </div>
-                <div class="foot-btn">
-                  <i class="ti ti-eye"></i> View project
-                </div>
+              <div class="compose-top">
+                <div id="compose-project-av" class="proj-av av-gold" style="width:32px;height:32px;font-size:13px;border-radius:8px;flex-shrink:0;">A</div>
+                <button class="compose-open-btn" onclick="openCreatePostModal()">Share an update, verdict, or alert…</button>
               </div>
             </div>
 
-            <!-- ── OPEN VOTE ── -->
-            <div
-              class="card c-verdict"
-              style="
-                border-color: rgba(201, 165, 90, 0.28);
-                background: rgba(201, 165, 90, 0.02);
-              "
-            >
-              <div class="card-head">
-                <div class="proj-av av-teal">B</div>
-                <div style="flex: 1">
-                  <div
-                    style="
-                      font-size: 13px;
-                      font-weight: 500;
-                      color: var(--text);
-                    "
-                  >
-                    BaseSwap Pro
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted)">
-                    DEX · Base Mainnet
-                  </div>
-                </div>
-                <span
-                  class="type-badge"
-                  style="
-                    background: rgba(201, 165, 90, 0.1);
-                    color: var(--gold);
-                    border: 0.5px solid rgba(201, 165, 90, 0.25);
-                  "
-                  ><i class="ti ti-clock" style="font-size: 9px"></i>
-                  Voting</span
-                >
-                <div class="card-time">5h ago</div>
-              </div>
-              <div class="card-title">
-                Certik Security Audit - your vote is waiting
-              </div>
-              <div class="card-text">
-                Audit completed, 2 minor issues found and fixed before deploy. As a
-                token holder, confirm or dispute the result.
-              </div>
-              <div class="verdict-bar" style="margin-top: 12px">
-                <span class="vb-yes">74%</span>
-                <div class="vb-track">
-                  <div class="vb-fill-y" style="width: 74%"></div>
-                  <div class="vb-fill-n" style="width: 26%"></div>
-                </div>
-                <span class="vb-no">26%</span>
-                <span class="vb-count">312 votes</span>
-              </div>
-              <div
-                style="
-                  display: flex;
-                  gap: 8px;
-                  margin-top: 12px;
-                  align-items: center;
-                "
-              >
-                <button
-                  class="bet-btn bb-yes"
-                  style="font-size: 12px; padding: 7px 16px"
-                >
-                  <i class="ti ti-thumb-up"></i> Confirm
-                </button>
-                <button
-                  class="bet-btn bb-no"
-                  style="font-size: 12px; padding: 7px 16px"
-                >
-                  <i class="ti ti-thumb-down"></i> Dispute
-                </button>
-                <div
-                  style="
-                    margin-left: auto;
-                    font-size: 11px;
-                    color: var(--gold-dim);
-                  "
-                >
-                  <i class="ti ti-clock"></i> 14h left · +15 ZXP
-                </div>
-              </div>
-            </div>
-
-            <!-- ── VERDICT CLOSED ── -->
-            <div class="card c-verdict">
-              <div class="card-head">
-                <div class="proj-av av-blue">U</div>
-                <div style="flex: 1">
-                  <div
-                    style="
-                      font-size: 13px;
-                      font-weight: 500;
-                      color: var(--text);
-                    "
-                  >
-                    Umia Protocol
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted)">
-                    DeFi · Base Mainnet
-                  </div>
-                </div>
-                <span class="type-badge tb-verdict"
-                  ><i class="ti ti-shield-check" style="font-size: 9px"></i>
-                  Verdict</span
-                >
-                <div class="card-time">2h ago</div>
-              </div>
-              <div class="card-title">
-                Testnet deploy - confirmed by the community ✓
-              </div>
-              <div class="card-text">
-                847 verified holders took part in the vote.
-                Result accepted.
-              </div>
-              <div class="verdict-bar" style="margin-top: 12px">
-                <span class="vb-yes">89%</span>
-                <div class="vb-track">
-                  <div class="vb-fill-y" style="width: 89%"></div>
-                  <div class="vb-fill-n" style="width: 11%"></div>
-                </div>
-                <span class="vb-no">11%</span>
-                <span class="vb-count">847 votes</span>
-              </div>
-              <span class="score-pill sp-up" style="margin-top: 10px"
-                ><i class="ti ti-trending-up" style="font-size: 11px"></i> +12
-                pts &nbsp;·&nbsp; Trust Score: 72</span
-              >
-              <div class="card-footer">
-                <div class="foot-btn">
-                  <i class="ti ti-chart-bar"></i> Details
-                </div>
-                <div class="foot-btn">
-                  <i class="ti ti-bookmark"></i> Watchlist
-                </div>
-              </div>
-            </div>
-
-            <!-- ── UPDATE ── -->
-            <div class="card c-update">
-              <div class="card-head">
-                <div class="proj-av av-gold">A</div>
-                <div style="flex: 1">
-                  <div
-                    style="
-                      font-size: 13px;
-                      font-weight: 500;
-                      color: var(--text);
-                    "
-                  >
-                    AeroBase
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted)">
-                    AMM · Base Mainnet
-                  </div>
-                </div>
-                <span class="type-badge tb-update"
-                  ><i class="ti ti-speakerphone" style="font-size: 9px"></i>
-                  Update</span
-                >
-                <div class="card-time">8h ago</div>
-              </div>
-              <div class="card-title">v2.1 mainnet deploy completed</div>
-              <div class="card-text">
-                New protocol with improved UI and 18% lower gas. Mainnet
-                live.
-              </div>
-              <div class="trust-mini" style="margin-top: 12px">
-                <div>
-                  <div class="tm-num" style="color: var(--green)">85</div>
-                  <div class="tm-lbl">Trust Score</div>
-                </div>
-                <div class="tm-bar-wrap">
-                  <div
-                    class="tm-bar-fill"
-                    style="width: 85%; background: var(--green)"
-                  ></div>
-                </div>
-              </div>
-              <div class="card-footer">
-                <div class="foot-btn">
-                  <i class="ti ti-external-link"></i> Read report
-                </div>
-                <div class="foot-btn">
-                  <i class="ti ti-bookmark"></i> Watchlist
-                </div>
-              </div>
-            </div>
-
-            <!-- ── NEW PROJECT ── -->
-            <div class="card c-new">
-              <div class="card-head">
-                <div class="proj-av av-purple">Z</div>
-                <div style="flex: 1">
-                  <div
-                    style="
-                      font-size: 13px;
-                      font-weight: 500;
-                      color: var(--text);
-                    "
-                  >
-                    ZeroLend
-                  </div>
-                  <div style="font-size: 11px; color: var(--muted)">
-                    Lending · Base Mainnet · 18.2k followers
-                  </div>
-                </div>
-                <span class="type-badge tb-new"
-                  ><i class="ti ti-sparkles" style="font-size: 9px"></i>
-                  New</span
-                >
-                <div class="card-time">1d ago</div>
-              </div>
-              <div class="card-title">
-                ZeroLend joined Zexus - Genesis Tier 2
-              </div>
-              <div class="card-text">
-                Lending protocol verified. Verify your holding to
-                join future verdicts.
-              </div>
-              <span class="score-pill sp-new" style="margin-top: 8px"
-                ><i class="ti ti-rocket" style="font-size: 11px"></i> Trust
-                Score pending</span
-              >
-              <div class="card-footer">
-                <div class="foot-btn">
-                  <i class="ti ti-user-check"></i> Verify holder
-                </div>
-                <div class="foot-btn">
-                  <i class="ti ti-bookmark"></i> Watchlist
-                </div>
-              </div>
+            <div id="feed-posts-container" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start">
+              <div class="posts-loading"><i class="ti ti-loader spin"></i> Loading posts…</div>
             </div>
           </div>
         </div>
@@ -4172,90 +4313,44 @@
             </div>
           </div>
           <div class="scroll" id="projects-list">
-            <div class="proj-list-card" onclick="showProjectDetail()">
-              <div
-                class="proj-av av-blue"
-                style="
-                  width: 44px;
-                  height: 44px;
-                  font-size: 18px;
-                  border-radius: 10px;
-                "
-              >
-                U
-              </div>
+            <div class="proj-list-card" onclick="showProjectDetail(0)">
+              <div class="proj-av av-blue" style="width:44px;height:44px;font-size:18px;border-radius:10px;">U</div>
               <div class="plc-info">
                 <div class="plc-name">Umia Protocol</div>
-                <div class="plc-sub">
-                  DeFi · Base Mainnet · 12.4k followers
-                </div>
+                <div class="plc-sub">DeFi · Base Mainnet · 12.4k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"
-                    ><i class="ti ti-check" style="font-size: 9px"></i>
-                    Verified</span
-                  ><span class="plc-tag">DeFi</span
-                  ><span class="plc-tag">Genesis T2</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag">DeFi</span><span class="plc-tag">Genesis T2</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score hi">72</div>
-                <div class="plc-trend plt-up">
-                  <i class="ti ti-trending-up" style="font-size: 10px"></i> +12
-                </div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +12</div>
               </div>
             </div>
-            <div class="proj-list-card" onclick="showProjectDetail()">
-              <div
-                class="proj-av av-teal"
-                style="
-                  width: 44px;
-                  height: 44px;
-                  font-size: 18px;
-                  border-radius: 10px;
-                "
-              >
-                B
-              </div>
+            <div class="proj-list-card" onclick="showProjectDetail(1)">
+              <div class="proj-av av-teal" style="width:44px;height:44px;font-size:18px;border-radius:10px;">B</div>
               <div class="plc-info">
                 <div class="plc-name">BaseSwap Pro</div>
                 <div class="plc-sub">DEX · Base Mainnet · 9.8k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"
-                    ><i class="ti ti-check" style="font-size: 9px"></i>
-                    Verified</span
-                  ><span class="plc-tag">DEX</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag">DEX</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score mi">68</div>
-                <div class="plc-trend plt-up">
-                  <i class="ti ti-trending-up" style="font-size: 10px"></i> +5
-                </div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +5</div>
               </div>
             </div>
-            <div class="proj-list-card" onclick="showProjectDetail()">
-              <div
-                class="proj-av av-purple"
-                style="
-                  width: 44px;
-                  height: 44px;
-                  font-size: 18px;
-                  border-radius: 10px;
-                "
-              >
-                Z
-              </div>
+            <div class="proj-list-card" onclick="showProjectDetail(2)">
+              <div class="proj-av av-purple" style="width:44px;height:44px;font-size:18px;border-radius:10px;">Z</div>
               <div class="plc-info">
                 <div class="plc-name">ZeroLend</div>
-                <div class="plc-sub">
-                  Lending · Base Mainnet · 18.2k followers
-                </div>
+                <div class="plc-sub">Lending · Base Mainnet · 18.2k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"
-                    ><i class="ti ti-check" style="font-size: 9px"></i>
-                    Verified</span
-                  ><span class="plc-tag">Lending</span
-                  ><span class="plc-tag">Genesis T2</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag">Lending</span><span class="plc-tag">Genesis T2</span>
                 </div>
               </div>
               <div class="plc-score-col">
@@ -4263,18 +4358,8 @@
                 <div class="plc-trend plt-na">New</div>
               </div>
             </div>
-            <div class="proj-list-card" onclick="showProjectDetail()">
-              <div
-                class="proj-av av-red"
-                style="
-                  width: 44px;
-                  height: 44px;
-                  font-size: 18px;
-                  border-radius: 10px;
-                "
-              >
-                N
-              </div>
+            <div class="proj-list-card" onclick="showProjectDetail(3)">
+              <div class="proj-av av-red" style="width:44px;height:44px;font-size:18px;border-radius:10px;">N</div>
               <div class="plc-info">
                 <div class="plc-name">NovaDEX</div>
                 <div class="plc-sub">DEX · Base Mainnet · 7.1k followers</div>
@@ -4282,158 +4367,52 @@
               </div>
               <div class="plc-score-col">
                 <div class="plc-score lo">41</div>
-                <div class="plc-trend plt-down">
-                  <i class="ti ti-trending-down" style="font-size: 10px"></i>
-                  −18
-                </div>
+                <div class="plc-trend plt-down"><i class="ti ti-trending-down" style="font-size:10px"></i> −18</div>
               </div>
             </div>
-            <div class="proj-list-card" onclick="showProjectDetail()">
-              <div
-                class="proj-av av-gold"
-                style="
-                  width: 44px;
-                  height: 44px;
-                  font-size: 18px;
-                  border-radius: 10px;
-                "
-              >
-                A
-              </div>
+            <div class="proj-list-card" onclick="showProjectDetail(4)">
+              <div class="proj-av av-gold" style="width:44px;height:44px;font-size:18px;border-radius:10px;">A</div>
               <div class="plc-info">
                 <div class="plc-name">AeroBase</div>
-                <div class="plc-sub">
-                  AMM · Base Mainnet · 14.6k followers
-                </div>
+                <div class="plc-sub">AMM · Base Mainnet · 14.6k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"
-                    ><i class="ti ti-check" style="font-size: 9px"></i>
-                    Verified</span
-                  ><span class="plc-tag">AMM</span
-                  ><span class="plc-tag">Genesis T1</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag">AMM</span><span class="plc-tag">Genesis T1</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score hi">85</div>
-                <div class="plc-trend plt-up">
-                  <i class="ti ti-trending-up" style="font-size: 10px"></i> +8
-                </div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +8</div>
               </div>
             </div>
           </div>
           <!-- Project Detail (hidden by default) -->
-          <div
-            style="
-              display: none;
-              flex-direction: column;
-              flex: 1;
-              overflow: hidden;
-            "
-            id="project-detail"
-          >
+          <div style="display:none;flex-direction:column;flex:1;overflow:hidden;" id="project-detail">
             <div class="proj-detail-header">
               <div class="back-btn" onclick="hideProjectDetail()">
                 <i class="ti ti-arrow-left"></i> Back to projects
               </div>
               <div class="pdh-top">
-                <div
-                  class="pdh-av av-blue"
-                  style="width: 52px; height: 52px; font-size: 20px"
-                >
-                  U
-                </div>
-                <div style="flex: 1">
-                  <div class="pdh-name">Umia Protocol</div>
-                  <div class="pdh-sub">
-                    DeFi · Base Mainnet · 12,400 followers · on platform for 14
-                    days
-                  </div>
-                  <div class="plc-tags">
-                    <span class="plc-tag verified"
-                      ><i class="ti ti-check" style="font-size: 9px"></i>
-                      Verified</span
-                    ><span class="plc-tag">DeFi</span
-                    ><span class="plc-tag">Base</span
-                    ><span class="plc-tag">Genesis Tier 2</span>
+                <div id="proj-pdh-av" class="pdh-av av-blue" style="width:52px;height:52px;font-size:20px;">U</div>
+                <div style="flex:1">
+                  <div id="proj-pdh-name" class="pdh-name">Umia Protocol</div>
+                  <div id="proj-pdh-sub" class="pdh-sub">DeFi · Base Mainnet · 12,400 followers · on platform for 14 days</div>
+                  <div id="proj-pdh-tags" class="plc-tags">
+                    <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
+                    <span class="plc-tag">DeFi</span><span class="plc-tag">Genesis T2</span>
                   </div>
                 </div>
               </div>
-              <div class="tabs">
-                <div class="tab active">Overview</div>
-                <div class="tab">Updates</div>
-                <div class="tab">Milestones</div>
-                <div class="tab">Community</div>
+              <div class="tabs" id="proj-tabs">
+                <div class="tab active" data-tab="overview" onclick="switchProjectTab('overview')">Overview</div>
+                <div class="tab" data-tab="timeline" onclick="switchProjectTab('timeline')">Trust Timeline</div>
+                <div class="tab" data-tab="milestones" onclick="switchProjectTab('milestones')">Milestones</div>
+                <div class="tab" data-tab="votes" onclick="switchProjectTab('votes')">Votes</div>
+                <div class="tab" data-tab="holders" onclick="switchProjectTab('holders')">Holders</div>
               </div>
             </div>
-            <div class="scroll">
-              <div class="card c-verdict">
-                <div class="card-head">
-                  <div class="proj-av av-blue">U</div>
-                  <div>
-                    <div style="font-size: 12px; color: var(--muted2)">
-                      Latest verdict
-                    </div>
-                  </div>
-                  <div class="card-time">2h ago</div>
-                </div>
-                <div class="card-title">Testnet deploy - completed</div>
-                <div class="verdict-bar">
-                  <span class="vb-yes">89%</span>
-                  <div class="vb-track">
-                    <div class="vb-fill-y" style="width: 89%"></div>
-                    <div class="vb-fill-n" style="width: 11%"></div>
-                  </div>
-                  <span class="vb-no">11%</span
-                  ><span class="vb-count">847 votes</span>
-                </div>
-              </div>
-              <div
-                style="
-                  background: var(--surface);
-                  border: 0.5px solid var(--border2);
-                  border-radius: 10px;
-                  overflow: hidden;
-                "
-              >
-                <div
-                  style="
-                    padding: 10px 14px;
-                    background: var(--surface2);
-                    border-bottom: 0.5px solid var(--border);
-                    font-size: 12px;
-                    font-weight: 500;
-                    color: var(--text);
-                  "
-                >
-                  Roadmap
-                </div>
-                <div style="padding: 4px 14px">
-                  <div class="ms-row">
-                    <div class="ms-dot done"></div>
-                    <div class="ms-name">Whitepaper v2</div>
-                    <div class="ms-date">May 01</div>
-                    <span class="ms-status mss-done">Completed</span>
-                  </div>
-                  <div class="ms-row">
-                    <div class="ms-dot done"></div>
-                    <div class="ms-name">Testnet deploy</div>
-                    <div class="ms-date">May 10</div>
-                    <span class="ms-status mss-done">Completed</span>
-                  </div>
-                  <div class="ms-row">
-                    <div class="ms-dot progress"></div>
-                    <div class="ms-name">Security audit</div>
-                    <div class="ms-date">June 20</div>
-                    <span class="ms-status mss-progress">In progress</span>
-                  </div>
-                  <div class="ms-row">
-                    <div class="ms-dot pending"></div>
-                    <div class="ms-name">Mainnet launch</div>
-                    <div class="ms-date">July 01</div>
-                    <span class="ms-status mss-pending">Pending</span>
-                  </div>
-                </div>
-              </div>
+            <div class="scroll" id="proj-detail-scroll">
+              <!-- dynamically populated by switchProjectTab() -->
             </div>
           </div>
         </div>
@@ -4441,119 +4420,56 @@
         <div class="right" id="projects-right">
           <div class="panel">
             <div class="panel-title">Platform stats</div>
-            <div class="s-row">
-              <span class="s-k">Total projects</span><span class="s-v">5</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Verified</span><span class="s-v green">4</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Genesis members</span
-              ><span class="s-v gold">3</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Average Trust Score</span
-              ><span class="s-v gold">62</span>
-            </div>
+            <div class="s-row"><span class="s-k">Total projects</span><span class="s-v">5</span></div>
+            <div class="s-row"><span class="s-k">Verified</span><span class="s-v green">4</span></div>
+            <div class="s-row"><span class="s-k">Genesis members</span><span class="s-v gold">3</span></div>
+            <div class="s-row"><span class="s-k">Average Trust Score</span><span class="s-v gold">62</span></div>
           </div>
           <div class="panel">
             <div class="panel-title">Top by Trust Score</div>
-            <div class="rwatch-row">
-              <div
-                class="proj-av av-gold"
-                style="
-                  width: 26px;
-                  height: 26px;
-                  font-size: 11px;
-                  border-radius: 7px;
-                "
-              >
-                A
-              </div>
-              <div class="rw-name">AeroBase</div>
-              <div class="rw-score rw-s-hi">85</div>
+            <div class="rwatch-row" onclick="showProjectDetail(4)" style="cursor:pointer;">
+              <div class="proj-av av-gold" style="width:26px;height:26px;font-size:11px;border-radius:7px;">A</div>
+              <div class="rw-name">AeroBase</div><div class="rw-score rw-s-hi">85</div>
             </div>
-            <div class="rwatch-row">
-              <div
-                class="proj-av av-blue"
-                style="
-                  width: 26px;
-                  height: 26px;
-                  font-size: 11px;
-                  border-radius: 7px;
-                "
-              >
-                U
-              </div>
-              <div class="rw-name">Umia Protocol</div>
-              <div class="rw-score rw-s-hi">72</div>
+            <div class="rwatch-row" onclick="showProjectDetail(0)" style="cursor:pointer;">
+              <div class="proj-av av-blue" style="width:26px;height:26px;font-size:11px;border-radius:7px;">U</div>
+              <div class="rw-name">Umia Protocol</div><div class="rw-score rw-s-hi">72</div>
             </div>
-            <div class="rwatch-row">
-              <div
-                class="proj-av av-teal"
-                style="
-                  width: 26px;
-                  height: 26px;
-                  font-size: 11px;
-                  border-radius: 7px;
-                "
-              >
-                B
-              </div>
-              <div class="rw-name">BaseSwap Pro</div>
-              <div class="rw-score rw-s-mi">68</div>
+            <div class="rwatch-row" onclick="showProjectDetail(1)" style="cursor:pointer;">
+              <div class="proj-av av-teal" style="width:26px;height:26px;font-size:11px;border-radius:7px;">B</div>
+              <div class="rw-name">BaseSwap Pro</div><div class="rw-score rw-s-mi">68</div>
             </div>
-            <div class="rwatch-row">
-              <div
-                class="proj-av av-red"
-                style="
-                  width: 26px;
-                  height: 26px;
-                  font-size: 11px;
-                  border-radius: 7px;
-                "
-              >
-                N
-              </div>
-              <div class="rw-name">NovaDEX</div>
-              <div class="rw-score rw-s-lo">41</div>
+            <div class="rwatch-row" onclick="showProjectDetail(3)" style="cursor:pointer;">
+              <div class="proj-av av-red" style="width:26px;height:26px;font-size:11px;border-radius:7px;">N</div>
+              <div class="rw-name">NovaDEX</div><div class="rw-score rw-s-lo">41</div>
             </div>
           </div>
         </div>
         <!-- right for project detail -->
-        <div class="right" id="project-detail-right" style="display: none">
+        <div class="right" id="project-detail-right" style="display:none">
           <div class="panel">
             <div class="panel-title">Trust Score</div>
-            <div class="ts-big">72</div>
-            <div class="ts-lbl">Good · Rising</div>
-            <div class="ts-bar-wrap">
-              <div class="ts-bar-fill" style="width: 72%"></div>
-            </div>
+            <div id="proj-trust-big" class="ts-big" style="color:var(--green);">72</div>
+            <div id="proj-trust-lbl" class="ts-lbl">Good · Rising</div>
+            <div class="ts-bar-wrap"><div id="proj-trust-bar" class="ts-bar-fill" style="width:72%"></div></div>
             <div class="ts-hint"><span>0</span><span>100</span></div>
           </div>
           <div class="panel">
             <div class="panel-title">Stats</div>
-            <div class="s-row">
-              <span class="s-k">Verified holders</span
-              ><span class="s-v">1,240</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Completed</span
-              ><span class="s-v green">8 / 10</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Verdicts</span><span class="s-v">3</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">On platform</span><span class="s-v">14d</span>
-            </div>
+            <div class="s-row"><span class="s-k">Verified holders</span><span id="proj-stat-holders" class="s-v">1,240</span></div>
+            <div class="s-row"><span class="s-k">Completed</span><span id="proj-stat-milestones" class="s-v green">8 / 10</span></div>
+            <div class="s-row"><span class="s-k">Verdicts</span><span id="proj-stat-verdicts" class="s-v">3</span></div>
+            <div class="s-row"><span class="s-k">On platform</span><span id="proj-stat-days" class="s-v">14d</span></div>
           </div>
           <div class="panel">
             <div class="panel-title">Actions</div>
-            <button class="action-btn primary">
+            <button id="proj-edit-btn" class="action-btn" style="display:none;background:rgba(201,165,90,0.1);color:var(--gold);border-color:rgba(201,165,90,0.25);" onclick="openEditProjectModal()">
+              <i class="ti ti-edit"></i> Edit project
+            </button>
+            <button id="proj-verify-btn" class="action-btn primary" style="opacity:0.5;" disabled onclick="connectBrowserWallet()">
               <i class="ti ti-wallet"></i> Verify holder
             </button>
-            <button class="action-btn">
+            <button id="proj-watchlist-btn" class="action-btn" onclick="toggleWatchlist()">
               <i class="ti ti-bookmark"></i> Watchlist
             </button>
             <button class="emergency-btn">
@@ -4561,22 +4477,11 @@
             </button>
           </div>
           <div class="panel">
-            <div class="panel-title">Top verifiers</div>
-            <div class="tv-row">
-              <div class="tv-av">A</div>
-              <div class="tv-name">0xa1f...3d</div>
-              <div class="tv-pts">840 ZXP</div>
-            </div>
-            <div class="tv-row">
-              <div class="tv-av">B</div>
-              <div class="tv-name">0xb2c...7f</div>
-              <div class="tv-pts">620 ZXP</div>
-            </div>
-            <div class="tv-row">
-              <div class="tv-av">C</div>
-              <div class="tv-name">0xc4e...1a</div>
-              <div class="tv-pts">410 ZXP</div>
-            </div>
+            <div class="panel-title">Quick nav</div>
+            <div class="s-row" style="cursor:pointer;" onclick="switchProjectTab('timeline')"><span class="s-k">Trust Timeline</span><span class="s-v" style="color:var(--muted2);">→</span></div>
+            <div class="s-row" style="cursor:pointer;" onclick="switchProjectTab('milestones')"><span class="s-k">Milestones</span><span class="s-v" style="color:var(--muted2);">→</span></div>
+            <div class="s-row" style="cursor:pointer;" onclick="switchProjectTab('votes')"><span class="s-k">Votes</span><span class="s-v" style="color:var(--muted2);">→</span></div>
+            <div class="s-row" style="cursor:pointer;" onclick="switchProjectTab('holders')"><span class="s-k">Holders</span><span class="s-v" style="color:var(--muted2);">→</span></div>
           </div>
         </div>
       </div>
@@ -5340,11 +5245,11 @@
             <div class="prof-top">
               <div class="avatar">U</div>
               <div style="flex: 1">
-                <div class="prof-name">0x4f2a...9c1b</div>
+                <div class="prof-name" id="prof-name-display">0x4f2a...9c1b</div>
                 <div class="prof-wallet">
                   Connected via MetaMask · Base Mainnet
                 </div>
-                <div class="badge-row">
+                <div class="badge-row" id="profile-badge-row">
                   <span class="badge badge-verified"
                     ><i class="ti ti-shield-check" style="font-size: 10px"></i>
                     Verified Holder</span
@@ -5378,13 +5283,15 @@
                 <div class="stat-lbl">Watchlist</div>
               </div>
             </div>
-            <div class="tabs">
-              <div class="tab active">Activity</div>
-              <div class="tab">Watchlist</div>
-              <div class="tab">Settings</div>
+            <div class="tabs" id="profile-tabs">
+              <div class="tab active" data-profile-tab="activity">Activity</div>
+              <div class="tab" data-profile-tab="watchlist">Watchlist</div>
+              <div class="tab" data-profile-tab="settings">Settings</div>
             </div>
           </div>
           <div class="scroll">
+            <!-- ── Activity section ── -->
+            <div id="profile-section-activity">
             <div class="vhist-card">
               <div class="vhist-head">
                 <span class="vhist-title">Verdict history</span
@@ -5502,254 +5409,340 @@
                 ><span class="vzxp pend">—</span>
               </div>
             </div>
+            <!-- Achievements -->
+            <div class="ach-full-card">
+              <div class="vhist-head" style="padding: 12px 14px;">
+                <span class="vhist-title">Achievements</span>
+                <span class="vhist-count">3 of 6 unlocked</span>
+              </div>
+              <div class="ach-full-list">
+                <div class="ach-full-row">
+                  <div class="ach-full-icon ai-gold"><i class="ti ti-shield-check"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">First verdict</div>
+                    <div class="ach-full-desc">Cast your first community verdict</div>
+                  </div>
+                  <span class="ach-badge-ok">Unlocked</span>
+                </div>
+                <div class="ach-full-row">
+                  <div class="ach-full-icon ai-blue"><i class="ti ti-coin"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">First stake</div>
+                    <div class="ach-full-desc">Lock ZXP in the staking pool for the first time</div>
+                  </div>
+                  <span class="ach-badge-ok">Unlocked</span>
+                </div>
+                <div class="ach-full-row">
+                  <div class="ach-full-icon ai-green"><i class="ti ti-calendar-check"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">7-day streak</div>
+                    <div class="ach-full-desc">Check in every day for 7 days in a row</div>
+                  </div>
+                  <span class="ach-badge-ok">Unlocked</span>
+                </div>
+                <div class="ach-full-row ach-locked">
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-trophy"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">Genesis Tier</div>
+                    <div class="ach-full-desc">Reach Genesis Tier 3 — need 600 ZXP total</div>
+                  </div>
+                  <span class="ach-badge-lock">Locked</span>
+                </div>
+                <div class="ach-full-row ach-locked">
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-star"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">100 verdicts</div>
+                    <div class="ach-full-desc">Submit 100 community verdicts — 7 of 100 done</div>
+                  </div>
+                  <span class="ach-badge-lock">7 / 100</span>
+                </div>
+                <div class="ach-full-row ach-locked">
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-users"></i></div>
+                  <div class="ach-full-body">
+                    <div class="ach-full-name">5 referrals</div>
+                    <div class="ach-full-desc">Invite 5 verified holders to Zexus — 0 of 5 done</div>
+                  </div>
+                  <span class="ach-badge-lock">0 / 5</span>
+                </div>
+              </div>
+            </div>
+            </div><!-- end #profile-section-activity -->
+
+            <!-- ── Watchlist section ── -->
+            <div id="profile-section-watchlist" style="display:none;">
             <div class="watch-card">
-              <div class="vhist-head">
+              <div class="watch-tab-header" style="margin-bottom:8px;">
+                <span style="font-size:11px;font-weight:500;color:var(--text);flex:1;">4 projects tracked</span>
+                <button class="watch-filter-chip wc-active">All</button>
+                <button class="watch-filter-chip">Holders</button>
+                <button class="watch-filter-chip">Watching</button>
+              </div>
+              <div class="vhist-head" style="padding-top:0;">
                 <span class="vhist-title">Watchlist</span
                 ><span class="vhist-count">4 projects</span>
               </div>
               <div class="wrow">
-                <div
-                  class="proj-av av-blue"
-                  style="
-                    width: 30px;
-                    height: 30px;
-                    font-size: 12px;
-                    border-radius: 8px;
-                  "
-                >
-                  U
-                </div>
-                <div style="flex: 1; min-width: 0">
+                <div class="proj-av av-blue" style="width:30px;height:30px;font-size:12px;border-radius:8px;">U</div>
+                <div style="flex:1;min-width:0;">
                   <div class="wrow-name">Umia Protocol</div>
                   <div class="wrow-cat">DeFi · Base</div>
                 </div>
-                <span class="holder-tag"
-                  ><i class="ti ti-wallet" style="font-size: 10px"></i>
-                  Holder</span
-                >
-                <div style="text-align: right; margin-left: 10px">
+                <span class="holder-tag"><i class="ti ti-wallet" style="font-size:10px;"></i> Holder</span>
+                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ti ti-bell"></i> Alerts</button>
+                <div style="text-align:right;margin-left:8px;">
                   <div class="w-score hi">72</div>
-                  <div class="w-trend wt-up">
-                    <i class="ti ti-trending-up" style="font-size: 10px"></i>
-                    +12
-                  </div>
+                  <div class="w-trend wt-up"><i class="ti ti-trending-up" style="font-size:10px;"></i> +12</div>
                 </div>
               </div>
               <div class="wrow">
-                <div
-                  class="proj-av av-teal"
-                  style="
-                    width: 30px;
-                    height: 30px;
-                    font-size: 12px;
-                    border-radius: 8px;
-                  "
-                >
-                  B
-                </div>
-                <div style="flex: 1; min-width: 0">
+                <div class="proj-av av-teal" style="width:30px;height:30px;font-size:12px;border-radius:8px;">B</div>
+                <div style="flex:1;min-width:0;">
                   <div class="wrow-name">BaseSwap Pro</div>
                   <div class="wrow-cat">DEX · Base</div>
                 </div>
-                <span class="holder-tag"
-                  ><i class="ti ti-wallet" style="font-size: 10px"></i>
-                  Holder</span
-                >
-                <div style="text-align: right; margin-left: 10px">
+                <span class="holder-tag"><i class="ti ti-wallet" style="font-size:10px;"></i> Holder</span>
+                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ti ti-bell"></i> Alerts</button>
+                <div style="text-align:right;margin-left:8px;">
                   <div class="w-score mi">68</div>
-                  <div class="w-trend wt-up">
-                    <i class="ti ti-trending-up" style="font-size: 10px"></i> +5
-                  </div>
+                  <div class="w-trend wt-up"><i class="ti ti-trending-up" style="font-size:10px;"></i> +5</div>
                 </div>
               </div>
               <div class="wrow">
-                <div
-                  class="proj-av av-red"
-                  style="
-                    width: 30px;
-                    height: 30px;
-                    font-size: 12px;
-                    border-radius: 8px;
-                  "
-                >
-                  N
-                </div>
-                <div style="flex: 1; min-width: 0">
+                <div class="proj-av av-red" style="width:30px;height:30px;font-size:12px;border-radius:8px;">N</div>
+                <div style="flex:1;min-width:0;">
                   <div class="wrow-name">NovaDEX</div>
                   <div class="wrow-cat">DEX · Base</div>
                 </div>
-                <span
-                  style="
-                    font-size: 10px;
-                    color: var(--muted2);
-                    padding: 2px 7px;
-                  "
-                  >Watching</span
-                >
-                <div style="text-align: right; margin-left: 10px">
+                <span style="font-size:10px;color:var(--muted2);padding:2px 7px;">Watching</span>
+                <button class="wrow-alert-btn" title="Enable alerts"><i class="ti ti-bell-off"></i> Off</button>
+                <div style="text-align:right;margin-left:8px;">
                   <div class="w-score lo">41</div>
-                  <div class="w-trend wt-down">
-                    <i class="ti ti-trending-down" style="font-size: 10px"></i>
-                    −18
-                  </div>
+                  <div class="w-trend wt-down"><i class="ti ti-trending-down" style="font-size:10px;"></i> −18</div>
                 </div>
               </div>
               <div class="wrow">
-                <div
-                  class="proj-av av-purple"
-                  style="
-                    width: 30px;
-                    height: 30px;
-                    font-size: 12px;
-                    border-radius: 8px;
-                  "
-                >
-                  Z
-                </div>
-                <div style="flex: 1; min-width: 0">
+                <div class="proj-av av-purple" style="width:30px;height:30px;font-size:12px;border-radius:8px;">Z</div>
+                <div style="flex:1;min-width:0;">
                   <div class="wrow-name">ZeroLend</div>
                   <div class="wrow-cat">Lending · Base</div>
                 </div>
-                <span
-                  style="
-                    font-size: 10px;
-                    color: var(--muted2);
-                    padding: 2px 7px;
-                  "
-                  >Watching</span
-                >
-                <div style="text-align: right; margin-left: 10px">
+                <span style="font-size:10px;color:var(--muted2);padding:2px 7px;">Watching</span>
+                <button class="wrow-alert-btn" title="Enable alerts"><i class="ti ti-bell-off"></i> Off</button>
+                <div style="text-align:right;margin-left:8px;">
                   <div class="w-score na">—</div>
                   <div class="w-trend wt-na">New</div>
                 </div>
               </div>
             </div>
+            </div><!-- end #profile-section-watchlist -->
+
+            <!-- ── Settings section ── -->
+            <div id="profile-section-settings" style="display:none;">
+            <div class="prof-settings-section">
+              <div class="settings-group">
+                <div class="settings-group-title">Notifications</div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Watchlist alerts</div>
+                    <div class="settings-row-desc">Trust Score changes and deadline events for tracked projects</div>
+                  </div>
+                  <div class="settings-toggle on" data-stoggle></div>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">New verdicts</div>
+                    <div class="settings-row-desc">Notify when new community verdicts open for a vote</div>
+                  </div>
+                  <div class="settings-toggle on" data-stoggle></div>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">New projects</div>
+                    <div class="settings-row-desc">Notify when new projects join the Zexus registry</div>
+                  </div>
+                  <div class="settings-toggle" data-stoggle></div>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">ZXP earned</div>
+                    <div class="settings-row-desc">Notify when you receive ZXP rewards</div>
+                  </div>
+                  <div class="settings-toggle on" data-stoggle></div>
+                </div>
+              </div>
+              <div class="settings-group">
+                <div class="settings-group-title">Wallet & Network</div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Connected wallet</div>
+                    <div class="settings-row-desc">0x4f2a...9c1b · MetaMask</div>
+                  </div>
+                  <button class="settings-btn">Disconnect</button>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Network</div>
+                    <div class="settings-row-desc">Base Mainnet · Chain ID 8453</div>
+                  </div>
+                  <button class="settings-btn">Switch</button>
+                </div>
+              </div>
+              <div class="settings-group">
+                <div class="settings-group-title">Privacy</div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Public profile</div>
+                    <div class="settings-row-desc">Show your verdicts and accuracy to other users</div>
+                  </div>
+                  <div class="settings-toggle on" data-stoggle></div>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Show in leaderboard</div>
+                    <div class="settings-row-desc">Display your rank in the public Zexus leaderboard</div>
+                  </div>
+                  <div class="settings-toggle on" data-stoggle></div>
+                </div>
+                <div class="settings-row">
+                  <div class="settings-row-info">
+                    <div class="settings-row-name">Anonymous voting</div>
+                    <div class="settings-row-desc">Hide your wallet address on verdict submissions</div>
+                  </div>
+                  <div class="settings-toggle" data-stoggle></div>
+                </div>
+              </div>
+            </div>
+            </div><!-- end #profile-section-settings -->
+          </div><!-- end .scroll -->
+        </div><!-- end .center -->
+        <div class="right"></div>
+      </div><!-- end #page-profile -->
+    </div>
+
+    <!-- ── Wallet Modal ── -->
+    <div id="wallet-modal-overlay" onclick="if(event.target===this)closeWalletModal()">
+      <div class="wallet-modal">
+        <div class="wallet-modal-title">Connect Wallet</div>
+        <div class="wallet-modal-sub">Connect to Base Mainnet to vote, verify, and earn ZXP</div>
+        <button class="wallet-option" onclick="connectBrowserWallet()">
+          <div class="wallet-option-icon" style="background:rgba(255,143,0,0.12);">
+            <i class="ti ti-wallet" style="color:#ff8f00;font-size:18px;"></i>
+          </div>
+          <div>
+            <div>Browser Wallet</div>
+            <div style="font-size:10px;color:var(--muted);font-weight:400;">MetaMask, Coinbase Wallet, Rabby…</div>
+          </div>
+        </button>
+        <button class="wallet-option" onclick="showToast('Add your WalletConnect Project ID to enable QR scanning');closeWalletModal()">
+          <div class="wallet-option-icon" style="background:rgba(90,130,201,0.12);">
+            <i class="ti ti-qrcode" style="color:var(--blue);font-size:18px;"></i>
+          </div>
+          <div>
+            <div>WalletConnect</div>
+            <div style="font-size:10px;color:var(--muted);font-weight:400;">Scan QR with any mobile wallet</div>
+          </div>
+        </button>
+        <div class="wallet-modal-cancel" onclick="closeWalletModal()">Cancel</div>
+      </div>
+    </div>
+
+    <!-- ── Create Post Modal ── -->
+    <div id="create-post-overlay" class="create-post-overlay" onclick="if(event.target===this)closeCreatePostModal()">
+      <div class="create-post-modal">
+        <div class="cpm-header">
+          <div id="cpm-project-av" class="proj-av av-gold" style="width:32px;height:32px;font-size:13px;border-radius:8px;">A</div>
+          <div class="cpm-title">New Post &middot; <span id="cpm-project-name">Project</span></div>
+          <button class="cpm-close" onclick="closeCreatePostModal()">&#x2715;</button>
+        </div>
+
+        <div>
+          <div class="cpm-label">Post type</div>
+          <div class="type-row">
+            <button class="post-type-btn t-update" data-type="update" onclick="selectPostType('update')">
+              <i class="ti ti-refresh" style="font-size:11px"></i> Update
+            </button>
+            <button class="post-type-btn" data-type="verdict" onclick="selectPostType('verdict')">
+              <i class="ti ti-gavel" style="font-size:11px"></i> Verdict
+            </button>
+            <button class="post-type-btn" data-type="alert" onclick="selectPostType('alert')">
+              <i class="ti ti-alert-triangle" style="font-size:11px"></i> Alert
+            </button>
           </div>
         </div>
-        <div class="right">
-          <div class="panel">
-            <div class="panel-title">ZXP balance</div>
-            <div class="zxp-big">340</div>
-            <div class="zxp-sub">Zexus Points</div>
-            <div class="zxp-bar-row">
-              <span class="zbl">Off-chain</span>
-              <div class="zbw">
-                <div
-                  class="zbf"
-                  style="width: 66%; background: var(--gold)"
-                ></div>
-              </div>
-              <span class="zbv">150</span>
-            </div>
-            <div class="zxp-bar-row">
-              <span class="zbl">On-chain</span>
-              <div class="zbw">
-                <div
-                  class="zbf"
-                  style="width: 22%; background: var(--blue)"
-                ></div>
-              </div>
-              <span class="zbv">50</span>
-            </div>
-            <div class="zxp-bar-row">
-              <span class="zbl">Free</span>
-              <div class="zbw">
-                <div
-                  class="zbf"
-                  style="width: 41%; background: var(--green)"
-                ></div>
-              </div>
-              <span class="zbv">140</span>
-            </div>
+
+        <div>
+          <div class="cpm-label">Title <span style="font-weight:400;color:var(--muted2)">(optional)</span></div>
+          <input id="cpm-title" class="cpm-input" type="text" placeholder="Brief headline…" maxlength="120">
+        </div>
+
+        <div>
+          <div class="cpm-label">Content <span style="font-weight:400;color:var(--muted2)">(required)</span></div>
+          <textarea id="cpm-content" class="cpm-input" rows="4" placeholder="Describe what's happening with this project…" maxlength="2000"></textarea>
+        </div>
+
+        <div class="cpm-tsc-row">
+          <div style="flex:1">
+            <div class="cpm-label">Trust Score change</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:2px">Range −20 to +20. Platform computes the actual score.</div>
           </div>
-          <div class="panel">
-            <div class="panel-title">Activity</div>
-            <div class="s-row">
-              <span class="s-k">Multiplier</span
-              ><span class="s-v green">1.05x</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Stake</span
-              ><span class="s-v gold">200 ZXP</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Predict bets</span><span class="s-v">3</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Check-in streak</span
-              ><span class="s-v">9 days</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">Accuracy</span
-              ><span class="s-v green">85%</span>
-            </div>
-            <div class="s-row">
-              <span class="s-k">To Genesis T3</span
-              ><span class="s-v">+260 ZXP</span>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="panel-title">Achievements</div>
-            <div class="ach-grid">
-              <div class="ach">
-                <div class="ach-icon ai-gold">
-                  <i class="ti ti-shield-check"></i>
-                </div>
-                <div class="ach-name">First verdict</div>
-              </div>
-              <div class="ach">
-                <div class="ach-icon ai-blue"><i class="ti ti-coin"></i></div>
-                <div class="ach-name">First stake</div>
-              </div>
-              <div class="ach">
-                <div class="ach-icon ai-green">
-                  <i class="ti ti-calendar-check"></i>
-                </div>
-                <div class="ach-name">7-day streak</div>
-              </div>
-              <div class="ach locked">
-                <div class="ach-icon ai-gray"><i class="ti ti-trophy"></i></div>
-                <div class="ach-name">Genesis Tier</div>
-              </div>
-              <div class="ach locked">
-                <div class="ach-icon ai-gray"><i class="ti ti-star"></i></div>
-                <div class="ach-name">100 verdicts</div>
-              </div>
-              <div class="ach locked">
-                <div class="ach-icon ai-gray"><i class="ti ti-users"></i></div>
-                <div class="ach-name">5 referrals</div>
-              </div>
-            </div>
-          </div>
-          <div class="panel">
-            <div class="panel-title">Genesis progress</div>
-            <div
-              style="font-size: 11px; color: var(--muted); margin-bottom: 10px"
-            >
-              Current balance:
-              <span style="color: var(--gold); font-weight: 500">340 ZXP</span>
-            </div>
-            <div class="genesis-row">
-              <div class="gen-tier">Tier 3</div>
-              <div class="gen-req">
-                200 ZXP · <span style="color: var(--red)">need +260</span>
-              </div>
-              <div class="gen-mult">1.1x</div>
-            </div>
-            <div class="genesis-row">
-              <div class="gen-tier">Tier 2</div>
-              <div class="gen-req">500 ZXP · need +660</div>
-              <div class="gen-mult">1.15x</div>
-            </div>
-            <div class="genesis-row">
-              <div class="gen-tier">Tier 1</div>
-              <div class="gen-req">1,000 ZXP · need +1160</div>
-              <div class="gen-mult">1.2x</div>
-            </div>
-          </div>
+          <input id="cpm-tsc" class="cpm-tsc-input" type="number" value="0" min="-20" max="20" step="1">
+        </div>
+
+        <div class="cpm-footer">
+          <button class="cpm-cancel" onclick="closeCreatePostModal()">Cancel</button>
+          <button class="cpm-submit" id="cpm-submit-btn" onclick="submitNewPost()">
+            <i class="ti ti-send" style="font-size:12px"></i> Publish
+          </button>
         </div>
       </div>
     </div>
+
+    <!-- ── Edit Project Modal ── -->
+    <div id="edit-project-overlay" class="create-post-overlay" onclick="if(event.target===this)closeEditProjectModal()">
+      <div class="create-post-modal">
+        <div class="cpm-header">
+          <div id="epm-project-av" class="proj-av av-gold" style="width:32px;height:32px;font-size:13px;border-radius:8px;">A</div>
+          <div class="cpm-title">Edit Project &middot; <span id="epm-project-name">AeroBase</span></div>
+          <button class="cpm-close" onclick="closeEditProjectModal()">&#x2715;</button>
+        </div>
+
+        <div>
+          <div class="cpm-label">Project name</div>
+          <input id="epm-name" class="cpm-input" type="text" placeholder="AeroBase" maxlength="60">
+        </div>
+
+        <div>
+          <div class="cpm-label">Description</div>
+          <textarea id="epm-description" class="cpm-input" rows="3" placeholder="Short description of your project…" maxlength="500"></textarea>
+        </div>
+
+        <div>
+          <div class="cpm-label">Category</div>
+          <input id="epm-category" class="cpm-input" type="text" placeholder="AMM, DEX, Lending…" maxlength="40">
+        </div>
+
+        <div>
+          <div class="cpm-label">Website URL <span style="font-weight:400;color:var(--muted2)">(optional)</span></div>
+          <input id="epm-website" class="cpm-input" type="url" placeholder="https://your-project.xyz">
+        </div>
+
+        <div class="cpm-footer">
+          <button class="cpm-cancel" onclick="closeEditProjectModal()">Cancel</button>
+          <button class="cpm-submit" id="epm-submit-btn" onclick="submitEditProject()">
+            <i class="ti ti-check" style="font-size:12px"></i> Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Image lightbox ── -->
+    <div id="img-lightbox" onclick="closeLightbox()">
+      <span id="img-lightbox-close" onclick="closeLightbox()">×</span>
+      <img id="img-lightbox-img" src="" alt="Full image" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- ── Toast notification ── -->
+    <div id="zx-toast"></div>
 
     <script>
       // Page navigation
@@ -5766,20 +5759,197 @@
         if (name === "staking") setTimeout(initChart, 50);
       }
 
-      // Project detail
-      function showProjectDetail() {
-        document.getElementById("projects-list").style.display = "none";
-        document.getElementById("project-detail").style.display = "flex";
-        document.getElementById("projects-right").style.display = "none";
-        document.getElementById("project-detail-right").style.display = "flex";
-        document.getElementById("project-detail-right").innerHTML = projectContextRailHtml();
+      // Project detail — per-project data-driven
+      let _currentProjectIdx = 0;
+      const _watchlist = new Set();
+
+      function showProjectDetail(idx) {
+        _currentProjectIdx = idx;
+        const p = PROJECTS_DATA[idx];
+
+        const avEl = document.getElementById('proj-pdh-av');
+        const nameEl = document.getElementById('proj-pdh-name');
+        const subEl = document.getElementById('proj-pdh-sub');
+        const tagsEl = document.getElementById('proj-pdh-tags');
+        if (avEl) { avEl.className = 'pdh-av ' + p.av; avEl.textContent = p.letter; }
+        if (nameEl) nameEl.textContent = p.name;
+        if (subEl) subEl.textContent = p.cat + ' · ' + p.chain + ' · ' + p.followers + ' followers · on platform for ' + p.days + ' days';
+        if (tagsEl) tagsEl.innerHTML = p.tags.map(([lbl, cls]) =>
+          '<span class="plc-tag' + (cls ? ' ' + cls : '') + '">' + (cls === 'verified' ? '<i class="ti ti-check" style="font-size:9px"></i> ' : '') + lbl + '</span>'
+        ).join('');
+
+        _updateProjectDetailRight(p);
+
+        document.getElementById('projects-list').style.display = 'none';
+        document.getElementById('project-detail').style.display = 'flex';
+        document.getElementById('projects-right').style.display = 'none';
+        document.getElementById('project-detail-right').style.display = 'flex';
+
+        switchProjectTab('overview');
+        _refreshProjectEditBtn();
       }
+
       function hideProjectDetail() {
-        document.getElementById("projects-list").style.display = "flex";
-        document.getElementById("projects-list").style.flexDirection = "column";
-        document.getElementById("project-detail").style.display = "none";
-        document.getElementById("projects-right").style.display = "flex";
-        document.getElementById("project-detail-right").style.display = "none";
+        document.getElementById('projects-list').style.display = 'flex';
+        document.getElementById('projects-list').style.flexDirection = 'column';
+        document.getElementById('project-detail').style.display = 'none';
+        document.getElementById('projects-right').style.display = 'flex';
+        document.getElementById('project-detail-right').style.display = 'none';
+      }
+
+      function _updateProjectDetailRight(p) {
+        const scoreColor = p.trust === null ? 'var(--muted2)' :
+          p.trust >= 70 ? 'var(--green)' : p.trust >= 50 ? 'var(--gold)' : 'var(--red)';
+        const big = document.getElementById('proj-trust-big');
+        const lbl = document.getElementById('proj-trust-lbl');
+        const bar = document.getElementById('proj-trust-bar');
+        if (big) { big.textContent = p.trust !== null ? p.trust : '—'; big.style.color = scoreColor; }
+        if (lbl) lbl.textContent = p.trustLabel;
+        if (bar) bar.style.width = (p.trust || 0) + '%';
+        const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+        el('proj-stat-holders', p.holders);
+        el('proj-stat-milestones', p.milestonesDone);
+        el('proj-stat-verdicts', p.verdicts);
+        el('proj-stat-days', p.days + 'd');
+        const wBtn = document.getElementById('proj-watchlist-btn');
+        if (wBtn) {
+          const inWL = _watchlist.has(_currentProjectIdx);
+          wBtn.innerHTML = '<i class="ti ti-bookmark' + (inWL ? '-filled' : '') + '"></i> ' + (inWL ? 'Watching' : 'Watchlist');
+          wBtn.style.background = inWL ? 'rgba(201,165,90,0.12)' : '';
+          wBtn.style.borderColor = inWL ? 'rgba(201,165,90,0.5)' : '';
+          wBtn.style.color = inWL ? 'var(--gold)' : '';
+        }
+        const vBtn = document.getElementById('proj-verify-btn');
+        if (vBtn) { vBtn.disabled = !_walletAddress; vBtn.style.opacity = _walletAddress ? '1' : '0.5'; }
+      }
+
+      function switchProjectTab(name) {
+        const tabs = document.getElementById('proj-tabs');
+        if (tabs) tabs.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+        const scroll = document.getElementById('proj-detail-scroll');
+        if (!scroll) return;
+        const p = PROJECTS_DATA[_currentProjectIdx];
+        if (name === 'overview') scroll.innerHTML = _renderOverview(p);
+        else if (name === 'timeline') { scroll.innerHTML = _renderTimeline(p); _wireTimeline(scroll, p); }
+        else if (name === 'milestones') scroll.innerHTML = _renderMilestones(p);
+        else if (name === 'votes') scroll.innerHTML = _renderVotes(p);
+        else if (name === 'holders') scroll.innerHTML = _renderHolders(p);
+      }
+
+      function toggleWatchlist() {
+        if (_watchlist.has(_currentProjectIdx)) { _watchlist.delete(_currentProjectIdx); showToast('Removed from watchlist'); }
+        else { _watchlist.add(_currentProjectIdx); showToast('Added to watchlist'); }
+        _updateProjectDetailRight(PROJECTS_DATA[_currentProjectIdx]);
+      }
+
+      function _renderOverview(p) {
+        const vote = p.votes.length > 0 ? p.votes[0] : null;
+        let voteHtml;
+        if (vote) {
+          const pill = vote.open
+            ? '<span class="score-pill" style="background:rgba(201,165,90,0.08);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);margin-top:10px;"><i class="ti ti-clock"></i> ' + vote.left + ' left · ' + vote.reward + '</span>'
+            : '<span class="score-pill sp-' + (vote.impact.startsWith('+') ? 'up' : 'down') + '" style="margin-top:10px;">' + vote.impact + '</span>';
+          voteHtml = '<div class="card c-verdict">' +
+            '<div class="card-head"><div class="proj-av ' + p.av + '">' + p.letter + '</div><div><div style="font-size:12px;color:var(--muted2);">Latest verdict</div></div><div class="card-time">' + vote.time + '</div></div>' +
+            '<div class="card-title">' + vote.title + '</div>' +
+            '<div class="verdict-bar"><span class="vb-yes">' + vote.yes + '%</span><div class="vb-track"><div class="vb-fill-y" style="width:' + vote.yes + '%"></div><div class="vb-fill-n" style="width:' + vote.no + '%"></div></div><span class="vb-no">' + vote.no + '%</span><span class="vb-count">' + vote.count + ' votes</span></div>' +
+            pill + '</div>';
+        } else {
+          voteHtml = '<div class="card" style="text-align:center;padding:28px 20px;color:var(--muted);">No verdicts yet — new project</div>';
+        }
+        const msRows = p.milestones.slice(0, 5).map(m => {
+          const dotCls = {done:'done',progress:'progress',pending:'pending',missed:'missed'}[m.st] || 'pending';
+          const stCls = {done:'mss-done',progress:'mss-progress',pending:'mss-pending',missed:'mss-missed'}[m.st] || 'mss-pending';
+          const label = {done:'Completed',progress:'In progress',pending:'Pending',missed:'Missed'}[m.st] || 'Pending';
+          return '<div class="ms-row"><div class="ms-dot ' + dotCls + '"></div><div class="ms-name">' + m.name + '</div><div class="ms-date">' + m.date + '</div><span class="ms-status ' + stCls + '">' + label + '</span></div>';
+        }).join('');
+        const roadmap = '<div style="background:var(--surface);border:0.5px solid var(--border2);border-radius:10px;overflow:hidden;">' +
+          '<div style="padding:10px 14px;background:var(--surface2);border-bottom:0.5px solid var(--border);font-size:12px;font-weight:500;color:var(--text);">Roadmap</div>' +
+          '<div style="padding:4px 14px;">' + msRows + '</div></div>';
+        return voteHtml + roadmap;
+      }
+
+      function _renderTimeline(p) {
+        const cells = Array.from({length:30},(_,i)=>{
+          const day = i+1, ev = p.timelineEvents[day];
+          const type = ev ? ev.type : 'none';
+          const dateStr = 'May ' + String(day).padStart(2,'0');
+          const title = ev ? ev.title : 'No activity';
+          const status = ev ? ('Status: ' + ev.status) : 'Status: No activity';
+          const votes = ev ? ('Votes: ' + ev.votes) : 'Votes: —';
+          const impact = ev ? ('Trust Score impact: ' + ev.impact) : 'Trust Score impact: 0';
+          return '<button class="timeline-day tl-' + type + '" type="button" data-date="' + dateStr + '" data-title="' + title + '" data-status="' + status + '" data-votes="' + votes + '" data-impact="' + impact + '"></button>';
+        }).join('');
+        const firstEv = Object.entries(p.timelineEvents)[0];
+        const defDate = firstEv ? ('May ' + String(firstEv[0]).padStart(2,'0')) : 'May 01';
+        const defTitle = firstEv ? firstEv[1].title : 'No activity';
+        const defStatus = firstEv ? ('Status: ' + firstEv[1].status) : 'No activity';
+        const defVotes = firstEv ? ('Votes: ' + firstEv[1].votes) : 'Votes: —';
+        const defImpact = firstEv ? ('Trust Score impact: ' + firstEv[1].impact) : 'Trust Score impact: 0';
+        const recentHtml = p.recentEvents.map(ev =>
+          '<div class="recent-event"><span class="recent-date">' + ev.date + '</span><span class="recent-name">' + ev.name + '</span><span class="recent-impact ' + ev.tone + '">' + ev.impact + '</span></div>'
+        ).join('');
+        return '<div class="trust-timeline-card" id="trust-timeline">' +
+          '<div class="concept-head"><div><div class="concept-title">Trust Timeline</div><div class="concept-sub">Every promise, missed deadline, update, and verdict is recorded here.</div></div>' +
+          '<div class="timeline-legend"><span class="legend-pill"><span class="legend-dot tl-verified"></span>Verified</span><span class="legend-pill"><span class="legend-dot tl-voting"></span>Voting</span><span class="legend-pill"><span class="legend-dot tl-risk"></span>Risk</span><span class="legend-pill"><span class="legend-dot tl-none"></span>Quiet</span></div></div>' +
+          '<div class="timeline-grid">' + cells + '</div>' +
+          '<div class="timeline-detail"><div><div class="timeline-date">' + defDate + '</div><div class="timeline-event-title">' + defTitle + '</div></div><div class="timeline-meta">' + defStatus + '<br>' + defVotes + '<br>' + defImpact + '</div></div>' +
+          '<div class="recent-events">' + recentHtml + '</div></div>';
+      }
+
+      function _wireTimeline(scroll, p) {
+        const card = scroll.querySelector('.trust-timeline-card');
+        const detail = card?.querySelector('.timeline-detail');
+        card?.querySelectorAll('.timeline-day').forEach(btn => {
+          btn.addEventListener('click', () => {
+            card.querySelectorAll('.timeline-day').forEach(d => d.classList.remove('active'));
+            btn.classList.add('active');
+            if (detail) detail.innerHTML = '<div><div class="timeline-date">' + btn.dataset.date + '</div><div class="timeline-event-title">' + btn.dataset.title + '</div></div><div class="timeline-meta">' + btn.dataset.status + '<br>' + btn.dataset.votes + '<br>' + btn.dataset.impact + '</div>';
+          });
+        });
+        const firstEv = Object.keys(p.timelineEvents)[0];
+        if (firstEv) card?.querySelector('[data-date="May ' + String(firstEv).padStart(2,'0') + '"]')?.classList.add('active');
+      }
+
+      function _renderMilestones(p) {
+        const toneMap = {done:'verified',progress:'voting',pending:'pending',missed:'missed'};
+        const labelMap = {done:'Completed',progress:'In progress',pending:'Pending',missed:'Missed'};
+        const items = p.milestones.map(m =>
+          '<div class="milestone-card"><div><div class="milestone-name">' + m.name + '</div><div class="milestone-meta">Due: ' + m.date + '</div></div><span class="status-pill status-' + (toneMap[m.st]||'pending') + '">' + (labelMap[m.st]||'Pending') + '</span></div>'
+        ).join('');
+        return '<div class="roadmap-promises"><div class="concept-head"><div><div class="concept-title">Roadmap Promises</div><div class="concept-sub">Milestones are verifiable commitments — holders confirm or dispute each one.</div></div></div><div class="milestone-list">' + items + '</div></div>';
+      }
+
+      function _renderVotes(p) {
+        if (!p.votes.length) return '<div class="card" style="text-align:center;padding:32px;color:var(--muted);">No votes yet — new project</div>';
+        return p.votes.map(v => {
+          const border = v.open ? 'border-color:rgba(201,165,90,0.28);background:rgba(201,165,90,0.02);' : '';
+          const badge = v.open
+            ? '<span class="type-badge" style="background:rgba(201,165,90,0.1);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);"><i class="ti ti-clock" style="font-size:9px"></i> Voting</span>'
+            : '<span class="type-badge tb-verdict"><i class="ti ti-shield-check" style="font-size:9px"></i> Closed</span>';
+          const bottom = v.open
+            ? '<div style="display:flex;gap:8px;margin-top:12px;align-items:center;"><button class="bet-btn bb-yes" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ti ti-thumb-up"></i> Confirm</button><button class="bet-btn bb-no" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ti ti-thumb-down"></i> Dispute</button><div style="margin-left:auto;font-size:11px;color:var(--gold-dim);"><i class="ti ti-clock"></i> ' + v.left + ' · ' + v.reward + '</div></div>'
+            : '<span class="score-pill sp-' + (v.impact.startsWith('+') ? 'up' : 'down') + '" style="margin-top:10px;">' + v.impact + '</span>';
+          return '<div class="card c-verdict" style="' + border + '">' +
+            '<div class="card-head"><div class="proj-av ' + PROJECTS_DATA[_currentProjectIdx].av + '">' + PROJECTS_DATA[_currentProjectIdx].letter + '</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);">' + v.title + '</div><div style="font-size:11px;color:var(--muted);">' + v.count + ' votes</div></div>' + badge + '<div class="card-time">' + v.time + '</div></div>' +
+            '<div class="verdict-bar" style="margin-top:12px;"><span class="vb-yes">' + v.yes + '%</span><div class="vb-track"><div class="vb-fill-y" style="width:' + v.yes + '%"></div><div class="vb-fill-n" style="width:' + v.no + '%"></div></div><span class="vb-no">' + v.no + '%</span><span class="vb-count">' + v.count + ' votes</span></div>' +
+            bottom + '</div>';
+        }).join('');
+      }
+
+      function _renderHolders(p) {
+        const rows = p.topHolders.map((h, i) =>
+          '<div class="tv-row"><div class="tv-av" style="background:rgba(201,165,90,0.1);color:var(--gold);font-size:11px;font-weight:700;">' + (i+1) + '</div><div class="tv-name" style="flex:1;font-family:monospace;">' + h.addr + '</div><div class="tv-pts">' + h.pts + '</div></div>'
+        ).join('');
+        return '<div class="card"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;">Top Verified Holders</div><div style="font-size:11px;color:var(--muted);margin-bottom:14px;">' + p.holders + ' verified holders total</div>' + rows + '</div>';
+      }
+
+      function castVote(btn) {
+        if (!_walletAddress) { showToast('Connect your wallet to vote'); return; }
+        const card = btn.closest('.card');
+        btn.innerHTML = '✓ Voted'; btn.disabled = true;
+        card?.querySelectorAll('.bet-btn').forEach(b => b.disabled = true);
+        showToast('Vote submitted · +15 ZXP earned');
       }
 
       // APY Chart
@@ -5929,17 +6099,87 @@
         });
       }
 
-      // Filter buttons (visual only)
+      // Feed filter buttons — functional filtering
+      (function() {
+        const feedPage = document.getElementById('page-feed');
+        if (!feedPage) return;
+        const btns = feedPage.querySelectorAll('.filter-btn');
+        const cards = feedPage.querySelectorAll('.scroll .card');
+        const map = { 'All': null, 'Verdicts': 'c-verdict', 'Updates': 'c-update', 'Alerts': 'c-alert' };
+        btns.forEach(btn => {
+          btn.addEventListener('click', function() {
+            btns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const cls = map[this.textContent.trim()];
+            cards.forEach(card => {
+              card.style.display = (!cls || card.classList.contains(cls)) ? '' : 'none';
+            });
+          });
+        });
+      })();
+
+      // Other filter-btn groups (visual only)
       document.querySelectorAll(".filter-btn").forEach((btn) => {
+        if (btn.closest('#page-feed')) return; // handled above
         btn.addEventListener("click", function () {
-          this.closest(".filter-row")
-            .querySelectorAll(".filter-btn")
-            .forEach((b) => b.classList.remove("active"));
+          const row = this.closest(".filter-row") || this.closest(".page-header");
+          if (row) row.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
           this.classList.add("active");
         });
       });
-      // Tabs (visual only)
+
+      // Profile tabs — functional section switching
+      (function() {
+        const tabs = document.getElementById('profile-tabs');
+        if (!tabs) return;
+        const sections = {
+          activity: document.getElementById('profile-section-activity'),
+          watchlist: document.getElementById('profile-section-watchlist'),
+          settings: document.getElementById('profile-section-settings'),
+        };
+        function showProfileSection(name) {
+          Object.entries(sections).forEach(([k, el]) => {
+            if (el) el.style.display = k === name ? '' : 'none';
+          });
+        }
+        tabs.querySelectorAll('.tab[data-profile-tab]').forEach(tab => {
+          tab.addEventListener('click', function() {
+            tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            showProfileSection(this.dataset.profileTab);
+          });
+        });
+
+        // Watchlist filter chips
+        const watchCard = document.getElementById('profile-section-watchlist');
+        if (watchCard) {
+          watchCard.querySelectorAll('.watch-filter-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+              watchCard.querySelectorAll('.watch-filter-chip').forEach(c => c.classList.remove('wc-active'));
+              this.classList.add('wc-active');
+            });
+          });
+        }
+
+        // Alert toggle buttons in watchlist
+        document.querySelectorAll('.wrow-alert-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const on = this.classList.toggle('alert-on');
+            this.innerHTML = on ? '<i class="ti ti-bell"></i> Alerts' : '<i class="ti ti-bell-off"></i> Off';
+          });
+        });
+
+        // Settings toggles
+        document.querySelectorAll('[data-stoggle]').forEach(tog => {
+          tog.addEventListener('click', function() {
+            this.classList.toggle('on');
+          });
+        });
+      })();
+
+      // Generic tabs (other pages)
       document.querySelectorAll(".tab").forEach((tab) => {
+        if (tab.closest('#profile-tabs')) return; // handled above
         tab.addEventListener("click", function () {
           this.closest(".tabs")
             .querySelectorAll(".tab")
@@ -6141,30 +6381,7 @@
       }
 
       function addTrustProductConcepts() {
-        const detail = document.getElementById('project-detail');
-        if (detail && !detail.querySelector('.trust-timeline-card')) {
-          const tabs = detail.querySelector('.tabs');
-          if (tabs) {
-            tabs.classList.add('trust-tabs');
-            tabs.innerHTML = '<div class="tab active">Overview</div><div class="tab">Trust Timeline</div><div class="tab">Milestones</div><div class="tab">Votes</div><div class="tab">Holders</div>';
-          }
-          const scroll = detail.querySelector('.scroll');
-          if (scroll) {
-            scroll.insertAdjacentHTML('afterbegin', trustTimelineHtml() + roadmapPromisesHtml());
-            const timeline = scroll.querySelector('.trust-timeline-card');
-            const detailBox = timeline?.querySelector('.timeline-detail');
-            timeline?.querySelectorAll('.timeline-day').forEach((day) => {
-              day.addEventListener('click', () => {
-                timeline.querySelectorAll('.timeline-day').forEach((d) => d.classList.remove('active'));
-                day.classList.add('active');
-                if (detailBox) {
-                  detailBox.innerHTML = '<div><div class="timeline-date">' + day.dataset.date + '</div><div class="timeline-event-title">' + day.dataset.title + '</div></div><div class="timeline-meta">' + day.dataset.status + '<br>' + day.dataset.votes + '<br>' + day.dataset.impact + '</div>';
-                }
-              });
-            });
-            timeline?.querySelector('[data-date="May 12"]')?.classList.add('active');
-          }
-        }
+        // Project detail tab content is now rendered dynamically via showProjectDetail()
         // ── Staking: build two proper flex-row wrappers ──
         (function() {
           const scroll = document.querySelector('#page-staking .scroll');
@@ -6187,11 +6404,7 @@
           scroll.appendChild(row2);
           scroll.appendChild(row3);
         })();
-        // ── Profile: just prepend ZXP Loop ──
-        (function() {
-          const scroll = document.querySelector('#page-profile .scroll');
-          if (scroll && !scroll.querySelector('.zxp-loop-card')) scroll.insertAdjacentHTML('afterbegin', zxpLoopHtml());
-        })();
+        // ZXP Loop is not shown on the Profile tab
       }
 
       function setupZxpLoopDemo() {
@@ -6249,6 +6462,79 @@
         setTimeout(bind, 200);
       }
 
+
+      // Search
+      function setupSearch() {
+        const navBtn = document.querySelector('.nav-search');
+        if (!navBtn) return;
+
+        const PROJECTS = [
+          { name: 'Umia Protocol', cat: 'DeFi · Base Mainnet', av: 'av-blue', l: 'U' },
+          { name: 'BaseSwap Pro',  cat: 'DEX · Base Mainnet',  av: 'av-teal', l: 'B' },
+          { name: 'NovaDEX',       cat: 'DEX · Base Mainnet',  av: 'av-red',  l: 'N' },
+          { name: 'AeroBase',      cat: 'AMM · Base Mainnet',  av: 'av-gold', l: 'A' },
+          { name: 'ZeroLend',      cat: 'Lending · Base Mainnet', av: 'av-purple', l: 'Z' },
+        ];
+
+        const overlay = document.createElement('div');
+        overlay.className = 'search-overlay';
+        overlay.innerHTML =
+          '<div class="search-modal">' +
+            '<div class="search-input-wrap">' +
+              '<i class="ti ti-search"></i>' +
+              '<input class="search-input" type="text" placeholder="Search projects…" autocomplete="off"/>' +
+              '<kbd class="search-esc">Esc</kbd>' +
+            '</div>' +
+            '<div class="search-results"></div>' +
+          '</div>';
+        document.body.appendChild(overlay);
+
+        const input   = overlay.querySelector('.search-input');
+        const results = overlay.querySelector('.search-results');
+
+        function itemHtml(p) {
+          return '<div class="search-result-item" onclick="showPage(\'projects\')">' +
+            '<div class="proj-av ' + p.av + '" style="width:28px;height:28px;font-size:11px;border-radius:7px;flex-shrink:0;">' + p.l + '</div>' +
+            '<div><div class="search-result-name">' + p.name + '</div><div class="search-result-cat">' + p.cat + '</div></div>' +
+          '</div>';
+        }
+
+        function render(q) {
+          if (!q) {
+            results.innerHTML = '<div class="search-section-title">Suggested</div>' +
+              PROJECTS.slice(0, 3).map(itemHtml).join('');
+          } else {
+            const hits = PROJECTS.filter(p => p.name.toLowerCase().includes(q.toLowerCase()));
+            results.innerHTML = hits.length
+              ? hits.slice(0, 3).map(itemHtml).join('')
+              : '<div class="search-empty">No projects found for &ldquo;' + q + '&rdquo;</div>';
+          }
+        }
+
+        function open() {
+          overlay.classList.add('active');
+          input.value = '';
+          render('');
+          setTimeout(() => input.focus(), 50);
+        }
+        function close() {
+          overlay.classList.remove('active');
+        }
+
+        navBtn.addEventListener('click', open);
+        input.addEventListener('input', () => render(input.value));
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        overlay.querySelector('.search-esc').addEventListener('click', close);
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape' && overlay.classList.contains('active')) close();
+          if (e.key === '/' && !overlay.classList.contains('active') && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault(); open();
+          }
+        });
+
+        // Click on result closes search after navigation
+        results.addEventListener('click', () => setTimeout(close, 100));
+      }
 
       function addHeroBlocks() {
         const data = {
@@ -6311,9 +6597,9 @@
             panel('How to Earn ZXP', '<div class="context-chip-row"><span class="context-chip">Daily check-in</span><span class="context-chip">Correct verdicts</span><span class="context-chip">Predict wins</span><span class="context-chip">Referrals</span></div>') +
             panel('APY / Pool', '<div class="context-big">14%</div><div class="context-sub">Pool: 8,620 ZXP - Recalc in 4 days</div>', 'context-feature'),
           profile:
-            panel('Achievements', '<div class="context-icon-grid"><div class="context-icon" title="First verdict"><i class="ti ti-shield-check"></i></div><div class="context-icon" title="First stake"><i class="ti ti-coin"></i></div><div class="context-icon" title="7-day streak"><i class="ti ti-calendar-check"></i></div><div class="context-icon" title="Genesis Tier"><i class="ti ti-trophy"></i></div><div class="context-icon" title="100 verdicts"><i class="ti ti-star"></i></div><div class="context-icon" title="5 referrals"><i class="ti ti-users"></i></div></div>') +
-            panel('Genesis Progress', row('Current balance', '340 ZXP', 'gold') + row('Tier 3', 'need +260') + row('Multiplier', '1.1x', 'green')) +
-            panel('Watchlist Summary', row('Umia Protocol', '72', 'green') + row('BaseSwap Pro', '68', 'gold') + row('NovaDEX', '41', 'red') + row('ZeroLend', 'New')),
+            panel('ZXP Balance', '<div class="context-big">340</div><div class="context-sub"><span style="color:var(--green);">+26 ZXP this week</span></div>', 'context-feature') +
+            panel('Activity', row('Accuracy', '85%', 'green') + row('Verdicts', '7') + row('Streak', '9 days') + row('Rank', '#312', 'gold')) +
+            panel('Genesis Progress', row('Balance', '340 ZXP', 'gold') + row('Next tier', 'need +260') + row('Multiplier', '1.1x', 'green')),
           predict:
             panel('Market Stats', '<div class="context-big">8,620</div><div class="context-sub">ZXP in active pools</div>', 'context-feature') +
             panel('My Bets', row('1,000 users by July 1', 'Yes', 'green') + row('Genesis Tier 1 fills', 'Yes', 'green') + row('5+ partners before MVP', 'Paid', 'gold')) +
@@ -6334,13 +6620,859 @@
         ['feed', 'projects', 'alerts', 'staking', 'profile', 'predict'].forEach(applyContextRail);
       }
 
-      // Init
+      // ── PROJECTS DATA ──
+      const PROJECTS_DATA = [
+        // 0: Umia Protocol
+        {
+          name:'Umia Protocol', letter:'U', av:'av-blue',
+          cat:'DeFi', chain:'Base Mainnet', followers:'12,400', days:14,
+          tags:[['Verified','verified'],['DeFi',''],['Genesis T2','']],
+          trust:72, trustLabel:'Good · Rising', trend:'+12', trendDir:'up',
+          holders:'1,240', milestonesDone:'8 / 10', verdicts:3,
+          milestones:[
+            {name:'Whitepaper v2',date:'May 01',st:'done'},
+            {name:'Testnet deploy',date:'May 10',st:'done'},
+            {name:'Security audit',date:'June 20',st:'progress'},
+            {name:'Mainnet launch',date:'July 01',st:'pending'},
+          ],
+          votes:[
+            {title:'Testnet deploy confirmed',yes:89,no:11,count:847,time:'2h ago',open:false,impact:'+12 pts'},
+            {title:'Security Audit – CertiK',yes:74,no:26,count:312,time:'5h ago',open:true,left:'14h',reward:'+15 ZXP'},
+          ],
+          topHolders:[
+            {av:'A',addr:'0xa1f3...3d8b',pts:'840 ZXP'},
+            {av:'B',addr:'0xb2c7...7f24',pts:'620 ZXP'},
+            {av:'C',addr:'0xc4e1...1a56',pts:'410 ZXP'},
+            {av:'D',addr:'0xd1b9...9c37',pts:'280 ZXP'},
+          ],
+          timelineEvents:{
+            4:{title:'Testnet deploy verified',status:'Verified',votes:'847',impact:'+12',type:'verified'},
+            9:{title:'Liquidity Pool v2 missed',status:'Missed deadline',votes:'214',impact:'-18',type:'risk'},
+            12:{title:'Security Audit submitted',status:'Community voting',votes:'312',impact:'pending',type:'voting'},
+          },
+          recentEvents:[
+            {date:'May 12',name:'Security Audit submitted – Voting open',impact:'pending',tone:'gold'},
+            {date:'May 09',name:'Liquidity Pool v2 missed',impact:'Trust Score -18',tone:'red'},
+            {date:'May 04',name:'Testnet deploy verified',impact:'Trust Score +12',tone:'green'},
+          ],
+        },
+        // 1: BaseSwap Pro
+        {
+          name:'BaseSwap Pro', letter:'B', av:'av-teal',
+          cat:'DEX', chain:'Base Mainnet', followers:'9,800', days:22,
+          tags:[['Verified','verified'],['DEX','']],
+          trust:68, trustLabel:'Good · Stable', trend:'+5', trendDir:'up',
+          holders:'2,180', milestonesDone:'5 / 7', verdicts:4,
+          milestones:[
+            {name:'V1 Launch',date:'Apr 15',st:'done'},
+            {name:'Audit (CertiK)',date:'May 05',st:'done'},
+            {name:'UI Redesign',date:'May 22',st:'done'},
+            {name:'V2 Liquidity Mining',date:'June 10',st:'progress'},
+            {name:'Cross-chain bridge',date:'Sep 01',st:'pending'},
+          ],
+          votes:[
+            {title:'V1 Launch verified',yes:92,no:8,count:1240,time:'3d ago',open:false,impact:'+10 pts'},
+            {title:'CertiK Audit passed',yes:88,no:12,count:986,time:'2d ago',open:false,impact:'+8 pts'},
+            {title:'V2 Mining Plan',yes:61,no:39,count:524,time:'1h ago',open:true,left:'20h',reward:'+12 ZXP'},
+          ],
+          topHolders:[
+            {av:'F',addr:'0xf3c2...2a17',pts:'1,240 ZXP'},
+            {av:'G',addr:'0xg7d5...5b83',pts:'980 ZXP'},
+            {av:'H',addr:'0xh2e8...8c49',pts:'720 ZXP'},
+            {av:'I',addr:'0xi4f3...3d91',pts:'510 ZXP'},
+          ],
+          timelineEvents:{
+            5:{title:'V1 Launch verified',status:'Verified',votes:'1240',impact:'+10',type:'verified'},
+            10:{title:'CertiK Audit passed',status:'Verified',votes:'986',impact:'+8',type:'verified'},
+            18:{title:'V2 Mining Plan voting',status:'Community voting',votes:'524',impact:'pending',type:'voting'},
+          },
+          recentEvents:[
+            {date:'May 18',name:'V2 Mining Plan – Voting open',impact:'pending',tone:'gold'},
+            {date:'May 10',name:'CertiK Audit passed',impact:'Trust Score +8',tone:'green'},
+            {date:'May 05',name:'V1 Launch verified',impact:'Trust Score +10',tone:'green'},
+          ],
+        },
+        // 2: ZeroLend
+        {
+          name:'ZeroLend', letter:'Z', av:'av-purple',
+          cat:'Lending', chain:'Base Mainnet', followers:'18,200', days:3,
+          tags:[['Verified','verified'],['Lending',''],['Genesis T2','']],
+          trust:null, trustLabel:'New · Unscored', trend:'—', trendDir:'na',
+          holders:'340', milestonesDone:'0 / 5', verdicts:0,
+          milestones:[
+            {name:'Platform registration',date:'May 13',st:'done'},
+            {name:'Team verification',date:'May 20',st:'pending'},
+            {name:'Audit submission',date:'June 05',st:'pending'},
+            {name:'Testnet deploy',date:'June 30',st:'pending'},
+            {name:'Mainnet launch',date:'Aug 01',st:'pending'},
+          ],
+          votes:[],
+          topHolders:[
+            {av:'A',addr:'0xa8b4...4c21',pts:'210 ZXP'},
+            {av:'B',addr:'0xb3d9...9e18',pts:'140 ZXP'},
+            {av:'C',addr:'0xc5f2...2a74',pts:'90 ZXP'},
+          ],
+          timelineEvents:{
+            13:{title:'ZeroLend joined Zexus',status:'New project',votes:'—',impact:'New',type:'verified'},
+          },
+          recentEvents:[
+            {date:'May 13',name:'ZeroLend joined Zexus – Genesis Tier 2',impact:'New',tone:'gold'},
+          ],
+        },
+        // 3: NovaDEX
+        {
+          name:'NovaDEX', letter:'N', av:'av-red',
+          cat:'DEX', chain:'Base Mainnet', followers:'7,100', days:31,
+          tags:[['DEX','']],
+          trust:41, trustLabel:'At Risk · Falling', trend:'-18', trendDir:'down',
+          holders:'870', milestonesDone:'3 / 6', verdicts:5,
+          milestones:[
+            {name:'V1 Deploy',date:'Apr 10',st:'done'},
+            {name:'Initial Audit',date:'Apr 20',st:'done'},
+            {name:'Liquidity Pool v1',date:'May 01',st:'done'},
+            {name:'Liquidity Pool v2',date:'May 09',st:'missed'},
+            {name:'Security re-audit',date:'June 15',st:'pending'},
+            {name:'V2 Launch',date:'Aug 01',st:'pending'},
+          ],
+          votes:[
+            {title:'Liquidity Pool v2 – Missed',yes:18,no:82,count:214,time:'10 min ago',open:false,impact:'-18 pts'},
+            {title:'Initial Audit – Passed',yes:79,no:21,count:430,time:'2d ago',open:false,impact:'+6 pts'},
+          ],
+          topHolders:[
+            {av:'X',addr:'0xf3c9...9k24',pts:'520 ZXP'},
+            {av:'Y',addr:'0xg8d3...3m17',pts:'320 ZXP'},
+            {av:'Z',addr:'0xh2f7...7n83',pts:'210 ZXP'},
+          ],
+          timelineEvents:{
+            10:{title:'Initial Audit passed',status:'Verified',votes:'430',impact:'+6',type:'verified'},
+            20:{title:'LP v1 launched & verified',status:'Verified',votes:'318',impact:'+4',type:'verified'},
+            28:{title:'LP v2 missed deadline',status:'Missed deadline',votes:'214',impact:'-18',type:'risk'},
+          },
+          recentEvents:[
+            {date:'May 28',name:'Liquidity Pool v2 missed',impact:'Trust Score -18',tone:'red'},
+            {date:'May 20',name:'LP v1 verified',impact:'Trust Score +4',tone:'green'},
+            {date:'May 10',name:'Initial Audit passed',impact:'Trust Score +6',tone:'green'},
+          ],
+        },
+        // 4: AeroBase
+        {
+          name:'AeroBase', letter:'A', av:'av-gold',
+          cat:'AMM', chain:'Base Mainnet', followers:'14,600', days:45,
+          tags:[['Verified','verified'],['AMM',''],['Genesis T1','']],
+          trust:85, trustLabel:'Excellent · Rising', trend:'+8', trendDir:'up',
+          holders:'3,420', milestonesDone:'9 / 10', verdicts:7,
+          milestones:[
+            {name:'V1 Deploy',date:'Apr 01',st:'done'},
+            {name:'Security Audit (Sec3)',date:'Apr 15',st:'done'},
+            {name:'V2 Protocol',date:'Apr 28',st:'done'},
+            {name:'Treasury DAO',date:'May 08',st:'done'},
+            {name:'V2.1 Mainnet',date:'May 13',st:'done'},
+            {name:'Mobile App Beta',date:'Aug 15',st:'pending'},
+          ],
+          votes:[
+            {title:'V2.1 deploy confirmed',yes:97,no:3,count:2140,time:'8h ago',open:false,impact:'+8 pts'},
+            {title:'Treasury DAO approved',yes:93,no:7,count:1840,time:'1d ago',open:false,impact:'+5 pts'},
+            {title:'V2 Protocol verified',yes:88,no:12,count:1620,time:'3d ago',open:false,impact:'+6 pts'},
+          ],
+          topHolders:[
+            {av:'M',addr:'0xm4n1...1o36',pts:'2,840 ZXP'},
+            {av:'N',addr:'0xn7o5...5p21',pts:'1,920 ZXP'},
+            {av:'O',addr:'0xo2p8...8q14',pts:'1,440 ZXP'},
+            {av:'P',addr:'0xp8q3...3r48',pts:'1,120 ZXP'},
+            {av:'Q',addr:'0xq3r7...7s52',pts:'840 ZXP'},
+          ],
+          timelineEvents:{
+            3:{title:'Security Audit passed',status:'Verified',votes:'1840',impact:'+8',type:'verified'},
+            10:{title:'V2 Protocol verified',status:'Verified',votes:'1620',impact:'+6',type:'verified'},
+            18:{title:'Treasury DAO approved',status:'Verified',votes:'1840',impact:'+5',type:'verified'},
+            25:{title:'V2.1 Mainnet deployed',status:'Verified',votes:'2140',impact:'+8',type:'verified'},
+          },
+          recentEvents:[
+            {date:'May 25',name:'V2.1 Mainnet deployed',impact:'Trust Score +8',tone:'green'},
+            {date:'May 18',name:'Treasury DAO approved',impact:'Trust Score +5',tone:'green'},
+            {date:'May 10',name:'V2 Protocol verified',impact:'Trust Score +6',tone:'green'},
+          ],
+        },
+      ];
+
+      // ── SUPABASE CONFIG ──
+      const _SB_URL = 'https://hlsfbihryfpfefzlznfq.supabase.co'
+      const _SB_KEY = 'sb_publishable_3L0PpCoNhAGSuRHZqzCAKA_gVZ3Nn1p'
+
+      function _sbHeaders() {
+        return {
+          'apikey': _SB_KEY,
+          'Authorization': 'Bearer ' + _SB_KEY,
+          'Accept': 'application/json',
+        }
+      }
+
+      async function _sbGet(path) {
+        const r = await fetch(_SB_URL + '/rest/v1/' + path, { headers: _sbHeaders() })
+        if (!r.ok) throw new Error('Supabase error ' + r.status)
+        return r.json()
+      }
+
+      // ── ROLE STATE ──
+      let _currentRole = 'user'    // 'user' | 'project'
+      let _currentProject = null   // project row if admin
+
+      async function checkWalletRole(address) {
+        // Reset immediately so the UI is never in a stale "project" state
+        _currentRole = 'user'
+        _currentProject = null
+        _applyRoleUI()
+        try {
+          const res = await fetch('/api/check-role?wallet=' + encodeURIComponent(address))
+          const { role, project } = await res.json()
+          _currentRole = role
+          _currentProject = project
+        } catch (e) {
+          // stays 'user'
+        }
+        _applyRoleUI()
+      }
+
+      function _applyRoleUI() {
+        const isProject = _currentRole === 'project' && !!_currentProject
+
+        // ── Compose box (feed) ──
+        const box = document.getElementById('compose-box')
+        if (box) {
+          box.style.display = isProject ? '' : 'none'
+          if (isProject) {
+            const init = (_currentProject.name || 'P')[0].toUpperCase()
+            const el = (id) => document.getElementById(id)
+            if (el('compose-project-badge')) el('compose-project-badge').textContent = _currentProject.name
+            if (el('compose-project-av'))    el('compose-project-av').textContent    = init
+            if (el('cpm-project-name'))      el('cpm-project-name').textContent      = _currentProject.name
+            if (el('cpm-project-av'))        el('cpm-project-av').textContent        = init
+          }
+        }
+
+        // ── Profile page: admin badge ──
+        const oldBadge = document.getElementById('profile-admin-badge')
+        if (oldBadge) oldBadge.remove()
+        const badgeRow = document.getElementById('profile-badge-row')
+        if (badgeRow && isProject) {
+          const b = document.createElement('span')
+          b.id        = 'profile-admin-badge'
+          b.className = 'badge badge-admin'
+          b.title     = 'Admin of ' + _currentProject.name + ' — click to open project'
+          b.innerHTML = '<i class="ti ti-shield-check" style="font-size:10px"></i> Admin: ' + _esc(_currentProject.name)
+          b.onclick   = () => { showProjectBySlug(_currentProject.slug); showPage('projects') }
+          badgeRow.prepend(b)
+        }
+
+        // ── Project detail page: Edit button ──
+        _refreshProjectEditBtn()
+      }
+
+      function _refreshProjectEditBtn() {
+        const btn = document.getElementById('proj-edit-btn')
+        if (!btn) return
+        const isProject = _currentRole === 'project' && !!_currentProject
+        if (!isProject) { btn.style.display = 'none'; return }
+        // Show only when the open project detail matches the admin's project
+        const p = PROJECTS_DATA[_currentProjectIdx]
+        const matches = p && (
+          p.name.toLowerCase() === _currentProject.name.toLowerCase() ||
+          (p.slug && p.slug === _currentProject.slug)
+        )
+        btn.style.display = matches ? '' : 'none'
+      }
+
+      // ── FEED: LOAD FROM SUPABASE ──
+      let _userReactions = {}   // { postId: 'like' | 'dislike' }
+      let _feedLatestTime = null  // ISO timestamp of newest loaded post
+      let _feedPollTimer  = null
+
+      async function loadFeedPosts() {
+        const container = document.getElementById('feed-posts-container')
+        if (!container) return
+
+        container.innerHTML = '<div class="posts-loading"><i class="ti ti-loader spin"></i> Loading posts…</div>'
+
+        try {
+          const res = await fetch('/api/posts?limit=20')
+          const { posts, error } = await res.json()
+
+          if (error || !Array.isArray(posts)) throw new Error(error || 'bad response')
+
+          if (posts.length === 0) {
+            container.innerHTML = '<div class="posts-empty">No posts yet — check back soon.</div>'
+            _feedLatestTime = null
+            _startFeedPoll()
+            return
+          }
+
+          // Load current user's reactions if wallet connected
+          if (_walletAddress && posts.length > 0) {
+            const ids = posts.map(p => p.id).join(',')
+            try {
+              const recs = await _sbGet(
+                `post_reactions?wallet_address=eq.${encodeURIComponent(_walletAddress.toLowerCase())}&post_id=in.(${ids})&select=post_id,reaction`
+              )
+              _userReactions = {}
+              if (Array.isArray(recs)) recs.forEach(r => { _userReactions[r.post_id] = r.reaction })
+            } catch (_) { /* reactions optional */ }
+          }
+
+          container.innerHTML = ''
+          posts.forEach(p => container.appendChild(_renderPost(p)))
+          _feedLatestTime = posts[0]?.created_at || null
+          _startFeedPoll()
+
+        } catch (e) {
+          console.error('loadFeedPosts:', e)
+          container.innerHTML = '<div class="posts-empty" style="color:var(--red)">Could not load posts.</div>'
+        }
+      }
+
+      function _startFeedPoll() {
+        clearInterval(_feedPollTimer)
+        _feedPollTimer = setInterval(_pollNewPosts, 30000)
+      }
+
+      async function _pollNewPosts() {
+        const container = document.getElementById('feed-posts-container')
+        if (!container) { clearInterval(_feedPollTimer); return }
+        // Only poll when the feed page is visible
+        const feedPage = document.getElementById('page-feed')
+        if (!feedPage || !feedPage.classList.contains('active')) return
+
+        try {
+          const since = _feedLatestTime
+            ? '&created_at=gt.' + encodeURIComponent(_feedLatestTime)
+            : ''
+          const url = `/api/posts?limit=10${since}`
+          const res  = await fetch(url)
+          const { posts, error } = await res.json()
+          if (error || !Array.isArray(posts) || posts.length === 0) return
+
+          // Remove loading/empty placeholder if still there
+          container.querySelectorAll('.posts-loading,.posts-empty').forEach(n => n.remove())
+
+          // Prepend newest posts (API returns newest-first, so reverse to insert in order)
+          const fragment = document.createDocumentFragment()
+          ;[...posts].reverse().forEach(p => {
+            if (!container.querySelector(`[data-post-id="${p.id}"]`)) {
+              fragment.prepend(_renderPost(p))
+            }
+          })
+          if (fragment.childNodes.length) container.prepend(fragment)
+          _feedLatestTime = posts[0].created_at
+        } catch (_) { /* silent — poll will retry */ }
+      }
+
+      function _timeAgo(iso) {
+        const diff = Date.now() - new Date(iso).getTime()
+        if (diff < 60000)     return 'just now'
+        if (diff < 3600000)   return Math.floor(diff / 60000) + 'm ago'
+        if (diff < 86400000)  return Math.floor(diff / 3600000) + 'h ago'
+        if (diff < 2592000000) return Math.floor(diff / 86400000) + 'd ago'
+        return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric' })
+      }
+
+      const _AV_COLORS = ['av-gold', 'av-blue', 'av-green', 'av-purple', 'av-teal', 'av-red']
+
+      function _renderPost(p) {
+        const typeMap = {
+          update:  { cls: 'c-update', badge: 'tb-update', icon: 'ti-refresh',         label: 'Update'  },
+          verdict: { cls: 'c-verdict', badge: '',          icon: 'ti-gavel',           label: 'Verdict' },
+          alert:   { cls: 'c-alert',  badge: 'tb-alert',  icon: 'ti-alert-triangle',  label: 'Alert'   },
+        }
+        const t = typeMap[p.post_type] || typeMap.update
+        const projName = p.project_name || ''
+        const avColor  = _AV_COLORS[projName.charCodeAt(0) % _AV_COLORS.length] || 'av-gold'
+        const projInit = projName[0]?.toUpperCase() || '?'
+        const tsc      = Number(p.trust_score_change) || 0
+        const likes    = Number(p.likes_count)   || 0
+        const dislikes = Number(p.dislikes_count) || 0
+        const comments = Number(p.comments_count) || 0
+        const myReact  = _userReactions[p.id]
+
+        let trustPill = ''
+        if (tsc !== 0) {
+          const dir  = tsc > 0 ? 'up' : 'down'
+          const icon = tsc > 0 ? 'ti-trending-up' : 'ti-trending-down'
+          const sign = tsc > 0 ? '+' : ''
+          trustPill = `<span class="score-pill sp-${dir}" style="margin-top:8px;display:inline-flex;align-items:center;gap:4px">` +
+            `<i class="ti ${icon}" style="font-size:11px"></i> ${sign}${tsc} pts &nbsp;·&nbsp; Trust Score: ${p.project_trust_score}` +
+            `</span>`
+        }
+
+        const imgHtml = p.image_url
+          ? `<img class="card-thumb" src="${_esc(p.image_url)}" onclick="openLightbox(this.src)" alt="" ` +
+            `style="position:absolute;right:17px;top:15px;cursor:pointer;">`
+          : ''
+
+        const el = document.createElement('div')
+        el.className = 'card ' + t.cls
+        el.dataset.postId = p.id
+        el.style.position = 'relative'
+
+        el.innerHTML =
+          `<div class="card-head">` +
+            `<div class="proj-av ${avColor}">${projInit}</div>` +
+            `<div style="flex:1">` +
+              `<div style="font-size:13px;font-weight:500;color:var(--text)">${_esc(projName)}</div>` +
+              `<div style="font-size:11px;color:var(--muted)">${_esc(p.project_category || '')} · Base Mainnet</div>` +
+            `</div>` +
+            `<span class="type-badge ${t.badge}"><i class="ti ${t.icon}" style="font-size:9px"></i> ${t.label}</span>` +
+            `<div class="card-time">${_timeAgo(p.created_at)}</div>` +
+          `</div>` +
+          (p.title ? `<div class="card-title">${_esc(p.title)}</div>` : '') +
+          `<div class="card-text"${p.image_url ? ' style="padding-right:84px"' : ''}>${_esc(p.content)}</div>` +
+          imgHtml +
+          trustPill +
+          `<div class="card-footer">` +
+            `<div class="reactions">` +
+              `<button class="reaction-btn${myReact === 'like' ? ' liked' : ''}" onclick="toggleReaction('${p.id}','like',this)">` +
+                `<i class="ti ti-thumb-up" style="font-size:12px"></i> <span class="like-count">${likes}</span>` +
+              `</button>` +
+              `<button class="reaction-btn${myReact === 'dislike' ? ' disliked' : ''}" onclick="toggleReaction('${p.id}','dislike',this)">` +
+                `<i class="ti ti-thumb-down" style="font-size:12px"></i> <span class="dislike-count">${dislikes}</span>` +
+              `</button>` +
+            `</div>` +
+            `<div class="foot-btn" onclick="toggleComments('${p.id}',this)">` +
+              `<i class="ti ti-message"></i> ${comments > 0 ? comments + ' ' : ''}Comment${comments !== 1 ? 's' : ''}` +
+            `</div>` +
+            `<div class="foot-btn" onclick="showProjectBySlug('${_esc(p.project_slug || '')}')">` +
+              `<i class="ti ti-eye"></i> View project` +
+            `</div>` +
+          `</div>` +
+          `<div class="comments-section" id="comments-${p.id}" style="display:none"></div>`
+
+        return el
+      }
+
+      // ── REACTIONS ──
+      async function toggleReaction(postId, reaction, btn) {
+        if (!_walletAddress) { showToast('Connect your wallet to react'); return }
+
+        const card      = btn.closest('[data-post-id]')
+        const likeBtn   = card.querySelector('.reaction-btn:nth-child(1)')
+        const dislikeBtn = card.querySelector('.reaction-btn:nth-child(2)')
+        const likeCount  = likeBtn.querySelector('.like-count')
+        const disCnt     = dislikeBtn.querySelector('.dislike-count')
+
+        try {
+          const res  = await fetch('/api/reactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: _walletAddress, post_id: postId, reaction }),
+          })
+          const data = await res.json()
+
+          if (data.action === 'removed') {
+            delete _userReactions[postId]
+            if (reaction === 'like')    { likeBtn.classList.remove('liked');    likeCount.textContent = Math.max(0, +likeCount.textContent - 1) }
+            else                        { dislikeBtn.classList.remove('disliked'); disCnt.textContent = Math.max(0, +disCnt.textContent - 1) }
+          } else if (data.action === 'updated') {
+            _userReactions[postId] = reaction
+            if (reaction === 'like') {
+              likeBtn.classList.add('liked');     likeCount.textContent = +likeCount.textContent + 1
+              dislikeBtn.classList.remove('disliked'); disCnt.textContent = Math.max(0, +disCnt.textContent - 1)
+            } else {
+              dislikeBtn.classList.add('disliked'); disCnt.textContent = +disCnt.textContent + 1
+              likeBtn.classList.remove('liked');    likeCount.textContent = Math.max(0, +likeCount.textContent - 1)
+            }
+          } else {
+            _userReactions[postId] = reaction
+            if (reaction === 'like') { likeBtn.classList.add('liked');     likeCount.textContent = +likeCount.textContent + 1 }
+            else                     { dislikeBtn.classList.add('disliked'); disCnt.textContent = +disCnt.textContent + 1 }
+          }
+        } catch { showToast('Failed to save reaction') }
+      }
+
+      // ── COMMENTS ──
+      async function toggleComments(postId, btn) {
+        const sec = document.getElementById('comments-' + postId)
+        if (!sec) return
+        if (sec.style.display === 'none') {
+          sec.style.display = 'block'
+          sec.innerHTML = '<div style="padding:8px 0;color:var(--muted);font-size:12px">Loading…</div>'
+          btn.innerHTML = '<i class="ti ti-message"></i> Hide'
+          await _loadComments(postId)
+        } else {
+          sec.style.display = 'none'
+          btn.innerHTML = '<i class="ti ti-message"></i> Comments'
+        }
+      }
+
+      async function _loadComments(postId) {
+        const sec = document.getElementById('comments-' + postId)
+        if (!sec) return
+        try {
+          const res = await fetch('/api/comments?post_id=' + postId)
+          const { comments } = await res.json()
+          let html = '<div class="comments-list">'
+          if (comments && comments.length) {
+            comments.forEach(c => {
+              const short = c.author_wallet.slice(0, 6) + '…' + c.author_wallet.slice(-4)
+              html += `<div class="comment-item">` +
+                `<div class="comment-author">${_esc(short)} · ${_timeAgo(c.created_at)}</div>` +
+                `<div class="comment-text">${_esc(c.content)}</div>` +
+                `</div>`
+            })
+          } else {
+            html += '<div style="color:var(--muted);font-size:12px;padding:4px 0">No comments yet.</div>'
+          }
+          html += '</div>'
+          if (_walletAddress) {
+            html +=
+              `<div class="comment-input-row">` +
+              `<input class="comment-input" id="ci-${postId}" placeholder="Write a comment…" maxlength="500" ` +
+              `onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment('${postId}')}">` +
+              `<button class="comment-send" onclick="submitComment('${postId}')">Send</button>` +
+              `</div>`
+          } else {
+            html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">Connect wallet to comment.</div>'
+          }
+          sec.innerHTML = html
+        } catch { sec.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px 0">Failed to load comments.</div>' }
+      }
+
+      async function submitComment(postId) {
+        if (!_walletAddress) { showToast('Connect wallet to comment'); return }
+        const input = document.getElementById('ci-' + postId)
+        if (!input || !input.value.trim()) return
+        const content = input.value.trim()
+        try {
+          const res = await fetch('/api/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: _walletAddress, post_id: postId, content }),
+          })
+          if (res.ok) { input.value = ''; await _loadComments(postId); showToast('Comment posted') }
+          else        { const e = await res.json(); showToast(e.error || 'Failed to post') }
+        } catch { showToast('Network error') }
+      }
+
+      // ── CREATE POST MODAL ──
+      let _postType = 'update'
+
+      function openCreatePostModal() {
+        if (_currentRole !== 'project') { showToast('Only project admins can post'); return }
+        document.getElementById('create-post-overlay').classList.add('active')
+      }
+      function closeCreatePostModal() {
+        document.getElementById('create-post-overlay').classList.remove('active')
+        const t = document.getElementById('cpm-title')
+        const c = document.getElementById('cpm-content')
+        const s = document.getElementById('cpm-tsc')
+        if (t) t.value = ''
+        if (c) c.value = ''
+        if (s) s.value = '0'
+        selectPostType('update')
+      }
+      function selectPostType(type) {
+        _postType = type
+        document.querySelectorAll('.post-type-btn').forEach(btn => {
+          btn.className = 'post-type-btn' + (btn.dataset.type === type ? ' t-' + type : '')
+        })
+      }
+
+      async function submitNewPost() {
+        if (!_walletAddress || _currentRole !== 'project') { showToast('Not authorized'); return }
+        const title   = (document.getElementById('cpm-title')?.value || '').trim()
+        const content = (document.getElementById('cpm-content')?.value || '').trim()
+        const tsc     = Number(document.getElementById('cpm-tsc')?.value) || 0
+        if (!content) { showToast('Content is required'); return }
+
+        const btn = document.getElementById('cpm-submit-btn')
+        btn.disabled = true
+        btn.innerHTML = '<i class="ti ti-loader spin" style="font-size:12px"></i> Publishing…'
+
+        try {
+          const res  = await fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: _walletAddress, post_type: _postType, title, content, trust_score_change: tsc }),
+          })
+          const data = await res.json()
+          if (res.ok) { closeCreatePostModal(); showToast('Post published!'); await loadFeedPosts() }
+          else        { showToast(data.error || 'Failed to publish') }
+        } catch { showToast('Network error') }
+        finally  {
+          btn.disabled = false
+          btn.innerHTML = '<i class="ti ti-send" style="font-size:12px"></i> Publish'
+        }
+      }
+
+      // ── EDIT PROJECT MODAL ──
+      function openEditProjectModal() {
+        if (_currentRole !== 'project' || !_currentProject) {
+          showToast('Not authorized'); return
+        }
+        const p = _currentProject
+        const el = (id) => document.getElementById(id)
+        if (el('epm-name'))        el('epm-name').value        = p.name        || ''
+        if (el('epm-description')) el('epm-description').value = p.description || ''
+        if (el('epm-category'))    el('epm-category').value    = p.category    || ''
+        if (el('epm-website'))     el('epm-website').value     = p.website_url || ''
+        if (el('epm-project-name')) el('epm-project-name').textContent = p.name
+        if (el('epm-project-av'))   el('epm-project-av').textContent  = (p.name || 'P')[0].toUpperCase()
+        document.getElementById('edit-project-overlay').classList.add('active')
+      }
+
+      function closeEditProjectModal() {
+        document.getElementById('edit-project-overlay').classList.remove('active')
+      }
+
+      async function submitEditProject() {
+        if (!_walletAddress || _currentRole !== 'project') { showToast('Not authorized'); return }
+        const el = (id) => document.getElementById(id)
+        const name        = el('epm-name')?.value.trim()
+        const description = el('epm-description')?.value.trim()
+        const category    = el('epm-category')?.value.trim()
+        const website_url = el('epm-website')?.value.trim()
+
+        if (!name) { showToast('Project name is required'); return }
+
+        const btn = document.getElementById('epm-submit-btn')
+        btn.disabled = true
+        btn.innerHTML = '<i class="ti ti-loader spin" style="font-size:12px"></i> Saving…'
+
+        try {
+          const res = await fetch('/api/projects', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet: _walletAddress, name, description, category, website_url }),
+          })
+          const data = await res.json()
+          if (res.ok) {
+            // Update local state so UI reflects changes immediately
+            _currentProject = { ..._currentProject, ...data.project }
+            _applyRoleUI()
+            closeEditProjectModal()
+            showToast('Project updated!')
+          } else {
+            showToast(data.error || 'Failed to save')
+          }
+        } catch { showToast('Network error') }
+        finally {
+          btn.disabled = false
+          btn.innerHTML = '<i class="ti ti-check" style="font-size:12px"></i> Save changes'
+        }
+      }
+
+      // ── SHOW PROJECT BY SLUG ──
+      function showProjectBySlug(slug) {
+        if (!slug) return
+        const idx = PROJECTS_DATA.findIndex(p =>
+          (p.slug || p.name.toLowerCase().replace(/\s+/g, '-')) === slug.toLowerCase()
+        )
+        if (idx >= 0) showProjectDetail(idx)
+      }
+
+      // ── WALLET CONNECTION ──
+      let _walletAddress = null;
+
+      function openWalletModal() {
+        const pill = document.getElementById('wallet-pill');
+        if (pill && pill._connected) { disconnectWallet(); return; }
+        document.getElementById('wallet-modal-overlay').classList.add('active');
+      }
+      function closeWalletModal() {
+        document.getElementById('wallet-modal-overlay').classList.remove('active');
+      }
+
+      async function connectBrowserWallet() {
+        closeWalletModal();
+        if (!window.ethereum) {
+          showToast('No wallet found — install MetaMask or Coinbase Wallet');
+          return;
+        }
+        try {
+          const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+          _walletAddress = accounts[0];
+          const chainId = await window.ethereum.request({ method:'eth_chainId' });
+          if (chainId !== '0x2105') {
+            try {
+              await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0x2105' }] });
+            } catch (sw) {
+              if (sw.code === 4902) {
+                await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
+                  chainId:'0x2105', chainName:'Base Mainnet',
+                  nativeCurrency:{ name:'Ethereum', symbol:'ETH', decimals:18 },
+                  rpcUrls:['https://mainnet.base.org'],
+                  blockExplorerUrls:['https://basescan.org'],
+                }]});
+              } else {
+                showToast('Switch to Base Mainnet in your wallet');
+              }
+            }
+          }
+          _setWalletUI(true, _walletAddress);
+          await checkWalletRole(_walletAddress);
+          showToast('Connected to Base Mainnet ✓');
+        } catch (e) {
+          if (e.code !== 4001) showToast('Connection failed');
+        }
+      }
+
+      function disconnectWallet() {
+        _walletAddress = null;
+        _currentRole = 'user';
+        _currentProject = null;
+        _setWalletUI(false, null);
+        _applyRoleUI();
+        showToast('Wallet disconnected');
+      }
+
+      function _setWalletUI(connected, address) {
+        const pill = document.getElementById('wallet-pill');
+        if (!pill) return;
+        pill._connected = connected;
+        if (connected && address) {
+          const short = address.slice(0,6) + '...' + address.slice(-4);
+          pill.innerHTML = '<div class="w-dot" style="background:var(--green);"></div><span class="w-addr">' + short + '</span><span style="font-size:10px;color:var(--muted2);margin-left:auto;">Base</span>';
+          pill.style.borderColor = 'rgba(76,175,61,0.3)';
+          pill.title = address + '\nClick to disconnect';
+          // Update profile name display
+          const profName = document.getElementById('prof-name-display');
+          if (profName) profName.textContent = short;
+        } else {
+          pill.innerHTML = '<i class="ti ti-wallet" style="font-size:14px;color:var(--gold);"></i><span class="w-addr" style="color:var(--gold);">Connect Wallet</span>';
+          pill.style.borderColor = '';
+          pill.title = 'Connect wallet';
+          const profName = document.getElementById('prof-name-display');
+          if (profName) profName.textContent = 'Not connected';
+        }
+        const vBtn = document.getElementById('proj-verify-btn');
+        if (vBtn) { vBtn.disabled = !connected; vBtn.style.opacity = connected ? '1' : '0.5'; }
+      }
+
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accs => {
+          if (!accs.length) { disconnectWallet(); return; }
+          // Reset role immediately — hide compose before async check resolves
+          _walletAddress = accs[0];
+          _currentRole = 'user';
+          _currentProject = null;
+          _setWalletUI(true, _walletAddress);
+          _applyRoleUI();
+          checkWalletRole(_walletAddress);
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+      }
+
+      // ── POST COMPOSE ──
+      let _pendingImageData = null;
+
+      function setupCompose() {
+        const fileInput = document.getElementById('compose-file-input');
+        const textarea = document.getElementById('compose-text');
+        if (!fileInput || !textarea) return;
+        fileInput.addEventListener('change', _handleImageSelect);
+        textarea.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+      }
+
+      function _handleImageSelect(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast('Image too large — max 2 MB'); e.target.value = ''; return; }
+        if (!file.type.startsWith('image/')) { showToast('Please select an image file'); e.target.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxW = 1200, maxH = 900;
+            let { width:w, height:h } = img;
+            if (w > maxW || h > maxH) { const r = Math.min(maxW/w, maxH/h); w = Math.round(w*r); h = Math.round(h*r); }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            _pendingImageData = canvas.toDataURL('image/jpeg', 0.82);
+            _showComposeThumb();
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function _showComposeThumb() {
+        const preview = document.getElementById('compose-img-preview');
+        if (!preview) return;
+        preview.style.display = 'block';
+        preview.innerHTML = '<div class="compose-thumb-wrap"><img src="' + _pendingImageData + '" alt="preview"><button class="compose-thumb-remove" onclick="removeComposeImage()" aria-label="Remove">×</button></div>';
+      }
+
+      function removeComposeImage() {
+        _pendingImageData = null;
+        const p = document.getElementById('compose-img-preview');
+        if (p) { p.style.display = 'none'; p.innerHTML = ''; }
+        const fi = document.getElementById('compose-file-input');
+        if (fi) fi.value = '';
+      }
+
+      function submitPost() {
+        const ta = document.getElementById('compose-text');
+        const text = ta ? ta.value.trim() : '';
+        if (!text && !_pendingImageData) { showToast('Write something or attach an image'); return; }
+        const scroll = document.querySelector('#page-feed .scroll');
+        if (!scroll) return;
+        const card = document.createElement('div');
+        card.className = 'card c-update';
+        const thumbHtml = _pendingImageData
+          ? '<img class="card-thumb" src="' + _pendingImageData + '" onclick="openLightbox(this.src)" alt="" style="position:absolute;right:17px;top:15px;">'
+          : '';
+        card.style.position = 'relative';
+        card.innerHTML =
+          '<div class="card-head">' +
+            '<div class="proj-av av-gold" style="width:32px;height:32px;font-size:13px;border-radius:8px;">Z</div>' +
+            '<div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);">You</div><div style="font-size:11px;color:var(--muted);">Community post · just now</div></div>' +
+            '<div class="card-time">just now</div>' +
+          '</div>' +
+          (text ? '<div class="card-text" style="margin-top:8px;' + (_pendingImageData ? 'padding-right:84px;' : '') + '">' + _esc(text) + '</div>' : '') +
+          thumbHtml +
+          '<div class="card-footer"><div class="foot-btn"><i class="ti ti-heart"></i> 0</div><div class="foot-btn"><i class="ti ti-message"></i> Reply</div></div>';
+        const compose = scroll.querySelector('.compose-box');
+        if (compose && compose.nextSibling) scroll.insertBefore(card, compose.nextSibling);
+        else scroll.appendChild(card);
+        if (ta) { ta.value = ''; ta.style.height = ''; }
+        removeComposeImage();
+        showToast('Post published');
+      }
+
+      function openLightbox(src) {
+        const lb = document.getElementById('img-lightbox');
+        const img = document.getElementById('img-lightbox-img');
+        if (!lb || !img) return;
+        img.src = src;
+        lb.classList.add('active');
+      }
+      function closeLightbox() {
+        document.getElementById('img-lightbox')?.classList.remove('active');
+      }
+      function _esc(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      // ── TOAST ──
+      function showToast(msg) {
+        const t = document.getElementById('zx-toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._tid);
+        t._tid = setTimeout(() => t.classList.remove('show'), 2800);
+      }
+
+      // ── Init
       applyCleanDashboardLayout();
       applyAllContextRails();
       addHeroBlocks();
       addTrustProductConcepts();
       setupZxpLoopDemo();
+      setupSearch();
       showPage("feed");
+      loadFeedPosts();
     </script>
   </body>
 </html>

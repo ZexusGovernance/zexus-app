@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import './globals.css'
+import WalletProvider from '@/components/wallet/WalletProvider'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://app.zexus.xyz'
 
@@ -26,6 +28,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"
+        />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+      </head>
       <body
         style={{
           margin: 0,
@@ -35,7 +45,7 @@ export default function RootLayout({
         }}
         suppressHydrationWarning
       >
-        {children}
+        <WalletProvider>{children}</WalletProvider>
       </body>
     </html>
   )
