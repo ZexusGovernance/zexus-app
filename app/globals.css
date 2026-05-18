@@ -4226,8 +4226,17 @@ input[data-burn-slider]::-moz-range-thumb {
    Mobile не затрагивается.
    ══════════════════════════════════════════════════════ */
 @media (min-width: 701px) {
-  /* Hero: compact — карточки одинаковее по высоте */
-  .feed-card .card-hero img { height: 112px; }
+  /* Hero: вставка с отступами — убираем full-bleed, добавляем скруглние */
+  .feed-card .card-hero {
+    margin: 4px 0 10px;        /* убрали -17px по бокам */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+  }
+  .feed-card .card-hero img {
+    height: 88px;
+    border-radius: 8px;
+  }
 
   /* Hero: тёмный виньет чтобы яркие (белые) скрины не резали */
   .card-hero::after {
@@ -4236,11 +4245,12 @@ input[data-burn-slider]::-moz-range-thumb {
     inset: 0;
     background: linear-gradient(
       180deg,
-      rgba(11,10,9,0.28) 0%,
-      transparent 40%,
-      rgba(11,10,9,0.18) 100%
+      rgba(11,10,9,0.22) 0%,
+      transparent 45%,
+      rgba(11,10,9,0.12) 100%
     );
     pointer-events: none;
+    border-radius: 8px;
   }
 
   /* Заголовок: крупнее и жирнее — читается сразу */
