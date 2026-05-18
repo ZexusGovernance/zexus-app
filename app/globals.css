@@ -1554,12 +1554,12 @@ body::after {
   display: none;
 }
 .shell {
-  grid-template-columns: 240px minmax(0, 1fr) clamp(300px, 18vw, 340px);
-  width: 100vw;
-  max-width: none;
+  grid-template-columns: 220px minmax(0, 1fr) 280px;
+  width: 100%;
+  max-width: 1060px;
   height: 100dvh;
   min-height: 100vh;
-  margin: 0;
+  margin: 0 auto;
 }
 .page,
 .center,
@@ -1672,9 +1672,9 @@ body::after {
   min-height: 38px;
   font-size: clamp(12px, 0.72vw, 14px);
 }
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
   .shell {
-    grid-template-columns: 220px minmax(0, 1fr) 260px;
+    grid-template-columns: 200px minmax(0, 1fr);
   }
 }
 @media (max-width: 720px) {
@@ -3095,19 +3095,13 @@ body::after {
   flex: 1;
 }
 
-/* Feed 2-column grid */
+/* Feed — single column (Twitter-style) */
 .feed-posts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: start;
   width: 100%;
-}
-
-@media (max-width: 680px) {
-  .feed-posts-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Feed cards */
@@ -3608,14 +3602,11 @@ input[data-burn-slider]::-moz-range-thumb {
 }
 .nav-backdrop.visible { display: block; }
 
-/* ── Tablet 701 – 1100 px ──────────────────────────────
+/* ── Tablet 701 – 900 px ───────────────────────────────
    Two columns: nav (200px) + full-width content.
    Right context rail is hidden — too narrow to be useful.
    ─────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .shell {
-    grid-template-columns: 200px minmax(0, 1fr);
-  }
+@media (max-width: 900px) {
   .page {
     grid-column: 2 / -1;
     height: 100dvh;
@@ -3630,13 +3621,10 @@ input[data-burn-slider]::-moz-range-thumb {
   .feed-sidebar-col {
     display: none;
   }
-  /* Staking stats wrap to 2 cols */
   .staking-widget-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  /* Hide inline Post button — FAB takes over */
   .create-post-btn-desktop { display: none !important; }
-  /* Feed stays 2-col until 900px */
 }
 
 /* ── Mobile ≤ 700 px ───────────────────────────────────
@@ -3692,10 +3680,6 @@ input[data-burn-slider]::-moz-range-thumb {
     display: none !important;
   }
 
-  /* Feed: single column on mobile */
-  .feed-posts-grid {
-    grid-template-columns: 1fr !important;
-  }
 
   /* Hide Read button on mobile */
   .card-read-more-desktop {
@@ -4226,16 +4210,16 @@ input[data-burn-slider]::-moz-range-thumb {
    Mobile не затрагивается.
    ══════════════════════════════════════════════════════ */
 @media (min-width: 701px) {
-  /* Hero: вставка с отступами — убираем full-bleed, добавляем скруглние */
+  /* Hero: вставка с отступами — убираем full-bleed, добавляем скругление */
   .feed-card .card-hero {
-    margin: 4px 0 10px;        /* убрали -17px по бокам */
-    border-radius: 8px;
+    margin: 4px 0 12px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
   }
   .feed-card .card-hero img {
-    height: 88px;
-    border-radius: 8px;
+    height: 180px;
+    border-radius: 10px;
   }
 
   /* Hero: тёмный виньет чтобы яркие (белые) скрины не резали */
@@ -4261,8 +4245,8 @@ input[data-burn-slider]::-moz-range-thumb {
     margin-bottom: 5px;
   }
 
-  /* Текст: строже — 3 строки максимум на десктопе */
-  .feed-card .card-text { max-height: 54px; }
+  /* Текст: 4 строки на десктопе (карточки шире) */
+  .feed-card .card-text { max-height: 72px; }
 
   /* Trust score pill: НЕ растягиваем на всю ширину */
   .feed-card .score-pill { align-self: flex-start; }
