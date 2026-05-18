@@ -120,6 +120,7 @@ export default function PostCard({ post, onClick }: PostCardProps) {
   const [watchlisted,  setWatchlisted]  = useState(false)
   const [watchLoading, setWatchLoading] = useState(false)
   const [copied,       setCopied]       = useState(false)
+  const [likeHint,     setLikeHint]     = useState(false)
 
   // Load initial like state from API
   useEffect(() => {
@@ -180,7 +181,12 @@ export default function PostCard({ post, onClick }: PostCardProps) {
   const toggleLike = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!isDbPost) { setLiked(v => !v); setLikeCount(c => liked ? c - 1 : c + 1); return }
-    const identifier = address ?? getDeviceId()
+    if (!address) {
+      setLikeHint(true)
+      setTimeout(() => setLikeHint(false), 2000)
+      return
+    }
+    const identifier = address
     const wasLiked = liked
     const wasCount = likeCount
     setLiked(!wasLiked)
@@ -289,7 +295,17 @@ export default function PostCard({ post, onClick }: PostCardProps) {
           </div>
         )}
 
-        {/* Trust score change */}
+        {/* Image thumbnails */}
+        {post.images && post.images.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+            {post.images.slice(0, 3).map((url, i) => (
+              <img key={i} src={url} alt="" onClick={e => e.stopPropagation()}
+                style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 7, border: '0.5px solid var(--border2)', cursor: 'default' }} />
+            ))}
+          </div>
+        )}
+
+        {/* Trust score change — below image */}
         {post.trustScoreChange !== undefined && post.trustScoreChange !== 0 && (
           <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`} style={{ marginTop: 8, display: 'inline-flex' }}>
             <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 11 }} />
@@ -315,16 +331,6 @@ export default function PostCard({ post, onClick }: PostCardProps) {
             <div className="tm-bar-wrap">
               <div className="tm-bar-fill" style={{ width: `${post.trust.value}%`, background: post.trust.color }} />
             </div>
-          </div>
-        )}
-
-        {/* Image thumbnails */}
-        {post.images && post.images.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-            {post.images.slice(0, 3).map((url, i) => (
-              <img key={i} src={url} alt="" onClick={e => e.stopPropagation()}
-                style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 7, border: '0.5px solid var(--border2)', cursor: 'default' }} />
-            ))}
           </div>
         )}
       </div>
@@ -363,14 +369,33 @@ export default function PostCard({ post, onClick }: PostCardProps) {
         )}
 
         {/* Like button */}
-        <button
-          className="foot-btn"
-          style={{ color: liked ? 'var(--red)' : undefined, borderColor: liked ? 'rgba(224,112,112,0.4)' : undefined, gap: 5 }}
-          onClick={toggleLike}
-        >
-          <i className={`ti ${liked ? 'ti-heart-filled' : 'ti-heart'}`} style={{ fontSize: 12 }} />
-          {likeCount > 0 && <span style={{ fontSize: 11 }}>{likeCount}</span>}
-        </button>
+        <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <button
+            className="foot-btn"
+            style={{
+              color: liked ? 'var(--red)' : undefined,
+              borderColor: liked ? 'rgba(224,112,112,0.4)' : undefined,
+              gap: 5,
+              opacity: !address && isDbPost ? 0.5 : 1,
+            }}
+            onClick={toggleLike}
+            title={!address && isDbPost ? 'Connect wallet to like' : undefined}
+          >
+            <i className={`ti ${liked ? 'ti-heart-filled' : 'ti-heart'}`} style={{ fontSize: 12 }} />
+            {likeCount > 0 && <span style={{ fontSize: 11 }}>{likeCount}</span>}
+          </button>
+          {likeHint && (
+            <div style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%',
+              transform: 'translateX(-50%)', whiteSpace: 'nowrap',
+              background: 'var(--surface2)', border: '0.5px solid var(--border2)',
+              borderRadius: 6, padding: '4px 9px', fontSize: 11, color: 'var(--muted)',
+              pointerEvents: 'none', zIndex: 10,
+            }}>
+              Connect wallet to like
+            </div>
+          )}
+        </div>
 
         {isDbPost && (
           <button
@@ -382,8 +407,8 @@ export default function PostCard({ post, onClick }: PostCardProps) {
             <i className={`ti ${copied ? 'ti-check' : 'ti-share'}`} style={{ fontSize: 12 }} />
           </button>
         )}
-        <button className="card-read-more" onClick={onClick}>
-          Open <i className="ti ti-arrow-right" />
+        <button className="card-read-more card-read-more-desktop" onClick={onClick}>
+          Read <i className="ti ti-arrow-right" />
         </button>
       </div>
     </div>

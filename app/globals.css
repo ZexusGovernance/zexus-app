@@ -3173,7 +3173,7 @@ body::after {
   white-space: nowrap;
 }
 
-/* "Open →" button inside card footer */
+/* "Read →" button inside card footer */
 .card-read-more {
   background: none;
   border: none;
@@ -3190,6 +3190,28 @@ body::after {
 }
 .card-read-more:hover { color: var(--gold); }
 .card-read-more .ti { font-size: 12px; }
+
+/* ── Skeleton loader ── */
+@keyframes skel-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skel {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border2) 50%, var(--surface2) 75%);
+  background-size: 800px 100%;
+  animation: skel-shimmer 1.4s infinite linear;
+}
+.skeleton-card { pointer-events: none; }
+.skel-av {
+  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+}
+.skel-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+}
+.skel-footer {
+  display: flex; gap: 8px; margin-top: 14px; align-items: center;
+}
 
 /* ═══ APY Block compact ═══ */
 .apy-block {
@@ -3603,6 +3625,11 @@ input[data-burn-slider]::-moz-range-thumb {
   /* Feed: single column on mobile */
   .feed-posts-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Hide Read button on mobile */
+  .card-read-more-desktop {
+    display: none !important;
   }
 
   /* Staking: single column on mobile */

@@ -12,6 +12,32 @@ import { PROJECTS_FULL } from '@/lib/projects'
 
 type FilterType = 'All' | 'Verdicts' | 'Updates' | 'Alerts'
 
+function PostCardSkeleton() {
+  return (
+    <div className="card feed-card skeleton-card">
+      <div className="skel-head">
+        <div className="skel skel-av" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div className="skel" style={{ width: '55%', height: 11 }} />
+          <div className="skel" style={{ width: '35%', height: 9 }} />
+        </div>
+        <div className="skel" style={{ width: 52, height: 18, borderRadius: 5 }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 12 }}>
+        <div className="skel" style={{ width: '70%', height: 13 }} />
+        <div className="skel" style={{ width: '100%', height: 11 }} />
+        <div className="skel" style={{ width: '88%', height: 11 }} />
+        <div className="skel" style={{ width: '60%', height: 11 }} />
+      </div>
+      <div className="skel-footer">
+        <div className="skel" style={{ width: 70, height: 26, borderRadius: 6 }} />
+        <div className="skel" style={{ width: 44, height: 26, borderRadius: 6 }} />
+        <div className="skel" style={{ width: 32, height: 26, borderRadius: 6 }} />
+      </div>
+    </div>
+  )
+}
+
 const FILTER_TYPES: Record<FilterType, PostType[] | null> = {
   All:      null,
   Verdicts: ['verdict', 'voting'],
@@ -64,6 +90,7 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
   const [createOpen,   setCreateOpen]   = useState(false)
   const [dbPosts,      setDbPosts]      = useState<FeedPost[]>([])
+  const [loading,      setLoading]      = useState(true)
 
   const { address } = useAppKitAccount()
   const [userRole,     setUserRole]     = useState<'user' | 'project'>('user')
@@ -77,6 +104,7 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
         if (posts) setDbPosts(posts.map(dbToFeed))
       })
       .catch(console.error)
+      .finally(() => setLoading(false))
   }, [])
 
   // Open a specific post from a deep link (?post=ID)
@@ -150,15 +178,18 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
 
         <div className="scroll">
           <div className="feed-posts-grid">
-            {filtered.map(post => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onClick={() => setSelectedPost(post)}
-              />
-            ))}
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => <PostCardSkeleton key={i} />)
+              : filtered.map(post => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onClick={() => setSelectedPost(post)}
+                  />
+                ))
+            }
           </div>
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '48px 0', fontSize: '13px' }}>
               No posts for this filter
             </div>
