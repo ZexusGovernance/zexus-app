@@ -3677,14 +3677,34 @@ input[data-burn-slider]::-moz-range-thumb {
 /* ═══════════════════════════════════════════════════════
    CREATE POST BUTTON
    ═══════════════════════════════════════════════════════ */
+/* Watchlist mini-button inside card header */
+.card-watch-mini {
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  color: var(--muted2);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 0.14s;
+  line-height: 1;
+}
+.card-watch-mini:hover { color: var(--gold); }
+.card-watch-mini .ti-bookmark-filled { color: var(--gold); }
+
 .create-post-btn {
-  width: 32px;
-  height: 32px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 9px;
   border: 0.5px solid rgba(201, 165, 90, 0.35);
   background: rgba(201, 165, 90, 0.08);
   color: var(--gold);
-  font-size: 16px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  gap: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;

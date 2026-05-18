@@ -166,10 +166,9 @@ export default function FeedPage({ onNavigate: _onNavigate, initialPostId }: Fee
                 <button
                   className="create-post-btn"
                   onClick={() => setCreateOpen(true)}
-                  title="Create post"
                   aria-label="Create post"
                 >
-                  <i className="ti ti-pencil-plus" />
+                  <i className="ti ti-pencil-plus" /> Post
                 </button>
               )}
             </div>

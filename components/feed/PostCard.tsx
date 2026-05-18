@@ -235,17 +235,31 @@ export default function PostCard({ post, onClick }: PostCardProps) {
       <div className="card-head">
         <div className={`proj-av ${post.av}`}>{post.letter}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {post.projectSlug ? (
-            <a
-              href={`/projects/${post.projectSlug}`}
-              onClick={e => e.stopPropagation()}
-              className="card-proj-link"
-            >
-              {post.project}
-            </a>
-          ) : (
-            <div className="card-proj-name">{post.project}</div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {post.projectSlug ? (
+              <a
+                href={`/projects/${post.projectSlug}`}
+                onClick={e => e.stopPropagation()}
+                className="card-proj-link"
+              >
+                {post.project}
+              </a>
+            ) : (
+              <div className="card-proj-name">{post.project}</div>
+            )}
+            {/* Watchlist mini-button next to project name */}
+            {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
+              <button
+                className="card-watch-mini"
+                onClick={toggleWatch}
+                title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
+              >
+                {watchLoading
+                  ? <i className="ti ti-loader-2 spin" />
+                  : <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} />}
+              </button>
+            )}
+          </div>
           <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {post.sub}
           </div>
@@ -337,15 +351,18 @@ export default function PostCard({ post, onClick }: PostCardProps) {
 
       {/* Footer */}
       <div className="card-footer">
-        {post.isEmergency ? (
+        {/* Emergency / Voting actions */}
+        {post.isEmergency && (
           <div className="foot-btn danger" style={{ flex: 1 }} onClick={e => e.stopPropagation()}>
             <i className="ti ti-alert-octagon" /> Emergency Call
           </div>
-        ) : post.type === 'alert' ? (
+        )}
+        {!post.isEmergency && post.type === 'alert' && (
           <div className="foot-btn danger" onClick={e => e.stopPropagation()}>
             <i className="ti ti-alert-triangle" /> Emergency Call
           </div>
-        ) : isVotingOpen ? (
+        )}
+        {isVotingOpen && (
           <>
             <button className="bet-btn bb-yes" style={{ fontSize: 11, padding: '5px 12px' }} onClick={e => e.stopPropagation()}>
               <i className="ti ti-thumb-up" /> Confirm
@@ -354,21 +371,9 @@ export default function PostCard({ post, onClick }: PostCardProps) {
               <i className="ti ti-thumb-down" /> Dispute
             </button>
           </>
-        ) : (
-          <div
-            className="foot-btn"
-            onClick={toggleWatch}
-            style={watchlisted ? { color: 'var(--gold)', borderColor: 'rgba(201,165,90,0.4)' } : {}}
-            title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
-          >
-            {watchLoading
-              ? <i className="ti ti-loader-2 spin" style={{ fontSize: 12 }} />
-              : <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} style={{ fontSize: 12 }} />}
-            {watchlisted ? ' Watching' : ' Watchlist'}
-          </div>
         )}
 
-        {/* Like button */}
+        {/* Like */}
         <div style={{ position: 'relative', display: 'inline-flex' }}>
           <button
             className="foot-btn"
@@ -397,6 +402,7 @@ export default function PostCard({ post, onClick }: PostCardProps) {
           )}
         </div>
 
+        {/* Share */}
         {isDbPost && (
           <button
             className="foot-btn"
@@ -407,6 +413,8 @@ export default function PostCard({ post, onClick }: PostCardProps) {
             <i className={`ti ${copied ? 'ti-check' : 'ti-share'}`} style={{ fontSize: 12 }} />
           </button>
         )}
+
+        {/* Read — desktop only, pushed to the right */}
         <button className="card-read-more card-read-more-desktop" onClick={onClick}>
           Read <i className="ti ti-arrow-right" />
         </button>
