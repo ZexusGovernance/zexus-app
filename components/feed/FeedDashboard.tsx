@@ -4,111 +4,112 @@ import { useState, useEffect } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
 import type { FeedPost } from '@/lib/feedData'
 
-interface Props {
-  posts: FeedPost[]
-}
+interface Props { posts: FeedPost[] }
 
-interface PopularProject {
-  name: string
-  slug: string
-  category: string
-  likes: number
-}
-
-interface WatchProject {
-  name: string
-  slug: string
-  category: string
-  trust_score: number | null
-}
-
-const TRUST_MOVERS = [
-  { name: 'Umia Protocol', delta: +12 },
-  { name: 'BaseSwap Pro', delta: +5 },
-  { name: 'NovaDEX',      delta: -18 },
-]
+interface PopularProject { name: string; slug: string; likes: number }
+interface WatchProject   { name: string; slug: string; trust_score: number | null }
+interface TodayStats     { posts_today: number; projects_total: number; zxp_today: number; users_today: number }
 
 function Avatar({ letter, variant }: { letter: string; variant: 'gold' | 'muted' }) {
-  return (
-    <span className={`fd-avatar fd-avatar-${variant}`}>{letter}</span>
-  )
+  return <span className={`fd-avatar fd-avatar-${variant}`}>{letter}</span>
+}
+
+function fmt(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return String(n)
 }
 
 export default function FeedDashboard({ posts }: Props) {
   const { address } = useAppKitAccount()
-  const [popular,  setPopular]  = useState<PopularProject[]>([])
+  const [popular,   setPopular]   = useState<PopularProject[]>([])
   const [watchlist, setWatchlist] = useState<WatchProject[]>([])
+  const [stats,     setStats]     = useState<TodayStats | null>(null)
 
   useEffect(() => {
     fetch('/api/projects/popular')
-      .then(r => r.json())
-      .then(({ projects }) => setPopular(projects ?? []))
-      .catch(() => {})
+      .then(r => r.json()).then(({ projects }) => setPopular(projects ?? [])).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/stats/today')
+      .then(r => r.json()).then(setStats).catch(() => {})
   }, [])
 
   useEffect(() => {
     if (!address) { setWatchlist([]); return }
     fetch(`/api/watchlist?wallet=${encodeURIComponent(address)}`)
       .then(r => r.json())
-      .then(({ items }: { items: { projects: WatchProject | null }[] }) => {
-        setWatchlist((items ?? []).map(i => i.projects).filter(Boolean) as WatchProject[])
-      })
+      .then(({ items }: { items: { projects: WatchProject | null }[] }) =>
+        setWatchlist((items ?? []).map(i => i.projects).filter(Boolean) as WatchProject[]))
       .catch(() => {})
   }, [address])
 
-  const latestAlert = posts.find(p => p.type === 'alert')
+  // Latest proposal (voting or verdict type)
+  const latestProposal = posts.find(p => p.type === 'voting' || p.type === 'verdict')
+
+  // Real trust score movers from loaded posts
+  const movers = Object.values(
+    posts
+      .filter(p => p.trustScoreChange && p.trustScoreChange !== 0)
+      .reduce<Record<string, { name: string; delta: number }>>((acc, p) => {
+        if (!acc[p.project]) acc[p.project] = { name: p.project, delta: 0 }
+        acc[p.project].delta += p.trustScoreChange!
+        return acc
+      }, {})
+  )
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 3)
 
   return (
     <div className="feed-dashboard">
 
-      {/* ── Live Alert ───────────────────────────── */}
-      {latestAlert && (
+      {/* ── Latest Proposal (read-only) ──────────── */}
+      {latestProposal && (
         <div className="fd-section">
           <div className="fd-section-header">
-            <span className="fd-section-title" style={{ marginBottom: 0 }}>Live Alert</span>
-            <span className="fd-live-dot" />
+            <span className="fd-section-title" style={{ marginBottom: 0 }}>Latest Proposal</span>
+            <span style={{
+              fontSize: 9, letterSpacing: '1px', color: 'var(--muted2)',
+              textTransform: 'uppercase', fontWeight: 600,
+            }}>
+              read only
+            </span>
           </div>
-          <div className="fd-alert-card">
-            <i className="ti ti-alert-octagon" style={{ color: 'var(--red)', fontSize: 14, flexShrink: 0, marginTop: 1 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {latestAlert.project}
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: '6px 0 8px',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {latestProposal.title || latestProposal.text.slice(0, 48)}
+          </div>
+          {latestProposal.vote && (
+            <>
+              <div className="fd-vote-track">
+                <div className="fd-vote-yes" style={{ width: `${latestProposal.vote.yes}%` }} />
+                <div className="fd-vote-no" />
               </div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {latestAlert.title || latestAlert.text.slice(0, 55)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginTop: 6 }}>
+                <span style={{ color: 'var(--green)', fontWeight: 600 }}>{latestProposal.vote.yes}% Yes</span>
+                <span style={{ color: 'var(--muted)' }}>{latestProposal.vote.count} votes</span>
+                <span style={{ color: 'var(--red)', fontWeight: 600 }}>{100 - latestProposal.vote.yes}% No</span>
               </div>
+            </>
+          )}
+          {!latestProposal.vote && (
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic' }}>
+              {latestProposal.project} · {latestProposal.type}
             </div>
-          </div>
+          )}
         </div>
       )}
-
-      {/* ── Active Vote ──────────────────────────── */}
-      <div className="fd-section">
-        <div className="fd-section-title">Active Vote</div>
-        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 8 }}>
-          Umia Security Audit
-        </div>
-        <div className="fd-vote-track">
-          <div className="fd-vote-yes" style={{ width: '74%' }} />
-          <div className="fd-vote-no" />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginTop: 6 }}>
-          <span style={{ color: 'var(--green)', fontWeight: 600 }}>74% Yes</span>
-          <span style={{ color: 'var(--muted)' }}>312 votes · 14h left</span>
-          <span style={{ color: 'var(--red)', fontWeight: 600 }}>26% No</span>
-        </div>
-      </div>
 
       {/* ── Trust Score Movers ───────────────────── */}
       <div className="fd-section">
         <div className="fd-section-title">Trust Score Movers</div>
-        {TRUST_MOVERS.map((m, i) => (
+        {movers.length === 0 ? (
+          <div style={{ fontSize: 12, color: 'var(--muted2)', padding: '3px 0' }}>No changes today</div>
+        ) : movers.map((m, i) => (
           <div key={i} className="fd-row">
             <span className="fd-row-name">{m.name}</span>
-            <span style={{
-              color: m.delta > 0 ? 'var(--green)' : 'var(--red)',
-              fontWeight: 600, fontSize: 12, flexShrink: 0,
-            }}>
+            <span style={{ color: m.delta > 0 ? 'var(--green)' : 'var(--red)',
+              fontWeight: 600, fontSize: 12, flexShrink: 0 }}>
               {m.delta > 0 ? '+' : ''}{m.delta}
             </span>
           </div>
@@ -120,19 +121,27 @@ export default function FeedDashboard({ posts }: Props) {
         <div className="fd-section-title">Platform Today</div>
         <div className="fd-stat-grid">
           <div className="fd-stat-tile">
-            <div className="fd-stat-val" style={{ color: 'var(--green)' }}>12</div>
-            <div className="fd-stat-lbl">Verdicts</div>
+            <div className="fd-stat-val" style={{ color: 'var(--green)' }}>
+              {stats ? fmt(stats.posts_today) : '—'}
+            </div>
+            <div className="fd-stat-lbl">Posts</div>
           </div>
           <div className="fd-stat-tile">
-            <div className="fd-stat-val">2 140</div>
-            <div className="fd-stat-lbl">Users</div>
+            <div className="fd-stat-val">
+              {stats ? fmt(stats.users_today) : '—'}
+            </div>
+            <div className="fd-stat-lbl">Active Users</div>
           </div>
           <div className="fd-stat-tile">
-            <div className="fd-stat-val" style={{ color: 'var(--gold)' }}>+210</div>
+            <div className="fd-stat-val" style={{ color: 'var(--gold)' }}>
+              {stats ? (stats.zxp_today > 0 ? '+' + fmt(stats.zxp_today) : '0') : '—'}
+            </div>
             <div className="fd-stat-lbl">ZXP</div>
           </div>
           <div className="fd-stat-tile">
-            <div className="fd-stat-val">5</div>
+            <div className="fd-stat-val">
+              {stats ? fmt(stats.projects_total) : '—'}
+            </div>
             <div className="fd-stat-lbl">Projects</div>
           </div>
         </div>
