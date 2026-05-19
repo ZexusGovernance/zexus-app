@@ -2829,8 +2829,8 @@ body::after {
   margin-bottom: 5px !important;
 }
 .feed-card .card-footer {
-  margin-top: 6px !important;
-  padding-top: 7px !important;
+  margin-top: 2px !important;
+  padding-top: 4px !important;
   padding-bottom: 0 !important;
   border-top: none !important;
   position: relative !important;

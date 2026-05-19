@@ -272,13 +272,13 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
       <div className="card-head">
         <div className={`proj-av ${post.av}`}>{post.letter}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, lineHeight: 1.1 }}>
             {post.projectSlug ? (
-              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link">
+              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link" style={{ lineHeight: 1.1 }}>
                 {post.project}
               </a>
             ) : (
-              <div className="card-proj-name">{post.project}</div>
+              <div className="card-proj-name" style={{ lineHeight: 1.1 }}>{post.project}</div>
             )}
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
               <button className="card-watch-mini" onClick={toggleWatch}
@@ -290,7 +290,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
               </button>
             )}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginTop: 0 }}>
             {post.sub}
           </div>
         </div>
@@ -375,7 +375,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
       {/* Separator */}
       <div style={{
         height: '0.5px',
-        margin: '6px 5% 0',
+        margin: '4px 5% 0',
         background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.13) 25%, rgba(255,255,255,0.13) 75%, transparent)',
         flexShrink: 0,
       }} />
