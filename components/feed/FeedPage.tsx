@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PostCard from './PostCard'
 import PostDetailModal from './PostDetailModal'
 import CreatePostModal from './CreatePostModal'
@@ -105,6 +105,21 @@ export default function FeedPage({
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
   const [dbPosts,      setDbPosts]      = useState<FeedPost[]>([])
   const [loading,      setLoading]      = useState(true)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Forward wheel events from anywhere in the feed tab to the scroll container
+  useEffect(() => {
+    const page = document.getElementById('page-feed')
+    if (!page) return
+    const handler = (e: WheelEvent) => {
+      const scroll = scrollRef.current
+      if (!scroll || scroll.contains(e.target as Node)) return
+      e.preventDefault()
+      scroll.scrollTop += e.deltaY
+    }
+    page.addEventListener('wheel', handler, { passive: false })
+    return () => page.removeEventListener('wheel', handler)
+  }, [])
 
   // Load posts from API
   useEffect(() => {
@@ -167,7 +182,7 @@ export default function FeedPage({
           </div>
         </div>
 
-        <div className="scroll">
+        <div className="scroll" ref={scrollRef}>
           <div className="feed-posts-grid">
             {loading
               ? Array.from({ length: 6 }).map((_, i) => <PostCardSkeleton key={i} />)
