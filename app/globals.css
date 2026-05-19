@@ -3160,8 +3160,10 @@ body::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 44px;
-  background: linear-gradient(transparent, rgba(11, 10, 9, 0.72) 60%, rgba(11, 10, 9, 0.88));
+  height: 36px;
+  background:
+    linear-gradient(to right, rgba(11,10,9,0.55), transparent 14%, transparent 86%, rgba(11,10,9,0.35)),
+    linear-gradient(to bottom, transparent, rgba(11,10,9,0.86));
   pointer-events: none;
 }
 .feed-card .card-footer {
