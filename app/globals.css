@@ -2817,12 +2817,25 @@ body::after {
   border-color: rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
   transition: border-color 0.2s, transform 0.16s !important;
+  padding: 9px 12px !important;
 }
 .feed-card:hover {
   background: rgba(255, 255, 255, 0.016) !important;
   border-color: rgba(255, 255, 255, 0.09) !important;
   box-shadow: none !important;
   transform: translateY(-1px) !important;
+}
+.feed-card .card-head {
+  margin-bottom: 5px !important;
+}
+.feed-card .card-footer {
+  margin-top: 6px !important;
+  padding-top: 6px !important;
+}
+.feed-card .foot-btn {
+  border: none !important;
+  background: none !important;
+  padding: 2px 6px !important;
 }
 
 /* Product concept additions */
