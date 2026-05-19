@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('projects')
-    .select('id, name, slug, category, description, admin_wallet, website_url, trust_score, is_verified, has_token, show_holders, show_votes, avatar_url, created_at')
+    .select('id, name, slug, category, description, admin_wallet, website_url, github_url, trust_score, is_verified, has_token, show_holders, show_votes, avatar_url, created_at, contract_address, twitter_followers, discord_members, github_commits_30d, product_stage, has_whitepaper, has_audit, team_doxxed, has_investors, has_partnerships, has_cex_listing, has_foundation_grant, has_media_mentions, has_hackathon_win, has_top_integration, onchain_wallets, onchain_tvl, contract_age_months')
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
