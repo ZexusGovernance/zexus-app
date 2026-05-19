@@ -1740,13 +1740,19 @@ body::after {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
+  gap: 8px;
+  padding: 14px 10px;
+  box-sizing: border-box;
 }
 .feed-dashboard::-webkit-scrollbar { display: none; }
 
 .fd-section {
-  padding: 13px 16px;
-  border-bottom: 0.5px solid var(--border);
+  padding: 12px 13px;
+  background: linear-gradient(160deg, #131209 0%, #0d0c09 100%);
+  border: 0.5px solid rgba(232, 228, 220, 0.07);
+  border-radius: 12px;
   flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.025);
 }
 .fd-section:last-child { border-bottom: none; }
 
@@ -1843,20 +1849,26 @@ body::after {
 .fd-stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px;
+  gap: 0;
 }
 .fd-stat-tile {
-  background: var(--surface2);
-  border: 0.5px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 10px 6px;
   text-align: center;
 }
+.fd-stat-tile:nth-child(odd) {
+  border-right: 0.5px solid rgba(201, 165, 90, 0.14);
+}
+.fd-stat-tile:nth-child(-n+2) {
+  border-bottom: 0.5px solid rgba(201, 165, 90, 0.14);
+}
 .fd-stat-val {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .fd-stat-lbl {
   font-size: 9px;
@@ -1865,9 +1877,9 @@ body::after {
   letter-spacing: 1px;
 }
 
-/* Right panel dark background override for feed */
+/* Right panel: transparent, dashboard handles its own padding */
 #page-feed .right {
-  background: linear-gradient(180deg, #0e0d0a, #080705);
+  background: transparent;
   border-left: 0.5px solid var(--border);
   padding: 0 !important;
 }
