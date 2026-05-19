@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 
+// GET /api/projects — list all projects (public)
+export async function GET() {
+  const { data, error } = await supabaseAdmin
+    .from('projects')
+    .select('id, name, slug, category, description, trust_score, is_verified, avatar_url, has_token, created_at')
+    .order('trust_score', { ascending: false })
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ projects: data ?? [] })
+}
+
 // PATCH /api/projects — update the project profile that belongs to the calling wallet
 export async function PATCH(req: NextRequest) {
   let body: Record<string, unknown>
