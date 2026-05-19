@@ -372,8 +372,16 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
         )}
       </div>
 
+      {/* Separator */}
+      <div style={{
+        height: '0.5px',
+        margin: '6px 5% 0',
+        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.13) 25%, rgba(255,255,255,0.13) 75%, transparent)',
+        flexShrink: 0,
+      }} />
+
       {/* Footer */}
-      <div className="card-footer">
+      <div className="card-footer" style={{ marginTop: 0, paddingTop: 5 }}>
         {post.isEmergency && (
           <div className="foot-btn danger" style={{ flex: 1 }} onClick={e => e.stopPropagation()}>
             <i className="ph-bold ph-warning-octagon" /> Emergency Call
