@@ -3481,7 +3481,7 @@ input[data-burn-slider]::-moz-range-thumb {
 .mobile-bottom-nav {
   display: none;
   position: fixed;
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   left: 10px;
   right: 10px;
   background: rgba(15, 14, 12, 0.92);
@@ -3697,6 +3697,11 @@ input[data-burn-slider]::-moz-range-thumb {
   .page.active {
     grid-template-columns: 1fr !important;
     height: calc(100dvh - 56px - 76px - env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+  input, textarea, select {
+    font-size: 16px !important;
   }
 
   /* Hide page titles — shown in topbar instead */
