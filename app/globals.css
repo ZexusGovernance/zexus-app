@@ -2812,6 +2812,18 @@ body::after {
     0 12px 30px rgba(0, 0, 0, 0.2) !important;
 }
 
+/* Feed cards: transparent like sidebars */
+.feed-card {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+}
+.feed-card:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(201, 165, 90, 0.25) !important;
+  box-shadow: none !important;
+}
+
 /* Product concept additions */
 .trust-tabs .tab {
   font-weight: 800;
