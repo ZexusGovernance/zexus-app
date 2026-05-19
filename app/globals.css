@@ -3193,6 +3193,17 @@ body::after {
 }
 .feed-card .card-footer {
   margin-top: auto;
+  border-top: none;
+  position: relative;
+}
+.feed-card .card-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 0.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 30%, rgba(255,255,255,0.07) 70%, transparent);
 }
 
 /* Clickable project link in card header */
