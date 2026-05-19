@@ -207,6 +207,12 @@ export default function FeedDashboard({ posts, onNavigate }: Props) {
           )}
         </div>
       )}
+      <div style={{
+        fontSize: 10, color: 'rgba(255,255,255,0.18)', textAlign: 'center',
+        padding: '6px 0 2px', letterSpacing: '0.5px', flexShrink: 0,
+      }}>
+        © 2026 Zexus Protocol
+      </div>
     </div>
   )
 }

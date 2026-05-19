@@ -1748,11 +1748,10 @@ body::after {
 
 .fd-section {
   padding: 12px 13px;
-  background: #0f0e0b;
-  border: 0.5px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
+  border: 0.5px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 .fd-section:last-child { border-bottom: none; }
 
