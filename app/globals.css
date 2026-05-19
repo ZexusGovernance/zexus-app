@@ -70,7 +70,7 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background: var(--surface);
+  background: transparent;
   overflow-y: auto;
 }
 .nav-brand {
@@ -237,7 +237,7 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: var(--surface);
+  background: transparent;
   overflow-y: auto;
 }
 .panel {
@@ -2456,7 +2456,7 @@ body::after {
   --blue: #6f9be5;
 }
 .nav {
-  background: #14130f;
+  background: transparent;
   padding: 26px 16px;
 }
 .nav-brand {
@@ -2754,7 +2754,7 @@ body::after {
 }
 .nav,
 .right {
-  background: rgba(19, 18, 16, 0.86) !important;
+  background: transparent !important;
 }
 .card,
 .panel,
