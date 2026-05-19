@@ -107,18 +107,20 @@ export default function FeedPage({
   const [loading,      setLoading]      = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Forward wheel events from anywhere in the feed tab to the scroll container
+  // Scroll feed from anywhere in the browser tab
   useEffect(() => {
-    const page = document.getElementById('page-feed')
-    if (!page) return
     const handler = (e: WheelEvent) => {
       const scroll = scrollRef.current
-      if (!scroll || scroll.contains(e.target as Node)) return
+      if (!scroll) return
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 28   // lines → px
+      if (e.deltaMode === 2) delta *= 400  // pages → px
       e.preventDefault()
-      scroll.scrollTop += e.deltaY
+      e.stopPropagation()
+      scroll.scrollTop += delta
     }
-    page.addEventListener('wheel', handler, { passive: false })
-    return () => page.removeEventListener('wheel', handler)
+    window.addEventListener('wheel', handler, { passive: false, capture: true })
+    return () => window.removeEventListener('wheel', handler, { capture: true })
   }, [])
 
   // Load posts from API
