@@ -3785,10 +3785,6 @@ input[data-burn-slider]::-moz-range-thumb {
     gap: 3px !important;
     align-items: center !important;
   }
-  .feed-card .card-footer .foot-btn {
-    flex-shrink: 0 !important;
-  }
-
   /* Staking: single column on mobile */
   .staking-widget-grid {
     grid-template-columns: 1fr !important;

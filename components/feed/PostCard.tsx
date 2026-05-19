@@ -269,16 +269,16 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
       )}
 
       {/* Header */}
-      <div className="card-head" style={{ alignItems: 'flex-start' }}>
-        <div className={`proj-av ${post.av}`} style={{ flexShrink: 0, marginTop: 1 }}>{post.letter}</div>
+      <div className="card-head">
+        <div className={`proj-av ${post.av}`}>{post.letter}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {post.projectSlug ? (
-              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link" style={{ lineHeight: 1.2 }}>
+              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link">
                 {post.project}
               </a>
             ) : (
-              <div className="card-proj-name" style={{ lineHeight: 1.2 }}>{post.project}</div>
+              <div className="card-proj-name">{post.project}</div>
             )}
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
               <button className="card-watch-mini" onClick={toggleWatch}
@@ -294,10 +294,10 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
             {post.sub}
           </div>
         </div>
-        <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge, flexShrink: 0 }}>
+        <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
           <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
         </span>
-        <div className="card-time" style={{ flexShrink: 0 }}>{timeLabel}</div>
+        <div className="card-time">{timeLabel}</div>
       </div>
 
       {/* Hero image — full width */}
