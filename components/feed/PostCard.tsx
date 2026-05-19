@@ -269,35 +269,35 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
       )}
 
       {/* Header */}
-      <div className="card-head">
-        <div className={`proj-av ${post.av}`}>{post.letter}</div>
+      <div className="card-head" style={{ alignItems: 'flex-start' }}>
+        <div className={`proj-av ${post.av}`} style={{ flexShrink: 0, marginTop: 1 }}>{post.letter}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, lineHeight: 1.1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {post.projectSlug ? (
-              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link" style={{ lineHeight: 1.1 }}>
+              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link" style={{ lineHeight: 1.2 }}>
                 {post.project}
               </a>
             ) : (
-              <div className="card-proj-name" style={{ lineHeight: 1.1 }}>{post.project}</div>
+              <div className="card-proj-name" style={{ lineHeight: 1.2 }}>{post.project}</div>
             )}
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
               <button className="card-watch-mini" onClick={toggleWatch}
                 title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
-                style={{ padding: '0 1px' }}>
+                style={{ padding: 0, lineHeight: 1, flexShrink: 0 }}>
                 {watchLoading
                   ? <i className="ph-bold ph-circle-notch spin" />
                   : <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />}
               </button>
             )}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginTop: 0 }}>
+          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3, marginTop: 2 }}>
             {post.sub}
           </div>
         </div>
-        <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
+        <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge, flexShrink: 0 }}>
           <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
         </span>
-        <div className="card-time">{timeLabel}</div>
+        <div className="card-time" style={{ flexShrink: 0 }}>{timeLabel}</div>
       </div>
 
       {/* Hero image — full width */}

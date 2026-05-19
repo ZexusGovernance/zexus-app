@@ -3779,6 +3779,16 @@ input[data-burn-slider]::-moz-range-thumb {
     display: none !important;
   }
 
+  /* Mobile footer: keep icons tight, no wrap */
+  .feed-card .card-footer {
+    flex-wrap: nowrap !important;
+    gap: 3px !important;
+    align-items: center !important;
+  }
+  .feed-card .card-footer .foot-btn {
+    flex-shrink: 0 !important;
+  }
+
   /* Staking: single column on mobile */
   .staking-widget-grid {
     grid-template-columns: 1fr !important;
@@ -4214,9 +4224,13 @@ input[data-burn-slider]::-moz-range-thumb {
    HERO IMAGE
    ══════════════════════════════════════════════════════ */
 .card-hero {
-  margin: 4px -17px 10px;
+  margin: 4px -14px 10px;
   position: relative;
   overflow: hidden;
+}
+.feed-card .card-hero {
+  margin-left: -12px;
+  margin-right: -12px;
 }
 .card-hero img {
   width: 100%;
