@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
 import type { FeedPost } from '@/lib/feedData'
 
-interface Props { posts: FeedPost[] }
+interface Props { posts: FeedPost[]; onNavigate?: (page: string) => void }
 
 interface PopularProject { name: string; slug: string; likes: number }
 interface WatchProject   { name: string; slug: string; trust_score: number | null }
@@ -19,7 +19,7 @@ function fmt(n: number): string {
   return String(n)
 }
 
-export default function FeedDashboard({ posts }: Props) {
+export default function FeedDashboard({ posts, onNavigate }: Props) {
   const { address } = useAppKitAccount()
   const [popular,   setPopular]   = useState<PopularProject[]>([])
   const [watchlist, setWatchlist] = useState<WatchProject[]>([])
@@ -170,11 +170,11 @@ export default function FeedDashboard({ posts }: Props) {
 
       {/* ── My Watchlist ─────────────────────────── */}
       {address && (
-        <div className="fd-section" style={{ flex: 1 }}>
+        <div className="fd-section">
           <div className="fd-section-title">My Watchlist</div>
           {watchlist.length === 0 ? (
             <div style={{ fontSize: 12, color: 'var(--muted2)', padding: '3px 0' }}>No projects added</div>
-          ) : watchlist.map((p, i) => (
+          ) : watchlist.slice(0, 5).map((p, i) => (
             <div key={p.slug || i} className="fd-row">
               <Avatar letter={p.name[0]?.toUpperCase() ?? '?'} variant="muted" />
               <span className="fd-row-name">
@@ -192,6 +192,19 @@ export default function FeedDashboard({ posts }: Props) {
               )}
             </div>
           ))}
+          {watchlist.length > 5 && (
+            <button
+              onClick={() => onNavigate?.('profile')}
+              style={{
+                marginTop: 8, width: '100%', padding: '6px 0',
+                background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
+                borderRadius: 7, fontSize: 11, color: 'var(--muted)', cursor: 'pointer',
+                letterSpacing: '0.5px',
+              }}
+            >
+              See all ({watchlist.length})
+            </button>
+          )}
         </div>
       )}
     </div>

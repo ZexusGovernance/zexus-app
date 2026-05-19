@@ -190,7 +190,7 @@ export default function FeedPage({
       </div>
 
       <div className="right">
-        <FeedDashboard posts={dbPosts} />
+        <FeedDashboard posts={dbPosts} onNavigate={onNavigate} />
       </div>
 
       {selectedPost && (
