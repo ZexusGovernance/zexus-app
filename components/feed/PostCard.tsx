@@ -253,7 +253,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
                 title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}>
                 {watchLoading
                   ? <i className="ph-bold ph-circle-notch spin" />
-                  : <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} />}
+                  : <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />}
               </button>
             )}
           </div>

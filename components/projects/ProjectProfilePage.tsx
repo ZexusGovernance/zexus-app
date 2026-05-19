@@ -699,7 +699,7 @@ export default function ProjectProfilePage() {
             disabled={watchlistLoading || !address}
             style={watchlisted ? { color: 'var(--gold)', borderColor: 'var(--gold)' } : {}}
           >
-            <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} />
+            <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />
             {watchlistLoading ? ' …' : watchlisted ? ' Watchlisted' : ' Add to watchlist'}
           </button>
           <button className="emergency-btn"><i className="ph-bold ph-warning" /> Emergency Call</button>
