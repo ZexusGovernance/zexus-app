@@ -369,7 +369,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         )}
 
         {/* Views */}
-        {isDbPost && (post.viewCount ?? 0) > 0 && (
+        {isDbPost && (
           <span className="foot-btn" style={{ cursor: 'default', opacity: 0.55, gap: 4 }}>
             <i className="ph-bold ph-eye" style={{ fontSize: 12 }} />
             <span style={{ fontSize: 11 }}>{fmtCount(post.viewCount ?? 0)}</span>
