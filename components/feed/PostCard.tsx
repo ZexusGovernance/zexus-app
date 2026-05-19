@@ -138,13 +138,15 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
   const isDbPost     = isUUID(post.id)
 
   const { address } = useAppKitAccount()
-  const [liked,         setLiked]        = useState(false)
-  const [likeCount,     setLikeCount]    = useState(post.likeCount ?? 0)
-  const [likeAnimating, setLikeAnimating] = useState(false)
-  const [watchlisted,   setWatchlisted]  = useState(false)
-  const [watchLoading,  setWatchLoading] = useState(false)
-  const [copied,        setCopied]       = useState(false)
-  const [likeHint,      setLikeHint]     = useState(false)
+  const [liked,          setLiked]         = useState(false)
+  const [likeCount,      setLikeCount]     = useState(post.likeCount ?? 0)
+  const [likeAnimating,  setLikeAnimating] = useState(false)
+  const [watchlisted,    setWatchlisted]   = useState(false)
+  const [watchLoading,   setWatchLoading]  = useState(false)
+  const [copied,         setCopied]        = useState(false)
+  const [likeHint,       setLikeHint]      = useState(false)
+  const [viewCount,      setViewCount]     = useState(post.viewCount ?? 0)
+  const [commentsCount,  setCommentsCount] = useState(post.commentsCount ?? 0)
 
   useEffect(() => {
     if (!isDbPost) return
@@ -172,6 +174,30 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [post.id, isDbPost, address])
+
+  // Realtime: views
+  useEffect(() => {
+    if (!isDbPost) return
+    const ch = supabase
+      .channel(`views-card-${post.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_views', filter: `post_id=eq.${post.id}` },
+        () => setViewCount(c => c + 1))
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [post.id, isDbPost])
+
+  // Realtime: comments count
+  useEffect(() => {
+    if (!isDbPost) return
+    const ch = supabase
+      .channel(`comments-card-${post.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments', filter: `post_id=eq.${post.id}` },
+        () => setCommentsCount(c => c + 1))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments', filter: `post_id=eq.${post.id}` },
+        () => setCommentsCount(c => Math.max(0, c - 1)))
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [post.id, isDbPost])
 
   useEffect(() => {
     if (!address || !post.projectId) return
@@ -223,8 +249,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
   const votingCard    = post.type === 'voting'     ? { borderColor: 'rgba(201,165,90,0.28)', background: 'rgba(201,165,90,0.02)' } : {}
   const investCard    = post.type === 'investment' ? { borderColor: 'rgba(138,111,201,0.28)', background: 'rgba(138,111,201,0.02)' } : {}
   const emergencyCard = (isEmergency && post.isEmergency) ? { borderColor: 'rgba(224,112,112,0.5)', borderWidth: 1.5 } : {}
-  const timeLabel     = post.createdAt ? relativeTime(post.createdAt) : post.time
-  const commentCount  = post.comments?.length ?? 0
+  const timeLabel = post.createdAt ? relativeTime(post.createdAt) : post.time
 
   return (
     <div
@@ -372,7 +397,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         {isDbPost && (
           <span className="foot-btn" style={{ cursor: 'default', opacity: 0.55, gap: 4 }}>
             <i className="ph-bold ph-eye" style={{ fontSize: 12 }} />
-            <span style={{ fontSize: 11 }}>{fmtCount(post.viewCount ?? 0)}</span>
+            <span style={{ fontSize: 11 }}>{fmtCount(viewCount)}</span>
           </span>
         )}
 
@@ -411,7 +436,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         {isDbPost && (
           <button className="foot-btn" style={{ gap: 5 }} onClick={e => { e.stopPropagation(); onClick() }} title="View comments">
             <i className="ph-bold ph-chat" style={{ fontSize: 12 }} />
-            {commentCount > 0 && <span style={{ fontSize: 11 }}>{commentCount}</span>}
+            {commentsCount > 0 && <span style={{ fontSize: 11 }}>{fmtCount(commentsCount)}</span>}
           </button>
         )}
 

@@ -72,8 +72,9 @@ function dbToFeed(row: DbPost): FeedPost {
     createdAt:   row.created_at,
     comments:    [],
     images:      row.image_url ? [row.image_url] : undefined,
-    likeCount:   row.likes_count,
-    viewCount:   row.views_count ?? 0,
+    likeCount:     row.likes_count,
+    viewCount:     row.views_count ?? 0,
+    commentsCount: row.comments_count ?? 0,
     ...(row.trust_score_change != null && row.trust_score_change !== 0
       ? { trustScoreChange: row.trust_score_change }
       : {}),

@@ -31,6 +31,7 @@ export interface FeedPost {
   investment?: { round: string; amount: string; lead: string }
   likeCount?: number
   viewCount?: number
+  commentsCount?: number
   createdAt?: string
 }
 
