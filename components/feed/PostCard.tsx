@@ -281,7 +281,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
       <div className="card-body">
         <div className="card-title">{post.title}</div>
         <div className="card-text">
-          <RichText text={post.text} stopProp />
+          <RichText text={post.text.replace(/\n+$/, '')} stopProp />
         </div>
 
         {post.investment && (

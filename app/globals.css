@@ -3164,20 +3164,15 @@ body::after {
   flex-direction: column;
   gap: 0;
 }
-/* Text preview: fade out after ~5 lines */
+/* Text preview: clamp to 4 lines, height follows real content */
 .feed-card .card-text {
-  max-height: 82px;
-  overflow: hidden;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 4 !important;
+  overflow: hidden !important;
+  max-height: none !important;
   position: relative;
-  flex: 1;
-}
-.feed-card .card-text::after {
-  content: '';
-  position: absolute;
-  bottom: -2px; left: -4px; right: -4px;
-  height: 40px;
-  background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(11,10,9,0.9) 0%, rgba(11,10,9,0.5) 50%, transparent 100%);
-  pointer-events: none;
+  flex: none;
 }
 .feed-card .card-footer {
   margin-top: auto;
@@ -4355,8 +4350,8 @@ input[data-burn-slider]::-moz-range-thumb {
     margin-bottom: 5px;
   }
 
-  /* Текст: 4 строки на десктопе (карточки шире) */
-  .feed-card .card-text { max-height: 72px; }
+  /* Текст: 4 строки на десктопе */
+  .feed-card .card-text { -webkit-line-clamp: 4 !important; }
 
   /* Trust score pill: НЕ растягиваем на всю ширину */
   .feed-card .score-pill { align-self: flex-start; }
