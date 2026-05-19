@@ -2812,22 +2812,49 @@ body::after {
     0 12px 30px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Feed cards: transparent like sidebars */
+/* Feed cards: transparent, side glow from type stripe */
 .feed-card {
   background: transparent !important;
   border-color: rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s !important;
+  transition: border-color 0.2s, box-shadow 0.22s, transform 0.16s !important;
+}
+.feed-card.c-update {
+  box-shadow: -3px 0 18px rgba(90, 130, 201, 0.22), -1px 0 6px rgba(90, 130, 201, 0.14) !important;
+}
+.feed-card.c-verdict {
+  box-shadow: -3px 0 18px rgba(76, 175, 125, 0.22), -1px 0 6px rgba(76, 175, 125, 0.14) !important;
+}
+.feed-card.c-alert {
+  box-shadow: -3px 0 18px rgba(212, 146, 74, 0.22), -1px 0 6px rgba(212, 146, 74, 0.14) !important;
+}
+.feed-card.c-new {
+  box-shadow: -3px 0 18px rgba(138, 111, 201, 0.22), -1px 0 6px rgba(138, 111, 201, 0.14) !important;
+}
+.feed-card.c-invest {
+  box-shadow: -3px 0 18px rgba(138, 111, 201, 0.22), -1px 0 6px rgba(138, 111, 201, 0.14) !important;
 }
 .feed-card:hover {
-  background: rgba(255, 255, 255, 0.018) !important;
-  border-color: rgba(201, 165, 90, 0.32) !important;
-  box-shadow:
-    0 0 0 0.5px rgba(201, 165, 90, 0.18),
-    0 0 22px rgba(201, 165, 90, 0.10),
-    0 6px 24px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.016) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
   transform: translateY(-1px) !important;
+}
+.feed-card.c-update:hover {
+  box-shadow: -4px 0 28px rgba(90, 130, 201, 0.38), -1px 0 8px rgba(90, 130, 201, 0.22), 0 6px 24px rgba(0,0,0,0.25) !important;
+  border-color: rgba(90, 130, 201, 0.3) !important;
+}
+.feed-card.c-verdict:hover {
+  box-shadow: -4px 0 28px rgba(76, 175, 125, 0.38), -1px 0 8px rgba(76, 175, 125, 0.22), 0 6px 24px rgba(0,0,0,0.25) !important;
+  border-color: rgba(76, 175, 125, 0.3) !important;
+}
+.feed-card.c-alert:hover {
+  box-shadow: -4px 0 28px rgba(212, 146, 74, 0.38), -1px 0 8px rgba(212, 146, 74, 0.22), 0 6px 24px rgba(0,0,0,0.25) !important;
+  border-color: rgba(212, 146, 74, 0.3) !important;
+}
+.feed-card.c-new:hover,
+.feed-card.c-invest:hover {
+  box-shadow: -4px 0 28px rgba(138, 111, 201, 0.38), -1px 0 8px rgba(138, 111, 201, 0.22), 0 6px 24px rgba(0,0,0,0.25) !important;
+  border-color: rgba(138, 111, 201, 0.3) !important;
 }
 
 /* Product concept additions */
