@@ -232,7 +232,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         <div style={{ margin: '-1px -1px 10px', padding: '6px 14px', borderRadius: '10px 10px 0 0',
           background: 'rgba(224,112,112,0.12)', borderBottom: '0.5px solid rgba(224,112,112,0.3)',
           display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--red)', fontWeight: 600 }}>
-          <i className="ti ti-alert-octagon" /> EMERGENCY CALL ACTIVE
+          <i className="ph-bold ph-warning-octagon" /> EMERGENCY CALL ACTIVE
         </div>
       )}
 
@@ -252,7 +252,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
               <button className="card-watch-mini" onClick={toggleWatch}
                 title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}>
                 {watchLoading
-                  ? <i className="ti ti-loader-2 spin" />
+                  ? <i className="ph-bold ph-circle-notch spin" />
                   : <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} />}
               </button>
             )}
@@ -343,21 +343,21 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
       <div className="card-footer">
         {post.isEmergency && (
           <div className="foot-btn danger" style={{ flex: 1 }} onClick={e => e.stopPropagation()}>
-            <i className="ti ti-alert-octagon" /> Emergency Call
+            <i className="ph-bold ph-warning-octagon" /> Emergency Call
           </div>
         )}
         {!post.isEmergency && post.type === 'alert' && (
           <div className="foot-btn danger" onClick={e => e.stopPropagation()}>
-            <i className="ti ti-alert-triangle" /> Emergency Call
+            <i className="ph-bold ph-warning" /> Emergency Call
           </div>
         )}
         {isVotingOpen && (
           <>
             <button className="bet-btn bb-yes" style={{ fontSize: 11, padding: '5px 12px' }} onClick={e => e.stopPropagation()}>
-              <i className="ti ti-thumb-up" /> Confirm
+              <i className="ph-bold ph-thumbs-up" /> Confirm
             </button>
             <button className="bet-btn bb-no" style={{ fontSize: 11, padding: '5px 12px' }} onClick={e => e.stopPropagation()}>
-              <i className="ti ti-thumb-down" /> Dispute
+              <i className="ph-bold ph-thumbs-down" /> Dispute
             </button>
           </>
         )}
@@ -396,7 +396,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         {/* Comments */}
         {isDbPost && (
           <button className="foot-btn" style={{ gap: 5 }} onClick={e => { e.stopPropagation(); onClick() }} title="View comments">
-            <i className="ti ti-message-2" style={{ fontSize: 12 }} />
+            <i className="ph-bold ph-chat-2" style={{ fontSize: 12 }} />
             {commentCount > 0 && <span style={{ fontSize: 11 }}>{commentCount}</span>}
           </button>
         )}
@@ -412,7 +412,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
 
         {/* Read — desktop only */}
         <button className="card-read-more card-read-more-desktop" onClick={onClick}>
-          Read <i className="ti ti-arrow-right" />
+          Read <i className="ph-bold ph-arrow-right" />
         </button>
       </div>
     </div>

@@ -7,10 +7,11 @@ interface NavProps {
   currentPage: string
   onNavigate: (page: string) => void
   onSearchOpen: () => void
+  onCheckInOpen: () => void
   isOpen?: boolean
 }
 
-export default function Nav({ currentPage, onNavigate, onSearchOpen, isOpen }: NavProps) {
+export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOpen, isOpen }: NavProps) {
   const { open } = useAppKit()
   const { address, isConnected } = useAppKitAccount()
   const { profile } = useProfile()
@@ -29,7 +30,7 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, isOpen }: N
         <div className="nav-brand-name">ZEXUS</div>
         <div className="nav-brand-sub">Governance</div>
         <button className="nav-search" type="button" onClick={onSearchOpen} aria-label="Search">
-          <i className="ti ti-search"></i><span>Search</span><kbd>/</kbd>
+          <i className="ph-bold ph-magnifying-glass"></i><span>Search</span><kbd>/</kbd>
         </button>
       </div>
 
@@ -38,25 +39,25 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, isOpen }: N
         className={`nav-item${currentPage === 'feed' ? ' active' : ''}`}
         onClick={() => onNavigate('feed')}
       >
-        <i className="ti ti-layout-dashboard nav-icon"></i> Feed
+        <i className="ph-bold ph-squares-four nav-icon"></i> Feed
       </div>
       <div
         className={`nav-item${currentPage === 'projects' ? ' active' : ''}`}
         onClick={() => onNavigate('projects')}
       >
-        <i className="ti ti-building-community nav-icon"></i> Projects
+        <i className="ph-bold ph-buildings nav-icon"></i> Projects
       </div>
       <div
         className={`nav-item${currentPage === 'staking' ? ' active' : ''}`}
         onClick={() => onNavigate('staking')}
       >
-        <i className="ti ti-coin nav-icon"></i> Staking ZXP
+        <i className="ph-bold ph-coin nav-icon"></i> Staking ZXP
       </div>
       <div
         className={`nav-item${currentPage === 'profile' ? ' active' : ''}`}
         onClick={() => onNavigate('profile')}
       >
-        <i className="ti ti-user-circle nav-icon"></i> Profile
+        <i className="ph-bold ph-user-circle nav-icon"></i> Profile
       </div>
 
       <div style={{ padding: '10px 0 4px' }}>
@@ -64,10 +65,26 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, isOpen }: N
           onClick={() => onNavigate('predict')}
           className={`nav-item${currentPage === 'predict' ? ' active' : ''}`}
         >
-          <i className="ti ti-chart-candle nav-icon"></i>
+          <i className="ph-bold ph-trend-up nav-icon"></i>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--gold)' }}>Predict</div>
             <div style={{ fontSize: '9px', color: 'var(--gold-dim)' }}>3 active events</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: '0 0 4px' }}>
+        <div
+          onClick={onCheckInOpen}
+          className="nav-item"
+          style={{ borderColor: 'rgba(255,154,154,0.2)', background: 'rgba(255,154,154,0.05)' }}
+        >
+          <i className="ph-bold ph-flame nav-icon" style={{ color: '#ff9a9a' }}></i>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '13px', fontWeight: 500, color: '#ff9a9a' }}>Daily Check-in</div>
+            <div style={{ fontSize: '9px', color: 'rgba(255,154,154,0.55)' }}>
+              +1 ZXP{profile?.claim_streak ? ` · day ${profile.claim_streak} streak` : ''}
+            </div>
           </div>
         </div>
       </div>

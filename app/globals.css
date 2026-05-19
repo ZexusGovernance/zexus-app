@@ -3482,8 +3482,13 @@ input[data-burn-slider]::-moz-range-thumb {
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: var(--surface);
-  border-top: 0.5px solid var(--border2);
+  background: rgba(15, 14, 12, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 28px 28px 0 0;
+  box-shadow:
+    0 -2px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 210;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -3515,17 +3520,19 @@ input[data-burn-slider]::-moz-range-thumb {
   color: var(--gold);
   position: relative;
 }
+.mob-nav-compose span {
+  display: none;
+}
 .mob-nav-compose i {
   background: radial-gradient(circle at 38% 32%, #1e1b14 0%, #0d0c0a 100%);
   border: 1.5px solid rgba(201, 165, 90, 0.6);
-  border-radius: 14px;
-  width: 40px;
-  height: 40px;
+  border-radius: 16px;
+  width: 56px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  margin-bottom: 1px;
+  font-size: 20px;
   box-shadow: 0 0 12px rgba(201, 165, 90, 0.2);
   transition: box-shadow 0.2s, border-color 0.2s;
 }
@@ -3536,11 +3543,12 @@ input[data-burn-slider]::-moz-range-thumb {
 
 /* Page title in topbar */
 .mob-page-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: 1px;
-  min-width: 44px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  min-width: 50px;
   white-space: nowrap;
 }
 
@@ -3549,43 +3557,69 @@ input[data-burn-slider]::-moz-range-thumb {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 52px;
-  background: var(--surface);
-  border-bottom: 0.5px solid var(--border2);
+  height: 56px;
+  background: rgba(15, 14, 12, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 0 0 22px 22px;
+  box-shadow:
+    0 2px 28px rgba(0, 0, 0, 0.5),
+    inset 0 -0.5px 0 rgba(201, 165, 90, 0.12);
   z-index: 300;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 14px;
   gap: 8px;
 }
+/* soft glow below the bar */
+.mobile-topbar::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 10%;
+  right: 10%;
+  height: 12px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201, 165, 90, 0.07) 0%, transparent 80%);
+  pointer-events: none;
+}
 .mob-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
   color: var(--text);
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: 12px;
   flex-shrink: 0;
-  transition: background 0.14s;
+  transition: background 0.14s, border-color 0.14s;
 }
-.mob-btn:hover { background: var(--surface2); }
-.mob-btn-gold { color: var(--gold); }
-.mob-btn-checkin { color: var(--amber); }
+.mob-btn:hover { background: rgba(255, 255, 255, 0.09); }
+.mob-btn-gold {
+  color: var(--gold);
+  background: rgba(201, 165, 90, 0.08);
+  border-color: rgba(201, 165, 90, 0.18);
+}
+.mob-btn-gold:hover { background: rgba(201, 165, 90, 0.15); }
+.mob-btn-checkin {
+  color: #ff9a9a;
+  background: rgba(255, 154, 154, 0.09);
+  border-color: rgba(255, 154, 154, 0.22);
+}
+.mob-btn-checkin:hover { background: rgba(255, 154, 154, 0.18); }
 .mob-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   flex-shrink: 0;
 }
 .mob-brand {
   flex: 1;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   color: var(--text);
   text-align: center;
 }
@@ -3645,7 +3679,7 @@ input[data-burn-slider]::-moz-range-thumb {
   .shell {
     grid-template-columns: 1fr;
     height: 100dvh;
-    padding-top: 52px;
+    padding-top: 56px;
   }
 
   /* Nav: hidden on mobile — bottom nav replaces it */
@@ -3656,12 +3690,12 @@ input[data-burn-slider]::-moz-range-thumb {
   /* Page: full width, height = viewport minus topbar AND bottom nav */
   .page {
     grid-column: 1 !important;
-    height: calc(100dvh - 52px - 56px - env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(100dvh - 56px - 56px - env(safe-area-inset-bottom, 0px)) !important;
     min-height: 0 !important;
   }
   .page.active {
     grid-template-columns: 1fr !important;
-    height: calc(100dvh - 52px - 56px - env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(100dvh - 56px - 56px - env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* Hide page titles — shown in topbar instead */

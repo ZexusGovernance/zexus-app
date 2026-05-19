@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
@@ -94,7 +94,7 @@ export default function FeedSidebar() {
             fontSize: 10, color: 'var(--muted2)', flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 2,
           }}>
-            <i className="ti ti-heart-filled" style={{ fontSize: 8, color: 'var(--red)' }} />
+            <i className="ph-fill ph-heart" style={{ fontSize: 8, color: 'var(--red)' }} />
             {p.likes}
           </span>
         </div>

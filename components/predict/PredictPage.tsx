@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -29,14 +29,14 @@ export default function PredictPage() {
           {/* Card 1 - mine */}
           <div className="pcard mine">
             <div className="my-stake-tag">
-              <i className="ti ti-coin" style={{ fontSize: '11px' }}></i> My bet: 50 ZXP → Yes
+              <i className="ph-bold ph-coin" style={{ fontSize: '11px' }}></i> My bet: 50 ZXP → Yes
             </div>
             <div className="pcard-top">
               <div>
                 <div className="pcard-cat">Platform growth</div>
                 <div className="pcard-title">Will Zexus reach 1,000 verified users by July 1, 2026?</div>
               </div>
-              <div className="ptimer hot"><i className="ti ti-clock"></i> 6d left</div>
+              <div className="ptimer hot"><i className="ph-bold ph-clock"></i> 6d left</div>
             </div>
             <div className="split-labels">
               <span className="sl-yes">Yes — 63%</span>
@@ -51,8 +51,8 @@ export default function PredictPage() {
               <span>142 participants</span>
             </div>
             <div className="bet-row">
-              <button className="bet-btn bb-yes"><i className="ti ti-check"></i> Bet Yes</button>
-              <button className="bet-btn bb-no"><i className="ti ti-x"></i> Bet No</button>
+              <button className="bet-btn bb-yes"><i className="ph-bold ph-check"></i> Bet Yes</button>
+              <button className="bet-btn bb-no"><i className="ph-bold ph-x"></i> Bet No</button>
             </div>
           </div>
 
@@ -63,7 +63,7 @@ export default function PredictPage() {
                 <div className="pcard-cat">Genesis Program</div>
                 <div className="pcard-title">Will all Genesis Tier 1 spots be filled before launch?</div>
               </div>
-              <div className="ptimer hot"><i className="ti ti-clock"></i> 12d left</div>
+              <div className="ptimer hot"><i className="ph-bold ph-clock"></i> 12d left</div>
             </div>
             <div className="split-labels">
               <span className="sl-yes">Yes — 71%</span>
@@ -78,8 +78,8 @@ export default function PredictPage() {
               <span>89 participants</span>
             </div>
             <div className="bet-row">
-              <button className="bet-btn bb-yes"><i className="ti ti-check"></i> Bet Yes</button>
-              <button className="bet-btn bb-no"><i className="ti ti-x"></i> Bet No</button>
+              <button className="bet-btn bb-yes"><i className="ph-bold ph-check"></i> Bet Yes</button>
+              <button className="bet-btn bb-no"><i className="ph-bold ph-x"></i> Bet No</button>
             </div>
           </div>
 
@@ -90,7 +90,7 @@ export default function PredictPage() {
                 <div className="pcard-cat">Product</div>
                 <div className="pcard-title">Will 5+ ecosystem partners join before MVP?</div>
               </div>
-              <div className="ptimer"><i className="ti ti-clock"></i> 19d left</div>
+              <div className="ptimer"><i className="ph-bold ph-clock"></i> 19d left</div>
             </div>
             <div className="split-labels">
               <span className="sl-yes">Yes — 58%</span>
@@ -105,8 +105,8 @@ export default function PredictPage() {
               <span>61 participants</span>
             </div>
             <div className="bet-row">
-              <button className="bet-btn bb-yes"><i className="ti ti-check"></i> Bet Yes</button>
-              <button className="bet-btn bb-no"><i className="ti ti-x"></i> Bet No</button>
+              <button className="bet-btn bb-yes"><i className="ph-bold ph-check"></i> Bet Yes</button>
+              <button className="bet-btn bb-no"><i className="ph-bold ph-x"></i> Bet No</button>
             </div>
           </div>
 
@@ -117,12 +117,12 @@ export default function PredictPage() {
                 <div className="pcard-cat">
                   Partnerships
                   <span className="resolved-tag rt-yes">
-                    <i className="ti ti-check" style={{ fontSize: '9px' }}></i> Yes
+                    <i className="ph-bold ph-check" style={{ fontSize: '9px' }}></i> Yes
                   </span>
                 </div>
                 <div className="pcard-title">ZXP staking pool exceeded 5,000 ZXP by May</div>
               </div>
-              <div className="ptimer"><i className="ti ti-lock"></i> Closed</div>
+              <div className="ptimer"><i className="ph-bold ph-lock"></i> Closed</div>
             </div>
             <div className="split-labels">
               <span className="sl-yes">Yes — 71%</span>
@@ -179,19 +179,19 @@ export default function PredictPage() {
         <div className="panel">
           <div className="panel-title">Rules</div>
           <div className="rule-row">
-            <i className="ti ti-info-circle"></i>
+            <i className="ph-bold ph-info"></i>
             <div className="rule-text">Only internal Zexus events: growth, product, partnerships</div>
           </div>
           <div className="rule-row">
-            <i className="ti ti-coin"></i>
+            <i className="ph-bold ph-coin"></i>
             <div className="rule-text">Bets in ZXP only · Minimum 10 ZXP</div>
           </div>
           <div className="rule-row">
-            <i className="ti ti-percentage"></i>
+            <i className="ph-bold ph-percent"></i>
             <div className="rule-text">1-2% pool fee goes to the ecosystem</div>
           </div>
           <div className="rule-row">
-            <i className="ti ti-shield-check"></i>
+            <i className="ph-bold ph-shield-check"></i>
             <div className="rule-text">Result is verified on-chain, so manipulation is impossible</div>
           </div>
         </div>

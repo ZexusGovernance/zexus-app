@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import PostCard from './PostCard'
@@ -160,7 +160,7 @@ export default function FeedPage({
                   onClick={() => onComposeOpen?.()}
                   aria-label="Create post"
                 >
-                  <i className="ti ti-pencil-plus" /> Post
+                  <i className="ph-bold ph-pencil-plus" /> Post
                 </button>
               )}
             </div>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { SEARCH_PROJECTS } from '@/lib/data'
@@ -42,7 +42,7 @@ export default function SearchOverlay({ isOpen, onClose, onNavigate }: SearchOve
     <div className={`search-overlay${isOpen ? ' active' : ''}`} onClick={onClose}>
       <div className="search-modal" onClick={e => e.stopPropagation()}>
         <div className="search-input-wrap">
-          <i className="ti ti-search"></i>
+          <i className="ph-bold ph-magnifying-glass"></i>
           <input
             ref={inputRef}
             className="search-input"

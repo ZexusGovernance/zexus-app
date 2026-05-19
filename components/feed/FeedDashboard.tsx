@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
@@ -161,7 +161,7 @@ export default function FeedDashboard({ posts }: Props) {
                 : p.name}
             </span>
             <span style={{ fontSize: 11, color: 'var(--muted2)', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-              <i className="ti ti-heart-filled" style={{ fontSize: 8, color: 'var(--red)' }} />
+              <i className="ph-fill ph-heart" style={{ fontSize: 8, color: 'var(--red)' }} />
               {p.likes}
             </span>
           </div>

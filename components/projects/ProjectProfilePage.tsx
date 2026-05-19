@@ -58,8 +58,8 @@ function TrustScore({ score, label, trend, trendClass }: { score: number | null;
       </div>
       <div className="ts-hint"><span>0</span><span>100</span></div>
       <div style={{ marginTop: 8, fontSize: 11, color: trendClass === 'plt-up' ? 'var(--green)' : trendClass === 'plt-down' ? 'var(--red)' : 'var(--muted)' }}>
-        {trendClass === 'plt-up' && <i className="ti ti-trending-up" style={{ marginRight: 4 }} />}
-        {trendClass === 'plt-down' && <i className="ti ti-trending-down" style={{ marginRight: 4 }} />}
+        {trendClass === 'plt-up' && <i className="ph-bold ph-trend-up" style={{ marginRight: 4 }} />}
+        {trendClass === 'plt-down' && <i className="ph-bold ph-trend-down" style={{ marginRight: 4 }} />}
         {trend} this month
       </div>
     </div>
@@ -419,7 +419,7 @@ export default function ProjectProfilePage() {
   if (!project) {
     return (
       <div className="shell">
-        <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} />
+        <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} onCheckInOpen={() => {}} />
         <div className="center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', color: 'var(--muted)' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>404</div>
@@ -453,12 +453,12 @@ export default function ProjectProfilePage() {
 
   return (
     <div className="shell">
-      <Nav currentPage="projects" onNavigate={handleNavigate} onSearchOpen={() => {}} />
+      <Nav currentPage="projects" onNavigate={handleNavigate} onSearchOpen={() => {}} onCheckInOpen={() => {}} />
 
       <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="proj-detail-header">
           <div className="back-btn" onClick={() => router.back()}>
-            <i className="ti ti-arrow-left" /> Back to projects
+            <i className="ph-bold ph-arrow-left" /> Back to projects
           </div>
           <div className="pdh-top">
             <div className={`pdh-av ${project.av}`} style={{ width: 52, height: 52, fontSize: 20 }}>{project.letter}</div>
@@ -468,14 +468,14 @@ export default function ProjectProfilePage() {
               <div className="plc-tags">
                 {project.tags.map((t, i) => (
                   <span key={i} className={`plc-tag${t.variant === 'verified' ? ' verified' : ''}`}>
-                    {t.variant === 'verified' && <i className="ti ti-check" style={{ fontSize: '9px' }} />}
+                    {t.variant === 'verified' && <i className="ph-bold ph-check" style={{ fontSize: '9px' }} />}
                     {t.variant === 'verified' ? ' ' : ''}{t.label}
                   </span>
                 ))}
                 {isAdmin && (
                   <span className="plc-tag" style={{ background: 'rgba(201,165,90,0.12)', color: 'var(--gold)', border: '0.5px solid rgba(201,165,90,0.35)', cursor: 'pointer' }}
                     onClick={() => setEditMode(v => !v)}>
-                    <i className="ti ti-pencil" style={{ fontSize: '9px' }} /> Admin · Edit
+                    <i className="ph-bold ph-pencil" style={{ fontSize: '9px' }} /> Admin · Edit
                   </span>
                 )}
               </div>
@@ -487,7 +487,7 @@ export default function ProjectProfilePage() {
                 title="Write post"
                 style={{ marginLeft: 8 }}
               >
-                <i className="ti ti-pencil-plus" />
+                <i className="ph-bold ph-pencil-plus" />
               </button>
             )}
           </div>
@@ -496,7 +496,7 @@ export default function ProjectProfilePage() {
           {isAdmin && editMode && (
             <div style={{ padding: '14px 20px', background: 'rgba(201,165,90,0.05)', border: '0.5px solid rgba(201,165,90,0.2)', borderRadius: 12, margin: '0 0 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 600, letterSpacing: '1px' }}>
-                <i className="ti ti-building" style={{ marginRight: 6 }} />EDIT PROJECT PROFILE
+                <i className="ph-bold ph-building" style={{ marginRight: 6 }} />EDIT PROJECT PROFILE
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div className="create-field" style={{ marginBottom: 0 }}>
@@ -640,8 +640,8 @@ export default function ProjectProfilePage() {
                     </span>
                   )}
                   <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: 'var(--muted2)' }}>
-                    <span><i className="ti ti-heart" style={{ marginRight: 3 }} />{post.likeCount ?? 0}</span>
-                    <span><i className="ti ti-message" style={{ marginRight: 3 }} />{post.comments.length}</span>
+                    <span><i className="ph-bold ph-heart" style={{ marginRight: 3 }} />{post.likeCount ?? 0}</span>
+                    <span><i className="ph-bold ph-chat" style={{ marginRight: 3 }} />{post.comments.length}</span>
                     <button
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: 11, padding: 0, display: 'flex', alignItems: 'center', gap: 3 }}
                       onClick={e => {
@@ -649,7 +649,7 @@ export default function ProjectProfilePage() {
                         navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`).catch(() => {})
                       }}
                     >
-                      <i className="ti ti-share" /> Share
+                      <i className="ph-bold ph-share-network" /> Share
                     </button>
                   </div>
                 </div>
@@ -692,7 +692,7 @@ export default function ProjectProfilePage() {
         </div>
         <div className="panel">
           <div className="panel-title">Actions</div>
-          <button className="action-btn primary"><i className="ti ti-shield-check" /> Verify holding</button>
+          <button className="action-btn primary"><i className="ph-bold ph-shield-check" /> Verify holding</button>
           <button
             className="action-btn"
             onClick={toggleWatchlist}
@@ -702,7 +702,7 @@ export default function ProjectProfilePage() {
             <i className={`ti ${watchlisted ? 'ti-bookmark-filled' : 'ti-bookmark'}`} />
             {watchlistLoading ? ' …' : watchlisted ? ' Watchlisted' : ' Add to watchlist'}
           </button>
-          <button className="emergency-btn"><i className="ti ti-alert-triangle" /> Emergency Call</button>
+          <button className="emergency-btn"><i className="ph-bold ph-warning" /> Emergency Call</button>
         </div>
         <div className="panel">
           <div className="panel-title">Top verifiers</div>

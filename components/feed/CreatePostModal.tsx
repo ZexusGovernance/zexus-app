@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { FeedPost, PostType } from '@/lib/feedData'
@@ -133,7 +133,7 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
             Create Post · <span style={{ color: 'var(--muted)', fontWeight: 400 }}>{projectName}</span>
           </div>
-          <button className="post-modal-close" onClick={onClose}><i className="ti ti-x" /></button>
+          <button className="post-modal-close" onClick={onClose}><i className="ph-bold ph-x" /></button>
         </div>
 
         <div className="post-modal-scroll" style={{ padding: '0 0 4px' }}>
@@ -210,7 +210,7 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
                         style={{ position: 'absolute', top: -5, right: -5, width: 18, height: 18, borderRadius: '50%',
                           background: 'var(--red)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <i className="ti ti-x" />
+                        <i className="ph-bold ph-x" />
                       </button>
                     </div>
                   ))}
@@ -218,14 +218,14 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
                     <button onClick={() => fileRef.current?.click()}
                       style={{ width: 72, height: 72, borderRadius: 8, border: '1.5px dashed var(--border2)', background: 'var(--surface2)',
                         color: 'var(--muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 3, fontSize: 10 }}>
-                      <i className="ti ti-plus" style={{ fontSize: 18 }} />add
+                      <i className="ph-bold ph-plus" style={{ fontSize: 18 }} />add
                     </button>
                   )}
                 </div>
               )}
               {images.length === 0 && (
                 <div className="img-upload-zone" onClick={() => fileRef.current?.click()}>
-                  <i className="ti ti-photo-up" style={{ fontSize: 26, color: 'var(--muted2)', marginBottom: 6, display: 'block' }} />
+                  <i className="ph-bold ph-image-square" style={{ fontSize: 26, color: 'var(--muted2)', marginBottom: 6, display: 'block' }} />
                   <div style={{ fontSize: 12, color: 'var(--muted)' }}>Click to upload images</div>
                   <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 3 }}>PNG, JPG, WebP · up to {MAX_IMAGES} images · max 2 MB each</div>
                 </div>
@@ -234,7 +234,7 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
                 onChange={e => { if (e.target.files?.length) { addImages(e.target.files); e.target.value = '' } }} />
               {imgError && (
                 <div style={{ fontSize: 11, color: 'var(--red)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <i className="ti ti-alert-circle" /> {imgError}
+                  <i className="ph-bold ph-warning-circle" /> {imgError}
                 </div>
               )}
             </div>
@@ -252,8 +252,8 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
               style={{ opacity: canPublish ? 1 : 0.4, cursor: canPublish ? 'pointer' : 'not-allowed', marginTop: 4 }}
               onClick={handlePublish} disabled={!canPublish}>
               {publishing
-                ? <><span className="spin"><i className="ti ti-loader-2" /></span> Publishing…</>
-                : <><i className="ti ti-send" /> Publish</>}
+                ? <><span className="spin"><i className="ph-bold ph-circle-notch" /></span> Publishing…</>
+                : <><i className="ph-bold ph-paper-plane-tilt" /> Publish</>}
             </button>
           </div>
         </div>

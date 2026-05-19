@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -39,8 +39,8 @@ export default function AlertsPage() {
             <div className="card-title">Liquidity Pool deadline — 48h no response</div>
             <div className="card-text">Trust Score auto-reduced to 41.</div>
             <div className="card-footer">
-              <div className="foot-btn danger"><i className="ti ti-alert-triangle"></i> Emergency Call</div>
-              <div className="foot-btn"><i className="ti ti-eye"></i> View project</div>
+              <div className="foot-btn danger"><i className="ph-bold ph-warning"></i> Emergency Call</div>
+              <div className="foot-btn"><i className="ph-bold ph-eye"></i> View project</div>
             </div>
           </div>
 
@@ -57,10 +57,10 @@ export default function AlertsPage() {
             <div className="card-title">Security Audit vote closes in 14h</div>
             <div className="card-text">312 verified holders have voted.</div>
             <span className="score-pill sp-up">
-              <i className="ti ti-trending-up" style={{ fontSize: '11px' }}></i> +12 pts from last vote
+              <i className="ph-bold ph-trend-up" style={{ fontSize: '11px' }}></i> +12 pts from last vote
             </span>
             <div className="card-footer">
-              <div className="foot-btn"><i className="ti ti-shield-check"></i> Vote now</div>
+              <div className="foot-btn"><i className="ph-bold ph-shield-check"></i> Vote now</div>
               <div className="foot-btn">Dismiss</div>
             </div>
           </div>
@@ -79,11 +79,11 @@ export default function AlertsPage() {
               <div className="card-title">v2.1 mainnet deploy completed</div>
               <div className="card-text">Trust Score increased.</div>
               <span className="score-pill sp-up">
-                <i className="ti ti-trending-up" style={{ fontSize: '11px' }}></i> +8 pts · Trust Score: 85
+                <i className="ph-bold ph-trend-up" style={{ fontSize: '11px' }}></i> +8 pts · Trust Score: 85
               </span>
               <div className="card-footer">
-                <div className="foot-btn"><i className="ti ti-external-link"></i> View update</div>
-                <div className="foot-btn"><i className="ti ti-bookmark"></i> Add to watchlist</div>
+                <div className="foot-btn"><i className="ph-bold ph-arrow-square-out"></i> View update</div>
+                <div className="foot-btn"><i className="ph-bold ph-bookmark"></i> Add to watchlist</div>
               </div>
             </div>
           )}

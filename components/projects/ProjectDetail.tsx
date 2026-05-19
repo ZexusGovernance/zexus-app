@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -50,7 +50,7 @@ export default function ProjectDetail({ onBack }: ProjectDetailProps) {
       <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="proj-detail-header">
           <div className="back-btn" onClick={onBack}>
-            <i className="ti ti-arrow-left"></i> Back to projects
+            <i className="ph-bold ph-arrow-left"></i> Back to projects
           </div>
           <div className="pdh-top">
             <div className="pdh-av av-teal" style={{ width: 52, height: 52, fontSize: 20 }}>B</div>
@@ -58,7 +58,7 @@ export default function ProjectDetail({ onBack }: ProjectDetailProps) {
               <div className="pdh-name">BaseSwap Pro</div>
               <div className="pdh-sub">DEX · Base Mainnet · 12,100 holders</div>
               <div className="plc-tags">
-                <span className="plc-tag verified"><i className="ti ti-check" style={{ fontSize: '9px' }}></i> Verified</span>
+                <span className="plc-tag verified"><i className="ph-bold ph-check" style={{ fontSize: '9px' }}></i> Verified</span>
                 <span className="plc-tag">DEX</span>
                 <span className="plc-tag">Genesis T2</span>
               </div>
@@ -162,9 +162,9 @@ export default function ProjectDetail({ onBack }: ProjectDetailProps) {
         </div>
         <div className="panel">
           <div className="panel-title">Actions</div>
-          <button className="action-btn primary"><i className="ti ti-shield-check"></i> Verify holding</button>
-          <button className="action-btn"><i className="ti ti-bookmark"></i> Add to watchlist</button>
-          <button className="emergency-btn"><i className="ti ti-alert-triangle"></i> Emergency Call</button>
+          <button className="action-btn primary"><i className="ph-bold ph-shield-check"></i> Verify holding</button>
+          <button className="action-btn"><i className="ph-bold ph-bookmark"></i> Add to watchlist</button>
+          <button className="emergency-btn"><i className="ph-bold ph-warning"></i> Emergency Call</button>
         </div>
         <div className="panel">
           <div className="panel-title">Top verifiers</div>

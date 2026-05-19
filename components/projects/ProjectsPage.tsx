@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useRouter } from 'next/navigation'
 import { PROJECTS } from '@/lib/data'
@@ -42,7 +42,7 @@ export default function ProjectsPage({ onNavigate }: ProjectsPageProps) {
                 <div className="plc-tags">
                   {p.tags.map((t, i) => (
                     <span key={i} className={`plc-tag${t.variant === 'verified' ? ' verified' : ''}`}>
-                      {t.variant === 'verified' && <i className="ti ti-check" style={{ fontSize: '9px' }}></i>}
+                      {t.variant === 'verified' && <i className="ph-bold ph-check" style={{ fontSize: '9px' }}></i>}
                       {t.variant === 'verified' ? ' ' : ''}{t.label}
                     </span>
                   ))}
@@ -51,8 +51,8 @@ export default function ProjectsPage({ onNavigate }: ProjectsPageProps) {
               <div className="plc-score-col">
                 <div className={`plc-score ${p.scoreClass}`}>{p.score !== null ? p.score : '—'}</div>
                 <div className={`plc-trend ${p.trendClass}`}>
-                  {p.trendClass === 'plt-up' && <i className="ti ti-trending-up" style={{ fontSize: '10px' }}></i>}
-                  {p.trendClass === 'plt-down' && <i className="ti ti-trending-down" style={{ fontSize: '10px' }}></i>}
+                  {p.trendClass === 'plt-up' && <i className="ph-bold ph-trend-up" style={{ fontSize: '10px' }}></i>}
+                  {p.trendClass === 'plt-down' && <i className="ph-bold ph-trend-down" style={{ fontSize: '10px' }}></i>}
                   {' '}{p.trend}
                 </div>
               </div>

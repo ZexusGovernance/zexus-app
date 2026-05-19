@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
@@ -186,7 +186,7 @@ export default function ProfilePage() {
       <div className="page active" id="page-profile">
         <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <div style={{ fontSize: 40, opacity: 0.2 }}>
-            <i className="ti ti-user-circle" />
+            <i className="ph-bold ph-user-circle" />
           </div>
           <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>Connect your wallet</div>
           <div style={{ fontSize: 12, color: 'var(--muted)', maxWidth: 260, textAlign: 'center', lineHeight: 1.6 }}>
@@ -223,20 +223,20 @@ export default function ProfilePage() {
                     onClick={() => setActiveTab('Project')}
                     title="Manage project profile"
                   >
-                    <i className="ti ti-building" style={{ fontSize: '10px' }}></i> Admin: {adminProject.name}
+                    <i className="ph-bold ph-building" style={{ fontSize: '10px' }}></i> Admin: {adminProject.name}
                   </span>
                 ) : (
                   <span className="badge badge-verified">
-                    <i className="ti ti-shield-check" style={{ fontSize: '10px' }}></i> Verified Holder
+                    <i className="ph-bold ph-shield-check" style={{ fontSize: '10px' }}></i> Verified Holder
                   </span>
                 )}
                 {rank > 0 && (
                   <span className="badge badge-rank">
-                    <i className="ti ti-medal" style={{ fontSize: '10px' }}></i> Rank #{rank}
+                    <i className="ph-bold ph-medal" style={{ fontSize: '10px' }}></i> Rank #{rank}
                   </span>
                 )}
                 <span className="badge badge-days">
-                  <i className="ti ti-calendar" style={{ fontSize: '10px' }}></i> {profile?.claim_streak ?? 0}-day streak
+                  <i className="ph-bold ph-calendar" style={{ fontSize: '10px' }}></i> {profile?.claim_streak ?? 0}-day streak
                 </span>
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function ProfilePage() {
                 className={`tab${activeTab === t ? ' active' : ''}`}
                 onClick={() => setActiveTab(t)}
               >
-                {t === 'Project' ? <><i className="ti ti-building" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</> : t}
+                {t === 'Project' ? <><i className="ph-bold ph-building" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</> : t}
               </div>
             ))}
           </div>
@@ -288,7 +288,7 @@ export default function ProfilePage() {
               {todayCheckin && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 10,
                   background: 'rgba(101,191,127,0.08)', border: '0.5px solid rgba(101,191,127,0.25)', borderRadius: 10, fontSize: 12 }}>
-                  <i className="ti ti-calendar-check" style={{ color: 'var(--green)', fontSize: 16 }} />
+                  <i className="ph-bold ph-calendar-check" style={{ color: 'var(--green)', fontSize: 16 }} />
                   <span style={{ flex: 1, color: 'var(--text)' }}>
                     Checked in today · Day <strong>{todayCheckin.streak_day}</strong> streak
                   </span>
@@ -328,17 +328,17 @@ export default function ProfilePage() {
                         </span>
                         {v.was_correct === null && (
                           <span className="vresult vr-pend">
-                            <i className="ti ti-clock" style={{ fontSize: 11 }}></i> Waiting
+                            <i className="ph-bold ph-clock" style={{ fontSize: 11 }}></i> Waiting
                           </span>
                         )}
                         {v.was_correct === true && (
                           <span className="vresult vr-ok">
-                            <i className="ti ti-check" style={{ fontSize: 11 }}></i> Correct
+                            <i className="ph-bold ph-check" style={{ fontSize: 11 }}></i> Correct
                           </span>
                         )}
                         {v.was_correct === false && (
                           <span className="vresult vr-bad">
-                            <i className="ti ti-x" style={{ fontSize: 11 }}></i> Wrong
+                            <i className="ph-bold ph-x" style={{ fontSize: 11 }}></i> Wrong
                           </span>
                         )}
                         <span className={`vzxp ${v.zxp_earned > 0 ? 'earn' : v.was_correct === null ? 'pend' : 'lose'}`}>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                 <div className="ach-full-list">
                   <div className={`ach-full-row${verdictsCount === 0 ? ' ach-locked' : ''}`}>
                     <div className={`ach-full-icon ${verdictsCount > 0 ? 'ai-gold' : 'ai-gray'}`}>
-                      <i className="ti ti-shield-check"></i>
+                      <i className="ph-bold ph-shield-check"></i>
                     </div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">First verdict</div>
@@ -373,7 +373,7 @@ export default function ProfilePage() {
                   </div>
                   <div className={`ach-full-row${zxpBalance === 0 ? ' ach-locked' : ''}`}>
                     <div className={`ach-full-icon ${zxpBalance > 0 ? 'ai-blue' : 'ai-gray'}`}>
-                      <i className="ti ti-coin"></i>
+                      <i className="ph-bold ph-coin"></i>
                     </div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">First stake</div>
@@ -385,7 +385,7 @@ export default function ProfilePage() {
                   </div>
                   <div className={`ach-full-row${(profile?.claim_streak ?? 0) < 7 ? ' ach-locked' : ''}`}>
                     <div className={`ach-full-icon ${(profile?.claim_streak ?? 0) >= 7 ? 'ai-green' : 'ai-gray'}`}>
-                      <i className="ti ti-calendar-check"></i>
+                      <i className="ph-bold ph-calendar-check"></i>
                     </div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">7-day streak</div>
@@ -396,7 +396,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <div className="ach-full-row ach-locked">
-                    <div className="ach-full-icon ai-gray"><i className="ti ti-trophy"></i></div>
+                    <div className="ach-full-icon ai-gray"><i className="ph-bold ph-trophy"></i></div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">Genesis Tier</div>
                       <div className="ach-full-desc">Reach Genesis Tier 3 — need 600 ZXP total</div>
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                     </span>
                   </div>
                   <div className="ach-full-row ach-locked">
-                    <div className="ach-full-icon ai-gray"><i className="ti ti-star"></i></div>
+                    <div className="ach-full-icon ai-gray"><i className="ph-bold ph-star"></i></div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">100 verdicts</div>
                       <div className="ach-full-desc">Submit 100 community verdicts</div>
@@ -414,7 +414,7 @@ export default function ProfilePage() {
                     <span className="ach-badge-lock">{verdictsCount} / 100</span>
                   </div>
                   <div className="ach-full-row ach-locked">
-                    <div className="ach-full-icon ai-gray"><i className="ti ti-users"></i></div>
+                    <div className="ach-full-icon ai-gray"><i className="ph-bold ph-users"></i></div>
                     <div className="ach-full-body">
                       <div className="ach-full-name">5 referrals</div>
                       <div className="ach-full-desc">Invite 5 verified holders to Zexus</div>
@@ -451,7 +451,7 @@ export default function ProfilePage() {
 
                 {filteredWatch.length === 0 ? (
                   <div style={{ padding: '20px 14px', color: 'var(--muted)', fontSize: 12, textAlign: 'center' }}>
-                    No projects in watchlist yet — click <i className="ti ti-bookmark" /> on any post to add
+                    No projects in watchlist yet — click <i className="ph-bold ph-bookmark" /> on any post to add
                   </div>
                 ) : (
                   filteredWatch.map(w => {
@@ -495,7 +495,7 @@ export default function ProfilePage() {
                           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--red)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(224,112,112,0.4)' }}
                           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--muted2)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)' }}
                         >
-                          <i className="ti ti-x" style={{ fontSize: 9, marginRight: 3 }} />Unwatch
+                          <i className="ph-bold ph-x" style={{ fontSize: 9, marginRight: 3 }} />Unwatch
                         </button>
                       </div>
                     )
@@ -597,7 +597,7 @@ export default function ProfilePage() {
               <div className="prof-settings-section">
                 <div className="settings-group">
                   <div className="settings-group-title">
-                    <i className="ti ti-building" style={{ marginRight: 6 }} />
+                    <i className="ph-bold ph-building" style={{ marginRight: 6 }} />
                     {adminProject.name} — Project Profile
                   </div>
 
@@ -626,12 +626,12 @@ export default function ProfilePage() {
 
                     {saveError && (
                       <div style={{ fontSize: 12, color: 'var(--red)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <i className="ti ti-alert-circle" /> {saveError}
+                        <i className="ph-bold ph-warning-circle" /> {saveError}
                       </div>
                     )}
                     {saveSuccess && (
                       <div style={{ fontSize: 12, color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <i className="ti ti-circle-check" /> Saved successfully
+                        <i className="ph-bold ph-check-circle" /> Saved successfully
                       </div>
                     )}
 
@@ -641,8 +641,8 @@ export default function ProfilePage() {
                       onClick={saveProject} disabled={saving}
                     >
                       {saving
-                        ? <><span className="spin"><i className="ti ti-loader-2" /></span> Saving…</>
-                        : <><i className="ti ti-device-floppy" /> Save Changes</>}
+                        ? <><span className="spin"><i className="ph-bold ph-circle-notch" /></span> Saving…</>
+                        : <><i className="ph-bold ph-floppy-disk" /> Save Changes</>}
                     </button>
                   </div>
                 </div>

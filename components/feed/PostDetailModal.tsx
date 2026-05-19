@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import type { FeedPost } from '@/lib/feedData'
@@ -368,7 +368,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                 <i className={`ti ${copied ? 'ti-check' : 'ti-share'}`} />
               </button>
             )}
-            <button className="post-modal-close" onClick={onClose}><i className="ti ti-x" /></button>
+            <button className="post-modal-close" onClick={onClose}><i className="ph-bold ph-x" /></button>
           </div>
         </div>
 
@@ -379,7 +379,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
             <div style={{ margin: '-4px -4px 16px', padding: '10px 16px', borderRadius: 8,
               background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.35)',
               display: 'flex', alignItems: 'center', gap: 8 }}>
-              <i className="ti ti-alert-octagon" style={{ color: 'var(--red)', fontSize: 18 }} />
+              <i className="ph-bold ph-warning-octagon" style={{ color: 'var(--red)', fontSize: 18 }} />
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--red)' }}>Emergency Call Active</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 1 }}>
@@ -433,7 +433,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
             <div style={{ marginBottom: 18, padding: '14px 16px', background: 'rgba(138,111,201,0.06)',
               border: '0.5px solid rgba(138,111,201,0.3)', borderRadius: 12 }}>
               <div style={{ fontSize: 10, color: '#8a6fc9', fontWeight: 700, letterSpacing: '1.5px', marginBottom: 10 }}>
-                <i className="ti ti-trending-up" style={{ marginRight: 5 }} />INVESTMENT ROUND
+                <i className="ph-bold ph-trend-up" style={{ marginRight: 5 }} />INVESTMENT ROUND
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
                 {[['Round', post.investment.round], ['Amount', post.investment.amount], ['Lead Investor', post.investment.lead || '—']].map(([k, v]) => (
@@ -460,11 +460,11 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
               </div>
               {post.vote.open && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
-                  <button className="bet-btn bb-yes"><i className="ti ti-thumb-up" /> Confirm</button>
-                  <button className="bet-btn bb-no"><i className="ti ti-thumb-down" /> Dispute</button>
+                  <button className="bet-btn bb-yes"><i className="ph-bold ph-thumbs-up" /> Confirm</button>
+                  <button className="bet-btn bb-no"><i className="ph-bold ph-thumbs-down" /> Dispute</button>
                   {post.vote.timeLeft && (
                     <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--gold-dim)' }}>
-                      <i className="ti ti-clock" /> {post.vote.timeLeft} · +{post.vote.zxp} ZXP
+                      <i className="ph-bold ph-clock" /> {post.vote.timeLeft} · +{post.vote.zxp} ZXP
                     </span>
                   )}
                 </div>
@@ -509,7 +509,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
           {post.type === 'alert' && (
             <div style={{ marginBottom: 18, display: 'flex', gap: 8 }}>
               <div className="foot-btn danger" style={{ display: 'inline-flex' }}>
-                <i className="ti ti-alert-octagon" /> Emergency Call
+                <i className="ph-bold ph-warning-octagon" /> Emergency Call
               </div>
             </div>
           )}
@@ -566,7 +566,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                   background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold)',
                   fontSize: 12, fontFamily: 'inherit', marginBottom: 8 }}
               >
-                <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
+                <i className="ph-bold ph-caret-down" style={{ fontSize: 13 }} />
                 Show {allComments.length - 3} more {allComments.length - 3 === 1 ? 'comment' : 'comments'}
               </button>
             )}
@@ -591,7 +591,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                   background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)',
                   fontSize: 11, fontFamily: 'inherit', marginBottom: 8 }}
               >
-                <i className="ti ti-chevron-up" style={{ fontSize: 12 }} />
+                <i className="ph-bold ph-caret-up" style={{ fontSize: 12 }} />
                 Collapse
               </button>
             )}
@@ -620,7 +620,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                   color: commentText.trim() && address ? '#0b0a09' : 'var(--muted)',
                   cursor: commentText.trim() && address ? 'pointer' : 'not-allowed', fontSize: 14,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
-                <i className="ti ti-send" />
+                <i className="ph-bold ph-paper-plane-tilt" />
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
+import { useProfile } from '@/lib/profileContext'
 import Nav from '@/components/nav/Nav'
 import SearchOverlay from '@/components/search/SearchOverlay'
 import FeedPage from '@/components/feed/FeedPage'
@@ -18,23 +19,76 @@ const PAGE_LABELS: Record<string, string> = {
 }
 
 const BASE_NAV = [
-  { page: 'staking',  icon: 'ti-coin',               label: 'Staking'  },
-  { page: 'projects', icon: 'ti-building-community', label: 'Projects' },
-  { page: 'feed',     icon: 'ti-layout-dashboard',   label: 'Feed'     },
-  { page: 'predict',  icon: 'ti-chart-candle',       label: 'Predict'  },
-  { page: 'profile',  icon: 'ti-user-circle',        label: 'Profile'  },
+  { page: 'staking',  icon: 'ph-coin',               label: 'Staking'  },
+  { page: 'projects', icon: 'ph-buildings',           label: 'Projects' },
+  { page: 'feed',     icon: 'ph-squares-four',        label: 'Feed'     },
+  { page: 'predict',  icon: 'ph-trend-up',   label: 'Predict'  },
+  { page: 'profile',  icon: 'ph-user-circle',         label: 'Profile'  },
 ]
 
 function CheckInModal({ onClose }: { onClose: () => void }) {
+  const { open } = useAppKit()
+  const { address, isConnected } = useAppKitAccount()
+  const { profile, refreshProfile } = useProfile()
+
+  const [claimed, setClaimed]       = useState(false)
+  const [todayEarned, setTodayEarned] = useState<number | null>(null)
+  const [claiming, setClaiming]     = useState(false)
+  const [msg, setMsg]               = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!address) return
+    const today = new Date().toISOString().slice(0, 10)
+    import('@/lib/supabase').then(({ supabase }) => {
+      supabase
+        .from('daily_checkins')
+        .select('zxp_earned')
+        .eq('wallet_address', address.toLowerCase())
+        .eq('checkin_date', today)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) { setClaimed(true); setTodayEarned(data.zxp_earned) }
+        })
+    })
+  }, [address])
+
+  async function handleClaim() {
+    if (!isConnected) { open(); onClose(); return }
+    if (claimed || claiming) return
+    setClaiming(true)
+    try {
+      const res = await fetch('/api/zxp/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address }),
+      })
+      const d = await res.json()
+      if (d.already_claimed) {
+        setClaimed(true); setTodayEarned(d.zxp_earned)
+        setMsg('Already claimed today!')
+      } else if (res.ok) {
+        setClaimed(true); setTodayEarned(d.zxp_earned)
+        setMsg(`+${d.zxp_earned} ZXP · Streak: ${d.new_streak} days!`)
+        if (address) await refreshProfile(address)
+      } else {
+        setMsg(d.error ?? 'Claim failed')
+      }
+    } catch { setMsg('Network error') }
+    setClaiming(false)
+    setTimeout(() => setMsg(null), 4000)
+  }
+
+  const streak = profile?.claim_streak ?? 0
+
   return (
     <div className="checkin-overlay" onClick={onClose}>
       <div className="checkin-modal" onClick={e => e.stopPropagation()}>
         <button className="checkin-close" onClick={onClose} aria-label="Close">
-          <i className="ti ti-x" />
+          <i className="ph-bold ph-x" />
         </button>
 
         <div className="checkin-flame-icon">
-          <i className="ti ti-flame" />
+          <i className="ph-bold ph-flame" />
         </div>
 
         <div className="checkin-title">Daily Check-In</div>
@@ -42,26 +96,40 @@ function CheckInModal({ onClose }: { onClose: () => void }) {
 
         <div className="checkin-streak-row">
           <div className="checkin-streak-cell">
-            <span className="checkin-streak-num">0</span>
+            <span className="checkin-streak-num">{streak}</span>
             <span className="checkin-streak-label">day streak</span>
           </div>
           <div className="checkin-divider" />
           <div className="checkin-streak-cell">
-            <span className="checkin-streak-num">0</span>
+            <span className="checkin-streak-num">{streak}</span>
             <span className="checkin-streak-label">total days</span>
           </div>
         </div>
 
         <div className="checkin-reward-badge">
-          <i className="ti ti-coin" style={{ fontSize: 13 }} />
-          &nbsp;+10 ZXP reward
+          <i className="ph-bold ph-coin" style={{ fontSize: 13 }} />
+          &nbsp;{claimed && todayEarned ? `+${todayEarned} ZXP earned` : '+1 ZXP reward'}
         </div>
 
-        <button className="checkin-btn" disabled>
-          <i className="ti ti-calendar-check" />
-          Check In Today
+        {msg && (
+          <div style={{ fontSize: 11, color: 'var(--green)', textAlign: 'center', marginBottom: 4 }}>
+            {msg}
+          </div>
+        )}
+
+        <button
+          className="checkin-btn"
+          onClick={handleClaim}
+          disabled={claimed || claiming}
+          style={claimed ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+        >
+          <i className={`ph-bold ${claiming ? 'ph-circle-notch' : claimed ? 'ph-check' : 'ph-calendar-check'}`} />
+          {claiming ? 'Claiming…' : claimed ? 'Claimed today!' : isConnected ? 'Check In Today' : 'Connect Wallet'}
         </button>
-        <div className="checkin-note">Connect wallet to track your streak</div>
+
+        {!isConnected && (
+          <div className="checkin-note">Connect wallet to track your streak</div>
+        )}
       </div>
     </div>
   )
@@ -123,7 +191,7 @@ export default function Shell() {
   // Center nav item becomes "Post" when user is project-admin AND on feed tab
   const bottomNav = BASE_NAV.map(item => {
     if (item.page === 'feed' && currentPage === 'feed' && isProjectAdmin) {
-      return { ...item, icon: 'ti-pencil-plus', label: 'Post', isCompose: true }
+      return { ...item, icon: 'ph-plus', label: 'Post', isCompose: true }
     }
     return { ...item, isCompose: false }
   })
@@ -160,10 +228,10 @@ export default function Shell() {
         <span className="mob-brand">ZEXUS</span>
         <div className="mob-topbar-actions">
           <button className="mob-btn mob-btn-gold" onClick={() => setSearchOpen(true)} aria-label="Search">
-            <i className="ti ti-search" />
+            <i className="ph-bold ph-magnifying-glass" />
           </button>
           <button className="mob-btn mob-btn-checkin" onClick={() => setCheckInOpen(true)} aria-label="Daily check-in">
-            <i className="ti ti-flame" />
+            <i className="ph-bold ph-flame" />
           </button>
         </div>
       </header>
@@ -173,6 +241,7 @@ export default function Shell() {
         currentPage={currentPage}
         onNavigate={navigate}
         onSearchOpen={() => setSearchOpen(true)}
+        onCheckInOpen={() => setCheckInOpen(true)}
         isOpen={false}
       />
 
@@ -191,7 +260,7 @@ export default function Shell() {
             onClick={() => item.isCompose ? setComposeOpen(true) : navigate(item.page)}
             aria-label={item.label}
           >
-            <i className={`ti ${item.icon}`} />
+            <i className={`ph-bold ${item.icon}`} />
             <span>{item.label}</span>
           </button>
         ))}

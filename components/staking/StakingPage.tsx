@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
@@ -209,7 +209,7 @@ export default function StakingPage() {
                     <span>Recalc weekly</span>
                   </div>
                   <div className="apy-note">
-                    <i className="ti ti-trending-down"></i>Pool grows → APY decreases. Genesis stakers lock their multiplier forever.
+                    <i className="ph-bold ph-trend-down"></i>Pool grows → APY decreases. Genesis stakers lock their multiplier forever.
                   </div>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export default function StakingPage() {
                         </div>
                         <button className="stake-btn sb-l1" style={{ width: '100%', padding: '7px', fontSize: 12 }}
                           onClick={() => handleUnstakeRequest(p.id)} disabled={loading}>
-                          <i className="ti ti-lock-open"></i> Request Unstake
+                          <i className="ph-bold ph-lock-open"></i> Request Unstake
                         </button>
                       </div>
                     ))}
@@ -291,7 +291,7 @@ export default function StakingPage() {
                       </button>
                     </div>
                     <div className="mult-note">
-                      <i className="ti ti-info-circle"></i>30d → 1.05x &nbsp;·&nbsp; 90d → 1.1x &nbsp;·&nbsp; 180d → 1.2x &nbsp;·&nbsp; 365d → 1.35x
+                      <i className="ph-bold ph-info"></i>30d → 1.05x &nbsp;·&nbsp; 90d → 1.1x &nbsp;·&nbsp; 180d → 1.2x &nbsp;·&nbsp; 365d → 1.35x
                     </div>
                   </div>
                 </div>
@@ -310,7 +310,7 @@ export default function StakingPage() {
                   </div>
                   <div className="layer-body">
                     <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--muted)', fontSize: 12 }}>
-                      <i className="ti ti-lock" style={{ fontSize: 22, display: 'block', marginBottom: 6 }}></i>
+                      <i className="ph-bold ph-lock" style={{ fontSize: 22, display: 'block', marginBottom: 6 }}></i>
                       On-chain staking launches with the Base smart contract.
                     </div>
                   </div>
@@ -394,10 +394,10 @@ export default function StakingPage() {
         </div>
         <div className="panel">
           <div className="panel-title">How to earn ZXP</div>
-          <div className="rule-row"><i className="ti ti-calendar-check" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Daily platform check-in</div></div>
-          <div className="rule-row"><i className="ti ti-shield-check" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Correct project verdicts</div></div>
-          <div className="rule-row"><i className="ti ti-trophy" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Winning bets in Predict</div></div>
-          <div className="rule-row"><i className="ti ti-users" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">New user referrals</div></div>
+          <div className="rule-row"><i className="ph-bold ph-calendar-check" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Daily platform check-in</div></div>
+          <div className="rule-row"><i className="ph-bold ph-shield-check" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Correct project verdicts</div></div>
+          <div className="rule-row"><i className="ph-bold ph-trophy" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">Winning bets in Predict</div></div>
+          <div className="rule-row"><i className="ph-bold ph-users" style={{ color: 'var(--gold)', fontSize: '13px', flexShrink: 0, marginTop: '1px' }}></i><div className="rule-text">New user referrals</div></div>
         </div>
       </div>
     </div>
