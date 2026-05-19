@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import WalletProvider from '@/components/wallet/WalletProvider'
 
@@ -38,8 +39,6 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
         {/* iOS PWA */}
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -57,6 +56,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <WalletProvider>{children}</WalletProvider>
+        <Script
+          src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
