@@ -12,8 +12,8 @@ interface PostCardProps {
 }
 
 const TYPE_ICON: Record<string, string> = {
-  alert: 'ti-alert-triangle', voting: 'ti-clock', verdict: 'ti-shield-check',
-  update: 'ti-speakerphone', new: 'ti-sparkles', investment: 'ti-trending-up',
+  alert: 'ph-bold ph-warning', voting: 'ph-bold ph-clock', verdict: 'ph-bold ph-shield-check',
+  update: 'ph-bold ph-megaphone', new: 'ph-bold ph-sparkle', investment: 'ph-bold ph-trend-up',
 }
 const TYPE_LABEL: Record<string, string> = {
   alert: 'Alert', voting: 'Voting', verdict: 'Verdict',
@@ -257,12 +257,12 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
               </button>
             )}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginTop: 1 }}>
             {post.sub}
           </div>
         </div>
         <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
-          <i className={`ti ${TYPE_ICON[post.type]}`} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
+          <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
         </span>
         <div className="card-time">{timeLabel}</div>
       </div>
@@ -366,7 +366,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         <div style={{ position: 'relative', display: 'inline-flex' }}>
           <button
             className="foot-btn"
-            style={{ color: liked ? 'var(--red)' : undefined, borderColor: liked ? 'rgba(224,112,112,0.4)' : undefined, gap: 5, opacity: !address && isDbPost ? 0.5 : 1 }}
+            style={{ color: liked ? 'var(--red)' : undefined, opacity: !address && isDbPost ? 0.5 : 1 }}
             onClick={toggleLike}
             title={!address && isDbPost ? 'Connect wallet to like' : undefined}
           >

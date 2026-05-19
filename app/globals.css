@@ -284,7 +284,7 @@ body::after {
 .card {
   border: 0.5px solid var(--border2);
   border-radius: 10px;
-  padding: 15px 17px;
+  padding: 10px 14px;
   background: var(--surface);
   position: relative;
   overflow: hidden;
@@ -316,8 +316,8 @@ body::after {
 .card-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 .proj-av {
   width: 30px;
@@ -396,26 +396,26 @@ body::after {
 }
 .card-footer {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
+  gap: 5px;
+  margin-top: 7px;
+  padding-top: 7px;
   border-top: 0.5px solid var(--border);
 }
 .foot-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 11px;
   color: var(--muted);
   cursor: pointer;
-  padding: 4px 9px;
-  border-radius: 7px;
-  border: 0.5px solid transparent;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: none;
+  background: none;
 }
 .foot-btn:hover {
-  background: var(--surface2);
+  background: rgba(255,255,255,0.06);
   color: var(--text);
-  border-color: var(--border2);
 }
 .foot-btn.danger {
   color: var(--red);
@@ -4350,7 +4350,7 @@ input[data-burn-slider]::-moz-range-thumb {
   .rt-list-item span { overflow-wrap: anywhere; }
 
   /* Футер чуть плотнее */
-  .feed-card .card-footer { padding-top: 8px; margin-top: 8px; }
+  .feed-card .card-footer { padding-top: 6px; margin-top: 6px; }
 
   /* Сетка: чуть больший gap на большом экране */
   .feed-posts-grid { gap: 14px; }
