@@ -647,9 +647,10 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
               <button
                 onClick={submitComment}
                 disabled={!commentText.trim() || submitting || !address}
-                style={{ width: 34, height: 34, borderRadius: 9, border: 'none',
-                  background: commentText.trim() && address ? 'var(--gold)' : 'var(--border2)',
-                  color: commentText.trim() && address ? '#0b0a09' : 'var(--muted)',
+                style={{ width: 34, height: 34, borderRadius: 9,
+                  border: `0.5px solid ${commentText.trim() && address ? 'rgba(201,165,90,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                  background: commentText.trim() && address ? 'rgba(201,165,90,0.12)' : 'rgba(255,255,255,0.03)',
+                  color: commentText.trim() && address ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
                   cursor: commentText.trim() && address ? 'pointer' : 'not-allowed', fontSize: 14,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
                 <i className="ph-bold ph-paper-plane-tilt" />
