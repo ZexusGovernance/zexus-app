@@ -2817,7 +2817,7 @@ body::after {
   border-color: rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
   transition: border-color 0.2s, transform 0.16s !important;
-  padding: 9px 12px !important;
+  padding: 9px 12px 6px !important;
 }
 .feed-card:hover {
   background: rgba(255, 255, 255, 0.016) !important;
@@ -2829,13 +2829,15 @@ body::after {
   margin-bottom: 5px !important;
 }
 .feed-card .card-footer {
-  margin-top: 6px !important;
-  padding-top: 6px !important;
+  margin-top: 4px !important;
+  padding-top: 4px !important;
+  padding-bottom: 0 !important;
 }
 .feed-card .foot-btn {
   border: none !important;
   background: none !important;
-  padding: 2px 6px !important;
+  padding: 1px 5px !important;
+  min-height: 0 !important;
 }
 
 /* Product concept additions */
