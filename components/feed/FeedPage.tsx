@@ -92,7 +92,7 @@ interface FeedPageProps {
 }
 
 export default function FeedPage({
-  onNavigate: _onNavigate,
+  onNavigate,
   initialPostId,
   composeOpen = false,
   onComposeOpen,
