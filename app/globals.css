@@ -3481,16 +3481,17 @@ input[data-burn-slider]::-moz-range-thumb {
 .mobile-bottom-nav {
   display: none;
   position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(15, 14, 12, 0.88);
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  left: 10px;
+  right: 10px;
+  background: rgba(15, 14, 12, 0.92);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border-radius: 28px 28px 0 0;
+  border-radius: 28px;
   box-shadow:
-    0 -2px 28px rgba(0, 0, 0, 0.45),
+    0 4px 32px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 210;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .mob-nav-item {
   flex: 1;
@@ -3687,15 +3688,15 @@ input[data-burn-slider]::-moz-range-thumb {
     display: none !important;
   }
 
-  /* Page: full width, height = viewport minus topbar AND bottom nav */
+  /* Page: full width, height = viewport minus topbar AND floating bottom nav */
   .page {
     grid-column: 1 !important;
-    height: calc(100dvh - 56px - 56px - env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(100dvh - 56px - 76px - env(safe-area-inset-bottom, 0px)) !important;
     min-height: 0 !important;
   }
   .page.active {
     grid-template-columns: 1fr !important;
-    height: calc(100dvh - 56px - 56px - env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(100dvh - 56px - 76px - env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* Hide page titles — shown in topbar instead */
