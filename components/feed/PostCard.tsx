@@ -272,7 +272,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
       <div className="card-head">
         <div className={`proj-av ${post.av}`}>{post.letter}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             {post.projectSlug ? (
               <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link">
                 {post.project}
@@ -282,7 +282,8 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
             )}
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
               <button className="card-watch-mini" onClick={toggleWatch}
-                title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}>
+                title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
+                style={{ padding: '0 1px' }}>
                 {watchLoading
                   ? <i className="ph-bold ph-circle-notch spin" />
                   : <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />}

@@ -2829,9 +2829,11 @@ body::after {
   margin-bottom: 5px !important;
 }
 .feed-card .card-footer {
-  margin-top: 4px !important;
-  padding-top: 4px !important;
+  margin-top: 6px !important;
+  padding-top: 7px !important;
   padding-bottom: 0 !important;
+  border-top: none !important;
+  position: relative !important;
 }
 .feed-card .foot-btn {
   border: none !important;
@@ -3174,19 +3176,14 @@ body::after {
   position: relative;
   flex: none;
 }
-.feed-card .card-footer {
-  margin-top: auto;
-  border-top: none;
-  position: relative;
-}
 .feed-card .card-footer::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 8%;
-  right: 8%;
+  left: 6%;
+  right: 6%;
   height: 0.5px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 25%, rgba(255,255,255,0.12) 75%, transparent);
 }
 
 /* Clickable project link in card header */
