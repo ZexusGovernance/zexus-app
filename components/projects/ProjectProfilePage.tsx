@@ -35,6 +35,49 @@ interface SocialLinks {
   avatar_url:     string | null
 }
 
+interface DbProjectData {
+  name:        string
+  slug:        string
+  category:    string | null
+  description: string | null
+  trust_score: number
+  is_verified: boolean
+  created_at:  string
+}
+
+function buildProjectFull(db: DbProjectData): ProjectFull {
+  const AV = ['av-blue', 'av-teal', 'av-purple', 'av-red', 'av-gold']
+  const hash = db.slug.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+  const score = db.trust_score
+  return {
+    id:          db.slug,
+    name:        db.name,
+    av:          AV[hash % AV.length],
+    letter:      db.name.charAt(0).toUpperCase(),
+    cat:         `${db.category ?? 'Protocol'} · Base Mainnet`,
+    sub:         `${db.category ?? 'Protocol'} · Base Mainnet`,
+    chain:       'Base Mainnet',
+    tags: [
+      ...(db.is_verified ? [{ label: 'Verified', variant: 'verified' }] : []),
+      ...(db.category    ? [{ label: db.category }]                     : []),
+    ],
+    score,
+    scoreClass:  score >= 70 ? 'hi' : score >= 45 ? 'mi' : 'lo',
+    trend:       '—',
+    trendClass:  'plt-na',
+    trustLabel:  score >= 70 ? 'Excellent' : score >= 45 ? 'Moderate' : 'Low',
+    holders:     '—',
+    verdicts:    0,
+    activeSince: new Date(db.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+    overview:    db.description ?? 'No description provided yet.',
+    milestones:      [],
+    votes:           [],
+    topHolders:      [],
+    timelineEvents:  {},
+    verifiers:       [],
+  }
+}
+
 const AV_CLASSES = ['av-blue', 'av-teal', 'av-purple', 'av-red', 'av-gold']
 function projectAv(name: string): string {
   const proj = PROJECTS_FULL.find(p => p.name === name)
@@ -430,9 +473,13 @@ export default function ProjectProfilePage() {
   const [editHasToken,    setEditHasToken]    = useState(false)
   const [saving,          setSaving]          = useState(false)
   const [saveMsg,         setSaveMsg]         = useState<string | null>(null)
+  const [dbProject,       setDbProject]       = useState<DbProjectData | null>(null)
+  const [dbLoading,       setDbLoading]       = useState(true)
 
-  const slug    = Array.isArray(params.slug) ? params.slug[0] : params.slug
-  const project = PROJECTS_FULL.find(p => p.id === slug)
+  const slug          = Array.isArray(params.slug) ? params.slug[0] : params.slug
+  const staticProject = PROJECTS_FULL.find(p => p.id === slug)
+  const effectiveProject: ProjectFull | null  =
+    staticProject ?? (dbProject ? buildProjectFull(dbProject) : null)
 
   // Load posts for this project
   useEffect(() => {
@@ -450,12 +497,21 @@ export default function ProjectProfilePage() {
     if (!slug) return
     supabase
       .from('projects')
-      .select('id, show_holders, show_votes, has_token, website_url, whitepaper_url, github_url, twitter_url, discord_url, avatar_url')
+      .select('id, name, slug, category, description, trust_score, is_verified, created_at, show_holders, show_votes, has_token, website_url, whitepaper_url, github_url, twitter_url, discord_url, avatar_url')
       .eq('slug', slug)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setProjectDbId(data.id)
+          setDbProject({
+            name:        data.name,
+            slug:        data.slug ?? slug,
+            category:    data.category ?? null,
+            description: data.description ?? null,
+            trust_score: data.trust_score ?? 0,
+            is_verified: data.is_verified ?? false,
+            created_at:  data.created_at,
+          })
           setShowHolders(data.show_holders ?? true)
           setShowVotes(data.show_votes ?? true)
           setHasToken(data.has_token ?? false)
@@ -468,12 +524,13 @@ export default function ProjectProfilePage() {
             avatar_url:     data.avatar_url     ?? null,
           })
         }
+        setDbLoading(false)
       })
   }, [slug])
 
   // Admin check
   useEffect(() => {
-    if (!address || !project) { setIsAdmin(false); return }
+    if (!address || !slug) { setIsAdmin(false); return }
     fetch(`/api/check-role?wallet=${address}`)
       .then(r => r.json())
       .then((data: {
@@ -507,7 +564,7 @@ export default function ProjectProfilePage() {
         }
       })
       .catch(() => setIsAdmin(false))
-  }, [address, slug, project])
+  }, [address, slug])
 
   // Load milestones
   useEffect(() => {
@@ -640,7 +697,19 @@ export default function ProjectProfilePage() {
     }
   }
 
-  if (!project) {
+  if (dbLoading && !effectiveProject) {
+    return (
+      <div className="shell">
+        <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} onCheckInOpen={() => {}} />
+        <div className="center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>Loading…</div>
+        </div>
+        <div className="right" />
+      </div>
+    )
+  }
+
+  if (!effectiveProject) {
     return (
       <div className="shell">
         <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} onCheckInOpen={() => {}} />
@@ -699,15 +768,15 @@ export default function ProjectProfilePage() {
             {socialLinks.avatar_url ? (
               <img
                 src={socialLinks.avatar_url}
-                alt={project.name}
+                alt={effectiveProject.name}
                 style={{ width: 52, height: 52, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
               />
             ) : (
-              <div className={`pdh-av ${project.av}`} style={{ width: 52, height: 52, fontSize: 20 }}>{project.letter}</div>
+              <div className={`pdh-av ${effectiveProject.av}`} style={{ width: 52, height: 52, fontSize: 20 }}>{effectiveProject.letter}</div>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="pdh-name">{project.name}</div>
-              <div className="pdh-sub">{project.cat} · {project.holders} holders</div>
+              <div className="pdh-name">{effectiveProject.name}</div>
+              <div className="pdh-sub">{effectiveProject.cat}{effectiveProject.holders !== '—' ? ` · ${effectiveProject.holders} holders` : ''}</div>
               {/* Social link icons */}
               {headerLinks.length > 0 && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
@@ -734,7 +803,7 @@ export default function ProjectProfilePage() {
                 </div>
               )}
               <div className="plc-tags" style={{ marginTop: headerLinks.length > 0 ? 6 : undefined }}>
-                {project.tags.map((t, i) => (
+                {effectiveProject.tags.map((t, i) => (
                   <span key={i} className={`plc-tag${t.variant === 'verified' ? ' verified' : ''}`}>
                     {t.variant === 'verified' && <i className="ph-bold ph-check" style={{ fontSize: '9px' }} />}
                     {t.variant === 'verified' ? ' ' : ''}{t.label}
@@ -796,11 +865,11 @@ export default function ProjectProfilePage() {
             </div>
           )}
 
-          {activeTab === 'overview' && <OverviewTab project={project} />}
+          {activeTab === 'overview' && <OverviewTab project={effectiveProject} />}
           {activeTab === 'roadmap'  && <RoadmapTab milestones={milestones} loading={milestonesLoading} />}
-          {activeTab === 'timeline' && <TimelineTab project={project} />}
-          {activeTab === 'votes'    && <VotesTab    project={project} />}
-          {activeTab === 'holders'  && <HoldersTab  project={project} />}
+          {activeTab === 'timeline' && <TimelineTab project={effectiveProject} />}
+          {activeTab === 'votes'    && <VotesTab    project={effectiveProject} />}
+          {activeTab === 'holders'  && <HoldersTab  project={effectiveProject} />}
 
           {/* Settings tab — admin only */}
           {activeTab === 'settings' && isAdmin && (
@@ -1002,24 +1071,26 @@ export default function ProjectProfilePage() {
         <CreatePostModal
           onClose={() => setCreateOpen(false)}
           walletAddress={address}
-          projectName={project.name}
+          projectName={effectiveProject.name}
           onPublish={post => { setPosts(prev => [post, ...prev]); setCreateOpen(false) }}
         />
       )}
 
       <div className="right" id="project-detail-right">
         <TrustScore
-          score={project.score}
-          label={project.trustLabel}
-          trend={project.trend}
-          trendClass={project.trendClass}
+          score={effectiveProject.score}
+          label={effectiveProject.trustLabel}
+          trend={effectiveProject.trend}
+          trendClass={effectiveProject.trendClass}
         />
         <div className="panel">
           <div className="panel-title">Stats</div>
-          <div className="s-row"><span className="s-k">Holders</span><span className="s-v green">{project.holders}</span></div>
-          <div className="s-row"><span className="s-k">Verdicts</span><span className="s-v">{project.verdicts}</span></div>
-          <div className="s-row"><span className="s-k">Active since</span><span className="s-v">{project.activeSince}</span></div>
-          <div className="s-row"><span className="s-k">Category</span><span className="s-v">{project.cat.split(' · ')[0]}</span></div>
+          {effectiveProject.holders !== '—' && (
+            <div className="s-row"><span className="s-k">Holders</span><span className="s-v green">{effectiveProject.holders}</span></div>
+          )}
+          <div className="s-row"><span className="s-k">Verdicts</span><span className="s-v">{effectiveProject.verdicts}</span></div>
+          <div className="s-row"><span className="s-k">Active since</span><span className="s-v">{effectiveProject.activeSince}</span></div>
+          <div className="s-row"><span className="s-k">Category</span><span className="s-v">{effectiveProject.cat.split(' · ')[0]}</span></div>
         </div>
         <div className="panel">
           <div className="panel-title">Actions</div>
@@ -1035,16 +1106,18 @@ export default function ProjectProfilePage() {
           </button>
           <button className="emergency-btn"><i className="ph-bold ph-warning" /> Emergency Call</button>
         </div>
-        <div className="panel">
-          <div className="panel-title">Top verifiers</div>
-          {project.verifiers.map((v, i) => (
-            <div key={i} className="tv-row">
-              <div className="tv-av">{v.letter}</div>
-              <div className="tv-name">{v.address}</div>
-              <div className="tv-pts">{v.pts}</div>
-            </div>
-          ))}
-        </div>
+        {effectiveProject.verifiers.length > 0 && (
+          <div className="panel">
+            <div className="panel-title">Top verifiers</div>
+            {effectiveProject.verifiers.map((v, i) => (
+              <div key={i} className="tv-row">
+                <div className="tv-av">{v.letter}</div>
+                <div className="tv-name">{v.address}</div>
+                <div className="tv-pts">{v.pts}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
