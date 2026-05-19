@@ -157,7 +157,7 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike }: Co
             transition: 'color 0.15s',
           }}
         >
-          <i className={`ti ${likeState.liked ? 'ti-heart-filled' : 'ti-heart'}`} style={{ fontSize: 12 }} />
+          <i className={`${likeState.liked ? 'ph-fill' : 'ph-bold'} ph-heart`} style={{ fontSize: 12 }} />
           {likeState.count > 0 && <span>{likeState.count}</span>}
         </button>
       )}
@@ -365,7 +365,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                 title={copied ? 'Copied!' : 'Share post'}
                 style={{ fontSize: 13, color: copied ? 'var(--green)' : undefined }}
               >
-                <i className={`ti ${copied ? 'ti-check' : 'ti-share'}`} />
+                <i className={`ph-bold ${copied ? 'ph-check' : 'ph-share-network'}`} />
               </button>
             )}
             <button className="post-modal-close" onClick={onClose}><i className="ph-bold ph-x" /></button>
@@ -522,7 +522,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
                 borderRadius: 8, border: `0.5px solid ${liked ? 'rgba(201,165,90,0.4)' : 'var(--border2)'}`,
                 background: liked ? 'rgba(201,165,90,0.08)' : 'var(--surface2)', cursor: 'pointer',
                 color: liked ? 'var(--gold)' : 'var(--muted)', fontSize: 12, transition: 'all 0.15s' }}>
-              <i className={`ti ${liked ? 'ti-heart-filled' : 'ti-heart'}`} />
+              <i className={`${liked ? 'ph-fill' : 'ph-bold'} ph-heart`} />
               <span>{liked ? 'Liked' : 'Like'}</span>
               {likeCount > 0 && <span style={{ color: 'var(--muted2)' }}>· {likeCount}</span>}
             </button>

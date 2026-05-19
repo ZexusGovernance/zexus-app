@@ -3,11 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase-server'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
-function calcClaimAmount(streak: number): number {
-  if (streak >= 30) return 5
-  if (streak >= 14) return Math.floor(Math.random() * 3) + 3 // 3-5
-  if (streak >= 7)  return Math.floor(Math.random() * 2) + 2 // 2-3
-  return Math.floor(Math.random() * 2) + 1                   // 1-2
+function calcClaimAmount(_streak: number): number {
+  return 1
 }
 
 export async function POST(req: NextRequest) {

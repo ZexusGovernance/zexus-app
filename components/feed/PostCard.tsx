@@ -370,7 +370,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
             onClick={toggleLike}
             title={!address && isDbPost ? 'Connect wallet to like' : undefined}
           >
-            <i className={`ti ${liked ? 'ti-heart-filled' : 'ti-heart'} like-icon${likeAnimating ? ' like-pop' : ''}`} style={{ fontSize: 12 }} />
+            <i className={`${liked ? 'ph-fill' : 'ph-bold'} ph-heart like-icon${likeAnimating ? ' like-pop' : ''}`} style={{ fontSize: 12 }} />
             {likeCount > 0 && <span style={{ fontSize: 11 }}>{likeCount}</span>}
           </button>
           {likeAnimating && (
@@ -396,7 +396,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
         {/* Comments */}
         {isDbPost && (
           <button className="foot-btn" style={{ gap: 5 }} onClick={e => { e.stopPropagation(); onClick() }} title="View comments">
-            <i className="ph-bold ph-chat-2" style={{ fontSize: 12 }} />
+            <i className="ph-bold ph-chat" style={{ fontSize: 12 }} />
             {commentCount > 0 && <span style={{ fontSize: 11 }}>{commentCount}</span>}
           </button>
         )}
@@ -406,7 +406,7 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
           <button className="foot-btn" title={copied ? 'Copied!' : 'Share'}
             style={copied ? { color: 'var(--green)' } : {}}
             onClick={e => { e.stopPropagation(); doShare(post, setCopied) }}>
-            <i className={`ti ${copied ? 'ti-check' : 'ti-share'}`} style={{ fontSize: 12 }} />
+            <i className={`ph-bold ${copied ? 'ph-check' : 'ph-share-network'}`} style={{ fontSize: 12 }} />
           </button>
         )}
 
