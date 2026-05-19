@@ -391,6 +391,7 @@ export default function AdminPage() {
   const [saveErr,    setSaveErr]    = useState<string | null>(null)
   const [editId,     setEditId]     = useState<string | null>(null)
   const [delConfirm, setDelConfirm] = useState<string | null>(null)
+  const [delInput,   setDelInput]   = useState('')
 
   // score builder state
   const [scoreInputs,    setScoreInputs]    = useState<ScoreInputs>(SCORE_DEFAULTS)
@@ -502,7 +503,7 @@ export default function AdminPage() {
   async function deleteProject(id: string) {
     if (!address) return
     const r = await fetch(`/api/admin?id=${id}&wallet=${address}`, { method: 'DELETE' })
-    if (r.ok) { setProjects(p => p.filter(x => x.id !== id)); setDelConfirm(null) }
+    if (r.ok) { setProjects(p => p.filter(x => x.id !== id)); setDelConfirm(null); setDelInput('') }
   }
 
   const filtered = projects.filter(p =>
@@ -547,7 +548,7 @@ export default function AdminPage() {
 
   // ── Main ──
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'inherit' }}>
+    <div style={{ height: '100vh', overflowY: 'auto', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'inherit' }}>
 
       {/* Header */}
       <div style={{ borderBottom: '0.5px solid rgba(255,255,255,0.07)', padding: '18px 28px',
@@ -739,7 +740,7 @@ export default function AdminPage() {
                         color: editId === p.id ? '#6f9be5' : 'var(--muted2)' }}>
                       <i className={`ph-bold ${editId === p.id ? 'ph-x' : 'ph-pencil-simple'}`} />
                     </button>
-                    <button onClick={() => setDelConfirm(p.id)} title="Delete"
+                    <button onClick={() => { setDelConfirm(p.id); setDelInput('') }} title="Delete"
                       style={{ padding: '5px 10px', borderRadius: 7, cursor: 'pointer', fontSize: 12,
                         border: '0.5px solid rgba(238,121,121,0.2)', background: 'transparent',
                         color: 'var(--red)', opacity: 0.7 }}>
@@ -809,27 +810,54 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {/* Delete confirm */}
+                {/* Delete confirm — two-step */}
                 {delConfirm === p.id && (
-                  <div style={{ marginTop: 10, paddingTop: 10,
-                    borderTop: '0.5px solid rgba(238,121,121,0.15)',
-                    display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 12, color: 'var(--red)', flex: 1 }}>
-                      Delete <strong>{p.name}</strong>? Cannot be undone.
-                    </span>
-                    <button onClick={() => deleteProject(p.id)}
-                      style={{ padding: '5px 14px', borderRadius: 7,
-                        border: '0.5px solid rgba(238,121,121,0.4)',
-                        background: 'rgba(238,121,121,0.1)', color: 'var(--red)',
-                        fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Delete
-                    </button>
-                    <button onClick={() => setDelConfirm(null)}
-                      style={{ padding: '5px 12px', borderRadius: 7,
-                        border: '0.5px solid rgba(255,255,255,0.07)', background: 'transparent',
-                        color: 'var(--muted2)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Cancel
-                    </button>
+                  <div style={{ marginTop: 10, paddingTop: 14,
+                    borderTop: '0.5px solid rgba(238,121,121,0.2)',
+                    background: 'rgba(238,121,121,0.04)', borderRadius: 8,
+                    padding: '14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <i className="ph-bold ph-warning" style={{ color: 'var(--red)', fontSize: 15, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--red)' }}>
+                          Удаление необратимо
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+                          Введи название проекта <b style={{ color: 'var(--text)' }}>{p.name}</b> для подтверждения
+                        </div>
+                      </div>
+                    </div>
+                    <input
+                      value={delInput}
+                      onChange={e => setDelInput(e.target.value)}
+                      placeholder={`Введи "${p.name}"`}
+                      autoFocus
+                      style={{ padding: '8px 11px', background: 'rgba(255,255,255,0.03)',
+                        border: `0.5px solid ${delInput === p.name ? 'rgba(238,121,121,0.6)' : 'rgba(255,255,255,0.09)'}`,
+                        borderRadius: 8, color: 'var(--text)', fontSize: 13,
+                        fontFamily: 'inherit', outline: 'none', transition: 'border-color 0.2s' }}
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => deleteProject(p.id)}
+                        disabled={delInput !== p.name}
+                        style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'inherit',
+                          border: '0.5px solid rgba(238,121,121,0.5)',
+                          background: delInput === p.name ? 'rgba(238,121,121,0.15)' : 'rgba(255,255,255,0.02)',
+                          color: delInput === p.name ? 'var(--red)' : 'rgba(255,255,255,0.2)',
+                          fontSize: 12, fontWeight: 700,
+                          cursor: delInput === p.name ? 'pointer' : 'not-allowed',
+                          transition: 'all 0.2s' }}>
+                        <i className="ph-bold ph-trash" style={{ marginRight: 6 }} />
+                        Удалить {p.name}
+                      </button>
+                      <button onClick={() => { setDelConfirm(null); setDelInput('') }}
+                        style={{ padding: '8px 16px', borderRadius: 8, fontFamily: 'inherit',
+                          border: '0.5px solid rgba(255,255,255,0.07)', background: 'transparent',
+                          color: 'var(--muted2)', fontSize: 12, cursor: 'pointer' }}>
+                        Отмена
+                      </button>
+                    </div>
                   </div>
                 )}
 
