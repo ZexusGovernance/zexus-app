@@ -13,7 +13,18 @@ import CreatePostModal from '@/components/feed/CreatePostModal'
 import PostCard from '@/components/feed/PostCard'
 import PostDetailModal from '@/components/feed/PostDetailModal'
 
-type Tab = 'overview' | 'timeline' | 'milestones' | 'votes' | 'holders' | 'posts' | 'settings'
+type Tab = 'overview' | 'timeline' | 'roadmap' | 'votes' | 'holders' | 'posts' | 'settings'
+
+interface Milestone {
+  id:          string
+  project_id:  string
+  year:        number
+  quarter:     number
+  title:       string
+  description: string | null
+  status:      'completed' | 'in_progress' | 'upcoming'
+  sort_order:  number
+}
 
 interface SocialLinks {
   website_url:    string | null
@@ -183,26 +194,106 @@ function TimelineTab({ project }: { project: ProjectFull }) {
   )
 }
 
-function MilestonesTab({ project }: { project: ProjectFull }) {
+function RoadmapTab({ milestones, loading }: { milestones: Milestone[]; loading: boolean }) {
+  if (loading) {
+    return <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '40px 0', fontSize: 12 }}>Loading roadmap…</div>
+  }
+
+  if (milestones.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '52px 20px', color: 'var(--muted2)', textAlign: 'center' }}>
+        <i className="ph-bold ph-map-trifold" style={{ fontSize: 32, opacity: 0.25 }} />
+        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted)' }}>Roadmap not provided yet</div>
+        <div style={{ fontSize: 11, maxWidth: 260, lineHeight: 1.6 }}>The project team hasn't added their roadmap yet.</div>
+      </div>
+    )
+  }
+
+  // Group by year then quarter
+  const grouped = new Map<number, Map<number, Milestone[]>>()
+  for (const m of milestones) {
+    if (!grouped.has(m.year)) grouped.set(m.year, new Map())
+    const byQ = grouped.get(m.year)!
+    if (!byQ.has(m.quarter)) byQ.set(m.quarter, [])
+    byQ.get(m.quarter)!.push(m)
+  }
+  const years = Array.from(grouped.keys()).sort((a, b) => a - b)
+
+  const STATUS_DOT: Record<string, { bg: string; border: string; glow?: string }> = {
+    completed:   { bg: '#53c992', border: '#53c992', glow: 'rgba(83,201,146,0.4)' },
+    in_progress: { bg: '#6f9be5', border: '#6f9be5', glow: 'rgba(111,155,229,0.4)' },
+    upcoming:    { bg: 'transparent', border: 'rgba(255,255,255,0.2)' },
+  }
+  const STATUS_LABEL: Record<string, string> = {
+    completed: 'Done', in_progress: 'In progress', upcoming: 'Planned',
+  }
+  const STATUS_COLOR: Record<string, string> = {
+    completed: 'var(--green)', in_progress: '#6f9be5', upcoming: 'var(--muted2)',
+  }
+
   return (
-    <div className="roadmap-promises">
-      <div className="concept-head">
-        <div>
-          <div className="concept-title">Roadmap Promises</div>
-          <div className="concept-sub">Every milestone is a public commitment tracked on-chain.</div>
-        </div>
-      </div>
-      <div className="milestone-list">
-        {project.milestones.map((m, i) => (
-          <div key={i} className="milestone-card">
-            <div>
-              <div className="milestone-name">{m.name}</div>
-              <div className="milestone-meta">{m.date} · Impact: {m.impact}</div>
+    <div style={{ paddingBottom: 24 }}>
+      {years.map((year, yi) => {
+        const quarters = grouped.get(year)!
+        const qList = Array.from(quarters.keys()).sort((a, b) => a - b)
+        return (
+          <div key={year}>
+            {/* Year label */}
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: 16, marginTop: yi > 0 ? 32 : 0, paddingLeft: 2 }}>
+              {year}
             </div>
-            <span className={`status-pill ${m.statusClass}`}>{m.status}</span>
+
+            {qList.map((q, qi) => {
+              const items = quarters.get(q)!
+              const isLast = yi === years.length - 1 && qi === qList.length - 1
+              return (
+                <div key={q} style={{ display: 'flex', gap: 0, position: 'relative' }}>
+                  {/* Left: quarter label + line */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 44, flexShrink: 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted2)', letterSpacing: '0.5px', height: 22, display: 'flex', alignItems: 'center' }}>
+                      Q{q}
+                    </div>
+                    {!isLast && (
+                      <div style={{ flex: 1, width: 1, background: 'rgba(255,255,255,0.07)', minHeight: 24 }} />
+                    )}
+                  </div>
+
+                  {/* Items */}
+                  <div style={{ flex: 1, paddingBottom: isLast ? 0 : 20 }}>
+                    {items.map((m, mi) => {
+                      const dot = STATUS_DOT[m.status]
+                      return (
+                        <div key={m.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: mi < items.length - 1 ? 10 : 0 }}>
+                          {/* Dot */}
+                          <div style={{
+                            width: 10, height: 10, borderRadius: '50%', flexShrink: 0, marginTop: 5,
+                            background: dot.bg, border: `1.5px solid ${dot.border}`,
+                            boxShadow: dot.glow ? `0 0 6px ${dot.glow}` : 'none',
+                          }} />
+                          {/* Content */}
+                          <div style={{ flex: 1, background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 9, padding: '9px 13px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', lineHeight: 1.35 }}>{m.title}</div>
+                              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: STATUS_COLOR[m.status], flexShrink: 0 }}>
+                                {m.status === 'completed' && <i className="ph-bold ph-check" style={{ marginRight: 3 }} />}
+                                {m.status === 'in_progress' && <i className="ph-bold ph-circle-notch" style={{ marginRight: 3 }} />}
+                                {STATUS_LABEL[m.status]}
+                              </span>
+                            </div>
+                            {m.description && (
+                              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.55 }}>{m.description}</div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
@@ -308,6 +399,13 @@ export default function ProjectProfilePage() {
   const [isAdmin,            setIsAdmin]            = useState(false)
   const [createOpen,         setCreateOpen]         = useState(false)
 
+  // Roadmap
+  const [milestones,         setMilestones]         = useState<Milestone[]>([])
+  const [milestonesLoading,  setMilestonesLoading]  = useState(false)
+  const [newMs,              setNewMs]              = useState({ year: new Date().getFullYear(), quarter: 1, title: '', description: '', status: 'upcoming' as Milestone['status'] })
+  const [addingMs,           setAddingMs]           = useState(false)
+  const [msError,            setMsError]            = useState<string | null>(null)
+
   // Live project settings from DB
   const [showHolders,  setShowHolders]  = useState(true)
   const [showVotes,    setShowVotes]    = useState(true)
@@ -411,6 +509,17 @@ export default function ProjectProfilePage() {
       .catch(() => setIsAdmin(false))
   }, [address, slug, project])
 
+  // Load milestones
+  useEffect(() => {
+    if (!projectDbId) return
+    setMilestonesLoading(true)
+    fetch(`/api/milestones?project_id=${projectDbId}`)
+      .then(r => r.json())
+      .then(({ milestones: ms }: { milestones: Milestone[] }) => setMilestones(ms ?? []))
+      .catch(() => {})
+      .finally(() => setMilestonesLoading(false))
+  }, [projectDbId])
+
   // Load watchlist status
   useEffect(() => {
     if (!address || !projectDbId) return
@@ -433,6 +542,43 @@ export default function ProjectProfilePage() {
     })
     setWatchlisted(w => !w)
     setWatchlistLoading(false)
+  }
+
+  async function addMilestone() {
+    if (!address || !projectDbId || !newMs.title.trim()) return
+    setAddingMs(true); setMsError(null)
+    try {
+      const res = await fetch('/api/milestones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address, project_id: projectDbId, ...newMs }),
+      })
+      const data = await res.json() as { milestone?: Milestone; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      setMilestones(prev => [...prev, data.milestone!].sort((a, b) => a.year !== b.year ? a.year - b.year : a.quarter - b.quarter))
+      setNewMs({ year: new Date().getFullYear(), quarter: 1, title: '', description: '', status: 'upcoming' })
+    } catch (e) {
+      setMsError(e instanceof Error ? e.message : 'Error')
+    } finally {
+      setAddingMs(false)
+    }
+  }
+
+  async function deleteMilestone(id: string) {
+    if (!address) return
+    const res = await fetch(`/api/milestones?id=${id}&wallet=${address}`, { method: 'DELETE' })
+    if (res.ok) setMilestones(prev => prev.filter(m => m.id !== id))
+  }
+
+  async function toggleMilestoneStatus(m: Milestone) {
+    if (!address) return
+    const next: Milestone['status'] = m.status === 'upcoming' ? 'in_progress' : m.status === 'in_progress' ? 'completed' : 'upcoming'
+    const res = await fetch('/api/milestones', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: address, id: m.id, status: next }),
+    })
+    if (res.ok) setMilestones(prev => prev.map(x => x.id === m.id ? { ...x, status: next } : x))
   }
 
   async function saveProject() {
@@ -521,10 +667,10 @@ export default function ProjectProfilePage() {
   }
 
   const TABS: { id: Tab; label: string }[] = [
-    { id: 'posts',      label: 'Posts' },
-    { id: 'overview',   label: 'Overview' },
-    { id: 'timeline',   label: 'Trust Timeline' },
-    { id: 'milestones', label: 'Milestones' },
+    { id: 'posts',    label: 'Posts' },
+    { id: 'overview', label: 'Overview' },
+    { id: 'roadmap',  label: 'Roadmap' },
+    { id: 'timeline', label: 'Trust Timeline' },
     ...(showVotes   ? [{ id: 'votes'    as Tab, label: 'Votes' }]    : []),
     ...(showHolders ? [{ id: 'holders'  as Tab, label: 'Holders' }]  : []),
     ...(isAdmin     ? [{ id: 'settings' as Tab, label: '⚙ Settings' }] : []),
@@ -650,11 +796,11 @@ export default function ProjectProfilePage() {
             </div>
           )}
 
-          {activeTab === 'overview'   && <OverviewTab   project={project} />}
-          {activeTab === 'timeline'   && <TimelineTab   project={project} />}
-          {activeTab === 'milestones' && <MilestonesTab project={project} />}
-          {activeTab === 'votes'      && <VotesTab      project={project} />}
-          {activeTab === 'holders'    && <HoldersTab    project={project} />}
+          {activeTab === 'overview' && <OverviewTab project={project} />}
+          {activeTab === 'roadmap'  && <RoadmapTab milestones={milestones} loading={milestonesLoading} />}
+          {activeTab === 'timeline' && <TimelineTab project={project} />}
+          {activeTab === 'votes'    && <VotesTab    project={project} />}
+          {activeTab === 'holders'  && <HoldersTab  project={project} />}
 
           {/* Settings tab — admin only */}
           {activeTab === 'settings' && isAdmin && (
@@ -746,6 +892,74 @@ export default function ProjectProfilePage() {
                       <BlueToggle checked={item.checked} onChange={item.onChange} disabled={item.disabled} />
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Roadmap management */}
+              <div style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--muted2)', fontWeight: 600 }}>
+                  <i className="ph-bold ph-map-trifold" style={{ marginRight: 6 }} />Roadmap
+                </div>
+                <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {/* Existing milestones */}
+                  {milestones.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4 }}>
+                      {milestones.map(m => (
+                        <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(255,255,255,0.02)', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text)' }}>Q{m.quarter} {m.year}</span>
+                            <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 8 }}>{m.title}</span>
+                          </div>
+                          {/* Status cycle button */}
+                          <button onClick={() => toggleMilestoneStatus(m)} title="Cycle status"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 5, fontSize: 10, fontWeight: 600, fontFamily: 'inherit',
+                              color: m.status === 'completed' ? 'var(--green)' : m.status === 'in_progress' ? '#6f9be5' : 'var(--muted2)' }}>
+                            {m.status === 'completed' ? '✓ Done' : m.status === 'in_progress' ? '◉ Active' : '○ Planned'}
+                          </button>
+                          <button onClick={() => deleteMilestone(m.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--muted2)', fontSize: 12, lineHeight: 1 }}
+                            title="Delete">
+                            <i className="ph-bold ph-x" style={{ fontSize: 10 }} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new milestone */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '80px 60px 1fr', gap: 8 }}>
+                    <div className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label">YEAR</label>
+                      <input className="create-input" type="number" value={newMs.year} onChange={e => setNewMs(p => ({ ...p, year: +e.target.value }))} />
+                    </div>
+                    <div className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label">Q</label>
+                      <select className="create-select" value={newMs.quarter} onChange={e => setNewMs(p => ({ ...p, quarter: +e.target.value }))}>
+                        <option value={1}>Q1</option><option value={2}>Q2</option>
+                        <option value={3}>Q3</option><option value={4}>Q4</option>
+                      </select>
+                    </div>
+                    <div className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label">TITLE</label>
+                      <input className="create-input" value={newMs.title} onChange={e => setNewMs(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Mainnet launch" />
+                    </div>
+                  </div>
+                  <div className="create-field" style={{ marginBottom: 0 }}>
+                    <label className="create-label">DESCRIPTION (OPTIONAL)</label>
+                    <input className="create-input" value={newMs.description} onChange={e => setNewMs(p => ({ ...p, description: e.target.value }))} placeholder="Short details…" />
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <select className="create-select" value={newMs.status} onChange={e => setNewMs(p => ({ ...p, status: e.target.value as Milestone['status'] }))} style={{ flex: 1 }}>
+                      <option value="upcoming">Planned</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                    <button onClick={addMilestone} disabled={addingMs || !newMs.title.trim()}
+                      style={{ padding: '8px 14px', borderRadius: 8, border: '0.5px solid rgba(111,155,229,0.35)', background: 'rgba(111,155,229,0.1)', color: '#6f9be5', fontSize: 12, fontWeight: 600, cursor: addingMs ? 'not-allowed' : 'pointer', fontFamily: 'inherit', flexShrink: 0, opacity: addingMs ? 0.6 : 1 }}>
+                      <i className="ph-bold ph-plus" style={{ marginRight: 5 }} />Add
+                    </button>
+                  </div>
+                  {msError && <div style={{ fontSize: 11, color: 'var(--red)' }}>{msError}</div>}
                 </div>
               </div>
 
