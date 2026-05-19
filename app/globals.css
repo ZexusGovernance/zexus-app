@@ -2596,7 +2596,9 @@ body::after {
 .info-item,
 .vhist-card,
 .watch-card,
-.pcard {
+.pcard,
+.prof-settings-section,
+.ach-full-card {
   background: linear-gradient(180deg, #1b1a15, #151410) !important;
   border-color: rgba(232, 228, 220, 0.08) !important;
   border-radius: 16px !important;
@@ -2780,10 +2782,32 @@ body::after {
 .info-item,
 .vhist-card,
 .watch-card,
-.pcard {
+.pcard,
+.prof-settings-section,
+.ach-full-card,
+.watch-card {
   background: transparent !important;
   border-color: rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
+}
+/* Profile: section/row dividers match feed subtle style */
+.settings-group { border-bottom-color: rgba(255,255,255,0.05) !important; }
+.ach-full-row { border-top-color: rgba(255,255,255,0.05) !important; }
+.vhist-head { background: transparent !important; border-bottom: 0.5px solid rgba(255,255,255,0.05) !important; }
+/* Toggle ON: blue instead of gold */
+.settings-toggle.on { background: rgba(111,155,229,0.25) !important; }
+.settings-toggle.on::after { background: #6f9be5 !important; }
+/* Trust score: neutral bar, white number */
+.ts-big { color: var(--text) !important; }
+.ts-bar-fill { background: #6f9be5 !important; }
+/* Primary action button: dark with blue border instead of gold */
+.action-btn.primary {
+  background: rgba(111,155,229,0.1) !important;
+  border-color: rgba(111,155,229,0.35) !important;
+  color: #6f9be5 !important;
+}
+.action-btn.primary:hover {
+  background: rgba(111,155,229,0.18) !important;
 }
 .card.c-verdict,
 .context-feature,
@@ -3810,9 +3834,9 @@ input[data-burn-slider]::-moz-range-thumb {
   }
   .stat-item {
     padding: 10px 12px;
-    background: var(--surface2);
+    background: transparent;
     border-radius: 10px;
-    border: 0.5px solid var(--border);
+    border: 0.5px solid rgba(255,255,255,0.05);
   }
 
   /* Verdict bar: hide count to save space */
