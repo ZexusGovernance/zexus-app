@@ -27,6 +27,11 @@ interface AdminProject {
   description: string | null
   category: string | null
   website_url: string | null
+  whitepaper_url?: string | null
+  github_url?: string | null
+  twitter_url?: string | null
+  discord_url?: string | null
+  avatar_url?: string | null
   trust_score: number
   is_verified: boolean
 }
@@ -266,9 +271,15 @@ export default function ProfilePage() {
               <div
                 key={t}
                 className={`tab${activeTab === t ? ' active' : ''}`}
-                onClick={() => setActiveTab(t)}
+                onClick={() => {
+                  if (t === 'Project' && adminProject?.slug) {
+                    window.location.href = `/projects/${adminProject.slug}`
+                  } else {
+                    setActiveTab(t)
+                  }
+                }}
               >
-                {t === 'Project' ? <><i className="ph-bold ph-building" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</> : t}
+                {t === 'Project' ? <><i className="ph-bold ph-arrow-square-out" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</> : t}
               </div>
             ))}
           </div>

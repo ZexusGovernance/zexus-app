@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   let { data: project, error: projectError } = await supabaseAdmin
     .from('projects')
-    .select('id, name, slug, description, category, avatar_url, website_url, trust_score, is_verified, has_token, show_holders, show_votes')
+    .select('id, name, slug, description, category, avatar_url, website_url, whitepaper_url, github_url, twitter_url, discord_url, trust_score, is_verified, has_token, show_holders, show_votes')
     .eq('admin_wallet', wallet)
     .maybeSingle()
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       console.error('[check-role] fallback query error:', fallbackError.message)
     }
     if (fallback) {
-      project = { ...fallback, has_token: false, show_holders: true, show_votes: true }
+      project = { ...fallback, has_token: false, show_holders: true, show_votes: true, whitepaper_url: null, github_url: null, twitter_url: null, discord_url: null }
     }
   }
 

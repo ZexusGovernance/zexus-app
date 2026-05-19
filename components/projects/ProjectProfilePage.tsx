@@ -10,9 +10,19 @@ import type { FeedPost, PostType } from '@/lib/feedData'
 import type { DbPost } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import CreatePostModal from '@/components/feed/CreatePostModal'
+import PostCard from '@/components/feed/PostCard'
 import PostDetailModal from '@/components/feed/PostDetailModal'
 
-type Tab = 'overview' | 'timeline' | 'milestones' | 'votes' | 'holders' | 'posts'
+type Tab = 'overview' | 'timeline' | 'milestones' | 'votes' | 'holders' | 'posts' | 'settings'
+
+interface SocialLinks {
+  website_url:    string | null
+  whitepaper_url: string | null
+  github_url:     string | null
+  twitter_url:    string | null
+  discord_url:    string | null
+  avatar_url:     string | null
+}
 
 const AV_CLASSES = ['av-blue', 'av-teal', 'av-purple', 'av-red', 'av-gold']
 function projectAv(name: string): string {
@@ -38,9 +48,12 @@ function dbToFeedPost(row: DbPost): FeedPost {
     time:        new Date(row.created_at).toLocaleString('en-US', {
       hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric',
     }),
-    comments:  [],
-    images:    row.image_url ? [row.image_url] : undefined,
-    likeCount: row.likes_count,
+    createdAt:   row.created_at,
+    comments:    [],
+    images:      row.image_url ? [row.image_url] : undefined,
+    likeCount:   row.likes_count,
+    viewCount:   row.views_count ?? 0,
+    commentsCount: row.comments_count ?? 0,
     ...(row.trust_score_change != null && row.trust_score_change !== 0
       ? { trustScoreChange: row.trust_score_change } : {}),
   }
@@ -92,7 +105,7 @@ function OverviewTab({ project }: { project: ProjectFull }) {
             { k: 'Category', v: project.cat.split(' · ')[0] },
             { k: 'Trust Score', v: project.score !== null ? String(project.score) : 'Unscored' },
           ].map(({ k, v }) => (
-            <div key={k} style={{ background: 'var(--surface2)', border: '0.5px solid var(--border2)', borderRadius: 8, padding: '10px 12px' }}>
+            <div key={k} style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '10px 12px' }}>
               <div style={{ fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 4 }}>{k}</div>
               <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{v}</div>
             </div>
@@ -205,7 +218,7 @@ function VotesTab({ project }: { project: ProjectFull }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {project.votes.map((v, i) => (
-          <div key={i} style={{ background: 'var(--surface2)', border: '0.5px solid var(--border2)', borderRadius: 10, padding: '14px 16px' }}>
+          <div key={i} style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '14px 16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', flex: 1, paddingRight: 10 }}>{v.title}</div>
               <span className={`status-pill ${v.statusClass}`} style={{ flexShrink: 0 }}>{v.status}</span>
@@ -215,7 +228,7 @@ function VotesTab({ project }: { project: ProjectFull }) {
                 <span style={{ color: 'var(--green)' }}>Yes {v.yes}%</span>
                 <span style={{ color: 'var(--red)' }}>No {v.no}%</span>
               </div>
-              <div style={{ height: 4, background: 'var(--border2)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${v.yes}%`, background: 'var(--green)', borderRadius: 2 }} />
               </div>
             </div>
@@ -241,19 +254,41 @@ function HoldersTab({ project }: { project: ProjectFull }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {project.topHolders.map((h, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--surface2)', border: '0.5px solid var(--border2)', borderRadius: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'var(--gold)', flexShrink: 0 }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'var(--text)', flexShrink: 0 }}>
               {h.letter}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'monospace' }}>{h.address}</div>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{h.amount}</div>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--gold)', fontWeight: 500 }}>{h.pct}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted2)', fontWeight: 500 }}>{h.pct}</div>
           </div>
         ))}
       </div>
     </div>
+  )
+}
+
+function BlueToggle({ checked, onChange, disabled }: { checked: boolean; onChange: () => void; disabled?: boolean }) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onChange}
+      style={{
+        width: 36, height: 20, borderRadius: 10, border: 'none', flexShrink: 0,
+        cursor: disabled ? 'not-allowed' : 'pointer', position: 'relative',
+        background: checked ? 'rgba(111,155,229,0.35)' : 'var(--border2)',
+        transition: 'background 0.2s',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span style={{
+        position: 'absolute', width: 14, height: 14, borderRadius: '50%',
+        background: checked ? '#6f9be5' : 'var(--muted2)',
+        top: 3, left: checked ? 19 : 3, transition: 'left 0.2s, background 0.2s',
+      }} />
+    </button>
   )
 }
 
@@ -262,27 +297,36 @@ export default function ProjectProfilePage() {
   const router  = useRouter()
   const { address } = useAppKitAccount()
 
-  const [activeTab,       setActiveTab]       = useState<Tab>('posts')
-  const [watchlisted,     setWatchlisted]     = useState(false)
-  const [projectDbId,     setProjectDbId]     = useState<string | null>(null)
-  const [watchlistLoading, setWatchlistLoading] = useState(false)
-  const [posts,           setPosts]           = useState<FeedPost[]>([])
-  const [loadingPosts,    setLoadingPosts]    = useState(false)
-  const [selectedPost,    setSelectedPost]    = useState<FeedPost | null>(null)
-  const [isAdmin,         setIsAdmin]         = useState(false)
-  const [createOpen,      setCreateOpen]      = useState(false)
+  const [activeTab,          setActiveTab]          = useState<Tab>('posts')
+  const [watchlisted,        setWatchlisted]        = useState(false)
+  const [projectDbId,        setProjectDbId]        = useState<string | null>(null)
+  const [watchlistLoading,   setWatchlistLoading]   = useState(false)
+  const [posts,              setPosts]              = useState<FeedPost[]>([])
+  const [loadingPosts,       setLoadingPosts]       = useState(false)
+  const [selectedPost,       setSelectedPost]       = useState<FeedPost | null>(null)
+  const [scrollToComments,   setScrollToComments]   = useState(false)
+  const [isAdmin,            setIsAdmin]            = useState(false)
+  const [createOpen,         setCreateOpen]         = useState(false)
 
   // Live project settings from DB
-  const [showHolders, setShowHolders] = useState(true)
-  const [showVotes,   setShowVotes]   = useState(true)
-  const [hasToken,    setHasToken]    = useState(false)
+  const [showHolders,  setShowHolders]  = useState(true)
+  const [showVotes,    setShowVotes]    = useState(true)
+  const [hasToken,     setHasToken]     = useState(false)
+  const [socialLinks,  setSocialLinks]  = useState<SocialLinks>({
+    website_url: null, whitepaper_url: null, github_url: null,
+    twitter_url: null, discord_url: null, avatar_url: null,
+  })
 
-  // Edit state
-  const [editMode,        setEditMode]        = useState(false)
+  // Edit state (shown in Settings tab)
   const [editName,        setEditName]        = useState('')
   const [editDesc,        setEditDesc]        = useState('')
   const [editCategory,    setEditCategory]    = useState('')
   const [editWebsite,     setEditWebsite]     = useState('')
+  const [editWhitepaper,  setEditWhitepaper]  = useState('')
+  const [editGithub,      setEditGithub]      = useState('')
+  const [editTwitter,     setEditTwitter]     = useState('')
+  const [editDiscord,     setEditDiscord]     = useState('')
+  const [editAvatarUrl,   setEditAvatarUrl]   = useState('')
   const [editShowHolders, setEditShowHolders] = useState(true)
   const [editShowVotes,   setEditShowVotes]   = useState(true)
   const [editHasToken,    setEditHasToken]    = useState(false)
@@ -303,12 +347,12 @@ export default function ProjectProfilePage() {
       .finally(() => setLoadingPosts(false))
   }, [slug])
 
-  // Load live project visibility settings (public read via anon key)
+  // Load live project settings + social links (public read)
   useEffect(() => {
     if (!slug) return
     supabase
       .from('projects')
-      .select('id, show_holders, show_votes, has_token')
+      .select('id, show_holders, show_votes, has_token, website_url, whitepaper_url, github_url, twitter_url, discord_url, avatar_url')
       .eq('slug', slug)
       .maybeSingle()
       .then(({ data }) => {
@@ -317,6 +361,14 @@ export default function ProjectProfilePage() {
           setShowHolders(data.show_holders ?? true)
           setShowVotes(data.show_votes ?? true)
           setHasToken(data.has_token ?? false)
+          setSocialLinks({
+            website_url:    data.website_url    ?? null,
+            whitepaper_url: data.whitepaper_url ?? null,
+            github_url:     data.github_url     ?? null,
+            twitter_url:    data.twitter_url    ?? null,
+            discord_url:    data.discord_url    ?? null,
+            avatar_url:     data.avatar_url     ?? null,
+          })
         }
       })
   }, [slug])
@@ -331,18 +383,27 @@ export default function ProjectProfilePage() {
         project: {
           slug: string; name: string; description: string | null;
           category: string | null; website_url: string | null;
+          whitepaper_url: string | null; github_url: string | null;
+          twitter_url: string | null; discord_url: string | null;
+          avatar_url: string | null;
           show_holders: boolean; show_votes: boolean; has_token: boolean;
         } | null
       }) => {
         if (data.role === 'project' && data.project && data.project.slug === slug) {
           setIsAdmin(true)
-          setEditName(data.project.name)
-          setEditDesc(data.project.description ?? '')
-          setEditCategory(data.project.category ?? '')
-          setEditWebsite(data.project.website_url ?? '')
-          setEditShowHolders(data.project.show_holders ?? true)
-          setEditShowVotes(data.project.show_votes ?? true)
-          setEditHasToken(data.project.has_token ?? false)
+          const p = data.project
+          setEditName(p.name)
+          setEditDesc(p.description ?? '')
+          setEditCategory(p.category ?? '')
+          setEditWebsite(p.website_url ?? '')
+          setEditWhitepaper(p.whitepaper_url ?? '')
+          setEditGithub(p.github_url ?? '')
+          setEditTwitter(p.twitter_url ?? '')
+          setEditDiscord(p.discord_url ?? '')
+          setEditAvatarUrl(p.avatar_url ?? '')
+          setEditShowHolders(p.show_holders ?? true)
+          setEditShowVotes(p.show_votes ?? true)
+          setEditHasToken(p.has_token ?? false)
         } else {
           setIsAdmin(false)
         }
@@ -350,7 +411,7 @@ export default function ProjectProfilePage() {
       .catch(() => setIsAdmin(false))
   }, [address, slug, project])
 
-  // Load watchlist status for current project
+  // Load watchlist status
   useEffect(() => {
     if (!address || !projectDbId) return
     fetch(`/api/watchlist?wallet=${address}`)
@@ -382,14 +443,19 @@ export default function ProjectProfilePage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          wallet:        address,
-          name:          editName,
-          description:   editDesc,
-          category:      editCategory,
-          website_url:   editWebsite,
-          show_holders:  editShowHolders,
-          show_votes:    editShowVotes,
-          has_token:     editHasToken,
+          wallet:         address,
+          name:           editName,
+          description:    editDesc,
+          category:       editCategory,
+          website_url:    editWebsite,
+          whitepaper_url: editWhitepaper,
+          github_url:     editGithub,
+          twitter_url:    editTwitter,
+          discord_url:    editDiscord,
+          avatar_url:     editAvatarUrl,
+          show_holders:   editShowHolders,
+          show_votes:     editShowVotes,
+          has_token:      editHasToken,
         }),
       })
       if (!res.ok) {
@@ -397,17 +463,29 @@ export default function ProjectProfilePage() {
         throw new Error(err.error ?? 'Save failed')
       }
       const { project: saved } = await res.json() as {
-        project: { show_holders: boolean; show_votes: boolean; has_token: boolean }
+        project: {
+          show_holders: boolean; show_votes: boolean; has_token: boolean;
+          website_url: string | null; whitepaper_url: string | null;
+          github_url: string | null; twitter_url: string | null;
+          discord_url: string | null; avatar_url: string | null;
+        }
       }
-      // Apply saved values (API enforces has_token → show_holders = true)
       setShowHolders(saved.show_holders)
       setShowVotes(saved.show_votes)
       setHasToken(saved.has_token)
       setEditShowHolders(saved.show_holders)
       setEditShowVotes(saved.show_votes)
       setEditHasToken(saved.has_token)
+      // Update displayed social links immediately
+      setSocialLinks({
+        website_url:    saved.website_url    ?? null,
+        whitepaper_url: saved.whitepaper_url ?? null,
+        github_url:     saved.github_url     ?? null,
+        twitter_url:    saved.twitter_url    ?? null,
+        discord_url:    saved.discord_url    ?? null,
+        avatar_url:     saved.avatar_url     ?? null,
+      })
       setSaveMsg('Saved!')
-      setEditMode(false)
       setTimeout(() => setSaveMsg(null), 3000)
     } catch (err) {
       setSaveMsg(err instanceof Error ? err.message : 'Save failed')
@@ -447,9 +525,19 @@ export default function ProjectProfilePage() {
     { id: 'overview',   label: 'Overview' },
     { id: 'timeline',   label: 'Trust Timeline' },
     { id: 'milestones', label: 'Milestones' },
-    ...(showVotes    ? [{ id: 'votes'   as Tab, label: 'Votes' }]   : []),
-    ...(showHolders  ? [{ id: 'holders' as Tab, label: 'Holders' }] : []),
+    ...(showVotes   ? [{ id: 'votes'    as Tab, label: 'Votes' }]    : []),
+    ...(showHolders ? [{ id: 'holders'  as Tab, label: 'Holders' }]  : []),
+    ...(isAdmin     ? [{ id: 'settings' as Tab, label: '⚙ Settings' }] : []),
   ]
+
+  // Social links for header display
+  const headerLinks: { href: string; icon: string; title: string }[] = [
+    socialLinks.website_url    ? { href: socialLinks.website_url,    icon: 'ph-bold ph-globe',          title: 'Website' }     : null,
+    socialLinks.whitepaper_url ? { href: socialLinks.whitepaper_url, icon: 'ph-bold ph-file-text',      title: 'Whitepaper' }  : null,
+    socialLinks.github_url     ? { href: socialLinks.github_url,     icon: 'ph-bold ph-github-logo',    title: 'GitHub' }      : null,
+    socialLinks.twitter_url    ? { href: socialLinks.twitter_url,    icon: 'ph-bold ph-x-logo',         title: 'X / Twitter' } : null,
+    socialLinks.discord_url    ? { href: socialLinks.discord_url,    icon: 'ph-bold ph-discord-logo',   title: 'Discord' }     : null,
+  ].filter(Boolean) as { href: string; icon: string; title: string }[]
 
   return (
     <div className="shell">
@@ -461,128 +549,70 @@ export default function ProjectProfilePage() {
             <i className="ph-bold ph-arrow-left" /> Back to projects
           </div>
           <div className="pdh-top">
-            <div className={`pdh-av ${project.av}`} style={{ width: 52, height: 52, fontSize: 20 }}>{project.letter}</div>
-            <div style={{ flex: 1 }}>
+            {/* Avatar — image if set, else letter */}
+            {socialLinks.avatar_url ? (
+              <img
+                src={socialLinks.avatar_url}
+                alt={project.name}
+                style={{ width: 52, height: 52, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
+              />
+            ) : (
+              <div className={`pdh-av ${project.av}`} style={{ width: 52, height: 52, fontSize: 20 }}>{project.letter}</div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div className="pdh-name">{project.name}</div>
               <div className="pdh-sub">{project.cat} · {project.holders} holders</div>
-              <div className="plc-tags">
+              {/* Social link icons */}
+              {headerLinks.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  {headerLinks.map(link => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={link.title}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 28, height: 28, borderRadius: 7,
+                        background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)',
+                        color: 'var(--muted2)', fontSize: 14, textDecoration: 'none',
+                        transition: 'color 0.14s, border-color 0.14s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.2)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--muted2)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)' }}
+                    >
+                      <i className={link.icon} />
+                    </a>
+                  ))}
+                </div>
+              )}
+              <div className="plc-tags" style={{ marginTop: headerLinks.length > 0 ? 6 : undefined }}>
                 {project.tags.map((t, i) => (
                   <span key={i} className={`plc-tag${t.variant === 'verified' ? ' verified' : ''}`}>
                     {t.variant === 'verified' && <i className="ph-bold ph-check" style={{ fontSize: '9px' }} />}
                     {t.variant === 'verified' ? ' ' : ''}{t.label}
                   </span>
                 ))}
-                {isAdmin && (
-                  <span className="plc-tag" style={{ background: 'rgba(201,165,90,0.12)', color: 'var(--gold)', border: '0.5px solid rgba(201,165,90,0.35)', cursor: 'pointer' }}
-                    onClick={() => setEditMode(v => !v)}>
-                    <i className="ph-bold ph-pencil" style={{ fontSize: '9px' }} /> Admin · Edit
-                  </span>
-                )}
               </div>
             </div>
+            {/* Post button — admin only, prominent */}
             {isAdmin && (
               <button
                 className="create-post-btn"
                 onClick={() => setCreateOpen(true)}
-                title="Write post"
-                style={{ marginLeft: 8 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 14px', fontSize: 13, fontWeight: 600,
+                  borderRadius: 9, marginLeft: 8, flexShrink: 0,
+                }}
               >
-                <i className="ph-bold ph-pencil-plus" />
+                <i className="ph-bold ph-pencil-plus" style={{ fontSize: 15 }} />
+                <span>Post</span>
               </button>
             )}
           </div>
 
-          {/* Admin edit form */}
-          {isAdmin && editMode && (
-            <div style={{ padding: '14px 20px', background: 'rgba(201,165,90,0.05)', border: '0.5px solid rgba(201,165,90,0.2)', borderRadius: 12, margin: '0 0 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 600, letterSpacing: '1px' }}>
-                <i className="ph-bold ph-building" style={{ marginRight: 6 }} />EDIT PROJECT PROFILE
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div className="create-field" style={{ marginBottom: 0 }}>
-                  <label className="create-label">NAME</label>
-                  <input className="create-input" value={editName} onChange={e => setEditName(e.target.value)} />
-                </div>
-                <div className="create-field" style={{ marginBottom: 0 }}>
-                  <label className="create-label">CATEGORY</label>
-                  <input className="create-input" value={editCategory} onChange={e => setEditCategory(e.target.value)} />
-                </div>
-              </div>
-              <div className="create-field" style={{ marginBottom: 0 }}>
-                <label className="create-label">DESCRIPTION</label>
-                <textarea className="create-textarea" rows={2} value={editDesc} onChange={e => setEditDesc(e.target.value)} />
-              </div>
-              <div className="create-field" style={{ marginBottom: 0 }}>
-                <label className="create-label">WEBSITE</label>
-                <input className="create-input" value={editWebsite} onChange={e => setEditWebsite(e.target.value)} placeholder="https://…" />
-              </div>
-
-              {/* Visibility toggles */}
-              <div style={{ borderTop: '0.5px solid var(--border2)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '1.2px', textTransform: 'uppercase' }}>Tab Visibility</div>
-
-                {/* Has token toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
-                  <div>
-                    <div style={{ color: 'var(--text)', fontWeight: 500 }}>Project has a token</div>
-                    <div style={{ color: 'var(--muted)', fontSize: 10, marginTop: 1 }}>Enabling forces Holders tab to always be visible</div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const next = !editHasToken
-                      setEditHasToken(next)
-                      if (next) setEditShowHolders(true)
-                    }}
-                    style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                      background: editHasToken ? 'var(--gold)' : 'var(--border2)', position: 'relative', flexShrink: 0 }}>
-                    <span style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50%', background: '#fff',
-                      top: 3, left: editHasToken ? 19 : 3, transition: 'left 0.2s' }} />
-                  </button>
-                </div>
-
-                {/* Show Holders */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, opacity: editHasToken ? 0.5 : 1 }}>
-                  <div>
-                    <div style={{ color: 'var(--text)', fontWeight: 500 }}>Show Holders tab</div>
-                    {editHasToken && <div style={{ color: 'var(--muted)', fontSize: 10, marginTop: 1 }}>Locked — project has a token</div>}
-                  </div>
-                  <button
-                    disabled={editHasToken}
-                    onClick={() => setEditShowHolders(v => !v)}
-                    style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: editHasToken ? 'not-allowed' : 'pointer',
-                      background: editShowHolders ? 'var(--gold)' : 'var(--border2)', position: 'relative', flexShrink: 0 }}>
-                    <span style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50%', background: '#fff',
-                      top: 3, left: editShowHolders ? 19 : 3, transition: 'left 0.2s' }} />
-                  </button>
-                </div>
-
-                {/* Show Votes */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
-                  <div>
-                    <div style={{ color: 'var(--text)', fontWeight: 500 }}>Show Votes tab</div>
-                    <div style={{ color: 'var(--muted)', fontSize: 10, marginTop: 1 }}>Community proposals & voting</div>
-                  </div>
-                  <button
-                    onClick={() => setEditShowVotes(v => !v)}
-                    style={{ width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                      background: editShowVotes ? 'var(--gold)' : 'var(--border2)', position: 'relative', flexShrink: 0 }}>
-                    <span style={{ position: 'absolute', width: 14, height: 14, borderRadius: '50%', background: '#fff',
-                      top: 3, left: editShowVotes ? 19 : 3, transition: 'left 0.2s' }} />
-                  </button>
-                </div>
-              </div>
-
-              {saveMsg && (
-                <div style={{ fontSize: 12, color: saveMsg === 'Saved!' ? 'var(--green)' : 'var(--red)' }}>{saveMsg}</div>
-              )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="publish-btn" style={{ flex: 1, opacity: saving ? 0.6 : 1 }} onClick={saveProject} disabled={saving}>
-                  {saving ? 'Saving…' : 'Save Changes'}
-                </button>
-                <button className="filter-btn" onClick={() => setEditMode(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
           <div className="tabs trust-tabs">
             {TABS.map(t => (
               <div
@@ -597,82 +627,169 @@ export default function ProjectProfilePage() {
         </div>
 
         <div className="scroll" style={{ padding: '16px 20px', flex: 1, overflow: 'auto' }}>
+          {/* Posts — feed card style */}
           {activeTab === 'posts' && (
             <div>
               {loadingPosts && (
                 <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '32px 0', fontSize: 12 }}>Loading posts…</div>
               )}
               {!loadingPosts && posts.length === 0 && (
-                <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '40px 0', fontSize: 13 }}>
-                  No posts yet
-                </div>
+                <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '40px 0', fontSize: 13 }}>No posts yet</div>
               )}
-              {posts.map(post => (
-                <div
-                  key={post.id}
-                  onClick={() => setSelectedPost(post)}
-                  style={{ cursor: 'pointer', background: 'var(--surface)', border: '0.5px solid var(--border2)', borderRadius: 12, padding: '16px 18px', marginBottom: 12 }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 5,
-                      background: post.type === 'alert' ? 'rgba(224,112,112,0.12)' : post.type === 'verdict' ? 'rgba(76,175,125,0.12)' : 'rgba(90,130,201,0.12)',
-                      color: post.type === 'alert' ? 'var(--red)' : post.type === 'verdict' ? 'var(--green)' : '#5a82c9',
-                    }}>
-                      {post.type.charAt(0).toUpperCase() + post.type.slice(1)}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'var(--muted2)' }}>{post.time}</span>
-                  </div>
-                  {post.title && (
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 8, lineHeight: 1.35 }}>
-                      {post.title}
-                    </div>
-                  )}
-                  <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
-                    {post.text}
-                  </div>
-                  {post.trustScoreChange != null && post.trustScoreChange !== 0 && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 10, fontSize: 11, fontWeight: 600,
-                      padding: '2px 8px', borderRadius: 5,
-                      background: post.trustScoreChange > 0 ? 'rgba(76,175,125,0.12)' : 'rgba(224,112,112,0.12)',
-                      color: post.trustScoreChange > 0 ? 'var(--green)' : 'var(--red)',
-                    }}>
-                      {post.trustScoreChange > 0 ? '↑' : '↓'} {post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange} pts
-                    </span>
-                  )}
-                  <div style={{ display: 'flex', gap: 14, marginTop: 12, fontSize: 11, color: 'var(--muted2)' }}>
-                    <span><i className="ph-bold ph-heart" style={{ marginRight: 3 }} />{post.likeCount ?? 0}</span>
-                    <span><i className="ph-bold ph-chat" style={{ marginRight: 3 }} />{post.comments.length}</span>
-                    <button
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted2)', fontSize: 11, padding: 0, display: 'flex', alignItems: 'center', gap: 3 }}
-                      onClick={e => {
-                        e.stopPropagation()
-                        navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`).catch(() => {})
-                      }}
-                    >
-                      <i className="ph-bold ph-share-network" /> Share
-                    </button>
-                  </div>
-                </div>
-              ))}
+              <div className="feed-posts-grid" style={{ gridTemplateColumns: '1fr' }}>
+                {posts.map((post, i) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    index={i}
+                    onClick={() => { setScrollToComments(false); setSelectedPost(post) }}
+                    onCommentClick={() => { setScrollToComments(true); setSelectedPost(post) }}
+                  />
+                ))}
+              </div>
             </div>
           )}
-          {activeTab === 'overview' && <OverviewTab project={project} />}
-          {activeTab === 'timeline' && <TimelineTab project={project} />}
+
+          {activeTab === 'overview'   && <OverviewTab   project={project} />}
+          {activeTab === 'timeline'   && <TimelineTab   project={project} />}
           {activeTab === 'milestones' && <MilestonesTab project={project} />}
-          {activeTab === 'votes' && <VotesTab project={project} />}
-          {activeTab === 'holders' && <HoldersTab project={project} />}
+          {activeTab === 'votes'      && <VotesTab      project={project} />}
+          {activeTab === 'holders'    && <HoldersTab    project={project} />}
+
+          {/* Settings tab — admin only */}
+          {activeTab === 'settings' && isAdmin && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Profile info */}
+              <div style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--muted2)', fontWeight: 600 }}>
+                  <i className="ph-bold ph-buildings" style={{ marginRight: 6 }} />Project Profile
+                </div>
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="create-field" style={{ marginBottom: 0 }}>
+                    <label className="create-label">PROJECT NAME</label>
+                    <input className="create-input" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Project name" />
+                  </div>
+                  <div className="create-field" style={{ marginBottom: 0 }}>
+                    <label className="create-label">DESCRIPTION</label>
+                    <textarea className="create-textarea" rows={3} value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder="Describe your project…" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label">CATEGORY</label>
+                      <input className="create-input" value={editCategory} onChange={e => setEditCategory(e.target.value)} placeholder="AMM, DEX, Lending…" />
+                    </div>
+                    <div className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label">AVATAR URL</label>
+                      <input className="create-input" value={editAvatarUrl} onChange={e => setEditAvatarUrl(e.target.value)} placeholder="https://…" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social links */}
+              <div style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--muted2)', fontWeight: 600 }}>
+                  <i className="ph-bold ph-link" style={{ marginRight: 6 }} />Links &amp; Social
+                </div>
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {[
+                    { label: 'WEBSITE', value: editWebsite, setter: setEditWebsite, icon: 'ph-globe', placeholder: 'https://yourproject.xyz' },
+                    { label: 'WHITEPAPER', value: editWhitepaper, setter: setEditWhitepaper, icon: 'ph-file-text', placeholder: 'https://docs.yourproject.xyz' },
+                    { label: 'GITHUB', value: editGithub, setter: setEditGithub, icon: 'ph-github-logo', placeholder: 'https://github.com/yourproject' },
+                    { label: 'X / TWITTER', value: editTwitter, setter: setEditTwitter, icon: 'ph-x-logo', placeholder: 'https://x.com/yourproject' },
+                    { label: 'DISCORD', value: editDiscord, setter: setEditDiscord, icon: 'ph-discord-logo', placeholder: 'https://discord.gg/invite' },
+                  ].map(({ label, value, setter, icon, placeholder }) => (
+                    <div key={label} className="create-field" style={{ marginBottom: 0 }}>
+                      <label className="create-label" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <i className={`ph-bold ${icon}`} style={{ fontSize: 10 }} />{label}
+                      </label>
+                      <input className="create-input" value={value} onChange={e => setter(e.target.value)} placeholder={placeholder} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Visibility */}
+              <div style={{ background: 'transparent', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.06)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--muted2)', fontWeight: 600 }}>
+                  <i className="ph-bold ph-eye" style={{ marginRight: 6 }} />Tab Visibility
+                </div>
+                <div style={{ padding: '4px 0' }}>
+                  {[
+                    {
+                      label: 'Project has a token',
+                      desc: 'Enabling forces Holders tab to always be visible',
+                      checked: editHasToken,
+                      onChange: () => { const next = !editHasToken; setEditHasToken(next); if (next) setEditShowHolders(true) },
+                      disabled: false,
+                    },
+                    {
+                      label: 'Show Holders tab',
+                      desc: editHasToken ? 'Locked — project has a token' : undefined,
+                      checked: editShowHolders,
+                      onChange: () => setEditShowHolders(v => !v),
+                      disabled: editHasToken,
+                    },
+                    {
+                      label: 'Show Votes tab',
+                      desc: 'Community proposals & voting',
+                      checked: editShowVotes,
+                      onChange: () => setEditShowVotes(v => !v),
+                      disabled: false,
+                    },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.04)', opacity: item.disabled ? 0.5 : 1 }}>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>{item.label}</div>
+                        {item.desc && <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{item.desc}</div>}
+                      </div>
+                      <BlueToggle checked={item.checked} onChange={item.onChange} disabled={item.disabled} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Save */}
+              {saveMsg && (
+                <div style={{ fontSize: 12, color: saveMsg === 'Saved!' ? 'var(--green)' : 'var(--red)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <i className={`ph-bold ${saveMsg === 'Saved!' ? 'ph-check-circle' : 'ph-warning-circle'}`} /> {saveMsg}
+                </div>
+              )}
+              <button
+                onClick={saveProject}
+                disabled={saving}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                  padding: '11px 20px', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer',
+                  background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.18)',
+                  color: 'var(--text)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+                  opacity: saving ? 0.6 : 1, transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.11)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.07)' }}
+              >
+                {saving
+                  ? <><span className="spin"><i className="ph-bold ph-circle-notch" /></span> Saving…</>
+                  : <><i className="ph-bold ph-floppy-disk" /> Save Changes</>}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {selectedPost && (
-        <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+        <PostDetailModal
+          post={selectedPost}
+          onClose={() => { setSelectedPost(null); setScrollToComments(false) }}
+          scrollToComments={scrollToComments}
+        />
       )}
       {createOpen && address && isAdmin && (
         <CreatePostModal
           onClose={() => setCreateOpen(false)}
           walletAddress={address}
           projectName={project.name}
-          onPublish={post => setPosts(prev => [post, ...prev])}
+          onPublish={post => { setPosts(prev => [post, ...prev]); setCreateOpen(false) }}
         />
       )}
 
@@ -688,16 +805,16 @@ export default function ProjectProfilePage() {
           <div className="s-row"><span className="s-k">Holders</span><span className="s-v green">{project.holders}</span></div>
           <div className="s-row"><span className="s-k">Verdicts</span><span className="s-v">{project.verdicts}</span></div>
           <div className="s-row"><span className="s-k">Active since</span><span className="s-v">{project.activeSince}</span></div>
-          <div className="s-row"><span className="s-k">Category</span><span className="s-v gold">{project.cat.split(' · ')[0]}</span></div>
+          <div className="s-row"><span className="s-k">Category</span><span className="s-v">{project.cat.split(' · ')[0]}</span></div>
         </div>
         <div className="panel">
           <div className="panel-title">Actions</div>
-          <button className="action-btn primary"><i className="ph-bold ph-shield-check" /> Verify holding</button>
+          <button className="action-btn"><i className="ph-bold ph-shield-check" /> Verify holding</button>
           <button
             className="action-btn"
             onClick={toggleWatchlist}
             disabled={watchlistLoading || !address}
-            style={watchlisted ? { color: 'var(--gold)', borderColor: 'var(--gold)' } : {}}
+            style={watchlisted ? { color: '#6f9be5', borderColor: 'rgba(111,155,229,0.4)' } : {}}
           >
             <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />
             {watchlistLoading ? ' …' : watchlisted ? ' Watchlisted' : ' Add to watchlist'}
