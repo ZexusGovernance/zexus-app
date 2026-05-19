@@ -103,10 +103,11 @@ export default function FeedPage({
   adminProject,
   walletAddress,
 }: FeedPageProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('All')
-  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
-  const [dbPosts,      setDbPosts]      = useState<FeedPost[]>([])
-  const [loading,      setLoading]      = useState(true)
+  const [activeFilter,      setActiveFilter]      = useState<FilterType>('All')
+  const [selectedPost,      setSelectedPost]      = useState<FeedPost | null>(null)
+  const [scrollToComments,  setScrollToComments]  = useState(false)
+  const [dbPosts,           setDbPosts]           = useState<FeedPost[]>([])
+  const [loading,           setLoading]           = useState(true)
   const scrollRef    = useRef<HTMLDivElement>(null)
   const modalOpenRef = useRef(false)
 
@@ -198,7 +199,8 @@ export default function FeedPage({
                   <PostCard
                     key={post.id}
                     post={post}
-                    onClick={() => setSelectedPost(post)}
+                    onClick={() => { setScrollToComments(false); setSelectedPost(post) }}
+                    onCommentClick={() => { setScrollToComments(true); setSelectedPost(post) }}
                     index={i}
                   />
                 ))
@@ -217,7 +219,11 @@ export default function FeedPage({
       </div>
 
       {selectedPost && (
-        <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+        <PostDetailModal
+          post={selectedPost}
+          onClose={() => { setSelectedPost(null); setScrollToComments(false) }}
+          scrollToComments={scrollToComments}
+        />
       )}
       {composeOpen && walletAddress && adminProject && (
         <CreatePostModal

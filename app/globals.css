@@ -3925,15 +3925,15 @@ input[data-burn-slider]::-moz-range-thumb {
   padding: 16px;
 }
 .post-modal {
-  background: var(--surface);
-  border: 0.5px solid var(--border2);
+  background: #0d0c0a;
+  border: 0.5px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   width: 100%;
   max-width: 560px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85);
   overflow: hidden;
 }
 .create-modal {

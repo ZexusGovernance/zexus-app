@@ -6,9 +6,10 @@ import { supabase } from '@/lib/supabase'
 import { useAppKitAccount } from '@reown/appkit/react'
 
 interface PostCardProps {
-  post: FeedPost
-  onClick: () => void
-  index?: number
+  post:             FeedPost
+  onClick:          () => void
+  onCommentClick?:  () => void
+  index?:           number
 }
 
 const TYPE_ICON: Record<string, string> = {
@@ -132,7 +133,7 @@ function RichText({ text, stopProp }: { text: string; stopProp?: boolean }) {
   return <>{result}</>
 }
 
-export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
+export default function PostCard({ post, onClick, onCommentClick, index = 0 }: PostCardProps) {
   const isVotingOpen = post.type === 'voting' && post.vote?.open
   const isEmergency  = post.isEmergency || (post.type === 'alert')
   const isDbPost     = isUUID(post.id)
@@ -434,7 +435,9 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
 
         {/* Comments */}
         {isDbPost && (
-          <button className="foot-btn" style={{ gap: 5 }} onClick={e => { e.stopPropagation(); onClick() }} title="View comments">
+          <button className="foot-btn" style={{ gap: 5 }}
+            onClick={e => { e.stopPropagation(); onCommentClick ? onCommentClick() : onClick() }}
+            title="View comments">
             <i className="ph-bold ph-chat" style={{ fontSize: 12 }} />
             {commentsCount > 0 && <span style={{ fontSize: 11 }}>{fmtCount(commentsCount)}</span>}
           </button>

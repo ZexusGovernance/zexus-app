@@ -6,8 +6,14 @@ import { supabase } from '@/lib/supabase'
 import { useAppKitAccount } from '@reown/appkit/react'
 
 const TYPE_ICON: Record<string, string> = {
-  alert: 'ti-alert-triangle', voting: 'ti-clock', verdict: 'ti-shield-check',
-  update: 'ti-speakerphone', new: 'ti-sparkles', investment: 'ti-trending-up',
+  alert: 'ph-bold ph-warning', voting: 'ph-bold ph-clock', verdict: 'ph-bold ph-shield-check',
+  update: 'ph-bold ph-megaphone', new: 'ph-bold ph-sparkle', investment: 'ph-bold ph-trend-up',
+}
+
+function fmtCount(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return String(n)
 }
 const TYPE_LABEL: Record<string, string> = {
   alert: 'Alert', voting: 'Voting', verdict: 'Verdict',
@@ -166,13 +172,15 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike }: Co
 }
 
 interface PostDetailModalProps {
-  post: FeedPost | null
-  onClose: () => void
+  post:              FeedPost | null
+  onClose:           () => void
+  scrollToComments?: boolean
 }
 
-export default function PostDetailModal({ post, onClose }: PostDetailModalProps) {
-  const panelRef = useRef<HTMLDivElement>(null)
-  const isDbPost = !!post && isUUID(post.id)
+export default function PostDetailModal({ post, onClose, scrollToComments }: PostDetailModalProps) {
+  const panelRef    = useRef<HTMLDivElement>(null)
+  const commentsRef = useRef<HTMLDivElement>(null)
+  const isDbPost    = !!post && isUUID(post.id)
 
   const { address } = useAppKitAccount()
 
@@ -338,6 +346,16 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
     }
   }
 
+  // Scroll into comments when opened from the comment button
+  useEffect(() => {
+    if (!scrollToComments || !commentsRef.current || !panelRef.current) return
+    setTimeout(() => {
+      const panel    = panelRef.current!
+      const comments = commentsRef.current!
+      panel.scrollTo({ top: comments.offsetTop - 16, behavior: 'smooth' })
+    }, 160)
+  }, [scrollToComments, post?.id])
+
   if (!post) return null
 
   const votingBadge = post.type === 'voting'
@@ -406,7 +424,7 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
               <div style={{ fontSize: 11, color: 'var(--muted)' }}>{post.sub}</div>
             </div>
             <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
-              <i className={`ti ${TYPE_ICON[post.type]}`} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
+              <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
             </span>
             <div className="card-time" title={post.time}>{timeDisplay}</div>
           </div>
@@ -418,8 +436,9 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
 
           {/* Content with clickable links */}
           <div style={{
-            fontSize: 13, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 18,
+            fontSize: 14, color: 'var(--text)', lineHeight: 1.85, marginBottom: 18,
             maxWidth: '62ch', overflowWrap: 'break-word', wordBreak: 'break-word',
+            opacity: 0.9, fontWeight: 400, letterSpacing: '0.01em',
           }}>
             <TextWithLinks text={post.detailText} />
           </div>
@@ -521,24 +540,30 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
             </div>
           )}
 
-          {/* Like row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <button
-              onClick={toggleLike}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
-                borderRadius: 8, border: `0.5px solid ${liked ? 'rgba(201,165,90,0.4)' : 'var(--border2)'}`,
-                background: liked ? 'rgba(201,165,90,0.08)' : 'var(--surface2)', cursor: 'pointer',
-                color: liked ? 'var(--gold)' : 'var(--muted)', fontSize: 12, transition: 'all 0.15s' }}>
-              <i className={`${liked ? 'ph-fill' : 'ph-bold'} ph-heart`} />
-              <span>{liked ? 'Liked' : 'Like'}</span>
-              {likeCount > 0 && <span style={{ color: 'var(--muted2)' }}>· {likeCount}</span>}
+          {/* Stats row — views + like */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginBottom: 16 }}>
+            {/* Views */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px',
+              fontSize: 12, color: 'var(--muted2)', opacity: 0.7 }}>
+              <i className="ph-bold ph-eye" style={{ fontSize: 13 }} />
+              {fmtCount(post.viewCount ?? 0)}
+            </span>
+            <span style={{ color: 'var(--border2)', fontSize: 11, margin: '0 2px' }}>·</span>
+            {/* Like */}
+            <button onClick={toggleLike} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px',
+              background: 'none', border: 'none', cursor: 'pointer', fontSize: 12,
+              color: liked ? 'var(--red)' : 'var(--muted2)', transition: 'color 0.15s',
+            }}>
+              <i className={`${liked ? 'ph-fill' : 'ph-bold'} ph-heart`} style={{ fontSize: 13 }} />
+              {fmtCount(likeCount)}
             </button>
           </div>
 
           <div style={{ borderTop: '0.5px solid var(--border)', margin: '4px 0 18px' }} />
 
           {/* Comments */}
-          <div>
+          <div ref={commentsRef}>
             <div style={{ fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: 14 }}>
               Discussion · {allComments.length} {allComments.length === 1 ? 'comment' : 'comments'}
             </div>
