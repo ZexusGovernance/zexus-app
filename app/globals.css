@@ -3173,8 +3173,7 @@ body::after {
   left: 8%;
   right: 8%;
   height: 0.5px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1) 30%, rgba(255,255,255,0.1) 70%, transparent);
-  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.06);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
 }
 
 /* Clickable project link in card header */
