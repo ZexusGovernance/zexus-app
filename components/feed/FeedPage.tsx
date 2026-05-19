@@ -73,6 +73,7 @@ function dbToFeed(row: DbPost): FeedPost {
     comments:    [],
     images:      row.image_url ? [row.image_url] : undefined,
     likeCount:   row.likes_count,
+    viewCount:   row.views_count ?? 0,
     ...(row.trust_score_change != null && row.trust_score_change !== 0
       ? { trustScoreChange: row.trust_score_change }
       : {}),
@@ -105,13 +106,17 @@ export default function FeedPage({
   const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
   const [dbPosts,      setDbPosts]      = useState<FeedPost[]>([])
   const [loading,      setLoading]      = useState(true)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRef    = useRef<HTMLDivElement>(null)
+  const modalOpenRef = useRef(false)
 
-  // Scroll feed from anywhere in the browser tab
+  useEffect(() => { modalOpenRef.current = !!selectedPost }, [selectedPost])
+
+  // Scroll feed from anywhere in the browser tab (disabled when modal is open)
   useEffect(() => {
     const handler = (e: WheelEvent) => {
       const scroll = scrollRef.current
       if (!scroll) return
+      if (modalOpenRef.current) return
       let delta = e.deltaY
       if (e.deltaMode === 1) delta *= 28   // lines → px
       if (e.deltaMode === 2) delta *= 400  // pages → px

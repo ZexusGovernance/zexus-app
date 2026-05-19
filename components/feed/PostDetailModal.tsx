@@ -222,6 +222,13 @@ export default function PostDetailModal({ post, onClose }: PostDetailModalProps)
     if (isDbPost) {
       const identifier = address ?? getDeviceId()
 
+      // Track view — deduplicated server-side (same viewer_key = no double count)
+      fetch('/api/posts/view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: post.id, viewer_key: identifier }),
+      }).catch(() => {})
+
       fetch(`/api/comments?post_id=${post.id}`)
         .then(r => r.json())
         .then(({ comments }: { comments: { id: string; author_wallet: string; content: string; created_at: string }[] }) => {

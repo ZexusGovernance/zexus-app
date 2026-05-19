@@ -38,6 +38,12 @@ function getDeviceId(): string {
   return id
 }
 
+function fmtCount(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return String(n)
+}
+
 function relativeTime(iso?: string): string {
   if (!iso) return ''
   const diff = Date.now() - new Date(iso).getTime()
@@ -360,6 +366,14 @@ export default function PostCard({ post, onClick, index = 0 }: PostCardProps) {
               <i className="ph-bold ph-thumbs-down" /> Dispute
             </button>
           </>
+        )}
+
+        {/* Views */}
+        {isDbPost && (post.viewCount ?? 0) > 0 && (
+          <span className="foot-btn" style={{ cursor: 'default', opacity: 0.55, gap: 4 }}>
+            <i className="ph-bold ph-eye" style={{ fontSize: 12 }} />
+            <span style={{ fontSize: 11 }}>{fmtCount(post.viewCount ?? 0)}</span>
+          </span>
         )}
 
         {/* Like */}

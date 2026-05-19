@@ -30,6 +30,7 @@ export interface FeedPost {
   trustScoreChange?: number
   investment?: { round: string; amount: string; lead: string }
   likeCount?: number
+  viewCount?: number
   createdAt?: string
 }
 

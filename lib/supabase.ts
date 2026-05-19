@@ -25,6 +25,7 @@ export interface DbPost {
   likes_count: number
   dislikes_count: number
   comments_count: number
+  views_count: number
 }
 
 export interface DbComment {
