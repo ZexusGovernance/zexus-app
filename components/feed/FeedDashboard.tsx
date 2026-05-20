@@ -6,11 +6,20 @@ import type { FeedPost } from '@/lib/feedData'
 
 interface Props { posts: FeedPost[]; onNavigate?: (page: string) => void }
 
-interface PopularProject { name: string; slug: string; likes: number }
-interface WatchProject   { name: string; slug: string; trust_score: number | null }
+interface PopularProject { name: string; slug: string; avatar_url?: string | null; likes: number }
+interface WatchProject   { name: string; slug: string; avatar_url?: string | null; trust_score: number | null }
 interface TodayStats     { posts_today: number; projects_total: number; zxp_today: number; users_today: number }
 
-function Avatar({ letter, variant }: { letter: string; variant: 'gold' | 'muted' }) {
+function Avatar({ letter, avatarUrl, variant }: { letter: string; avatarUrl?: string | null; variant: 'gold' | 'muted' }) {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={letter}
+        style={{ width: 22, height: 22, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+      />
+    )
+  }
   return <span className={`fd-avatar fd-avatar-${variant}`}>{letter}</span>
 }
 
@@ -154,7 +163,7 @@ export default function FeedDashboard({ posts, onNavigate }: Props) {
           <div style={{ fontSize: 12, color: 'var(--muted2)', padding: '3px 0' }}>No data yet</div>
         ) : popular.map((p, i) => (
           <div key={p.slug || i} className="fd-row">
-            <Avatar letter={p.name[0]?.toUpperCase() ?? '?'} variant="gold" />
+            <Avatar letter={p.name[0]?.toUpperCase() ?? '?'} avatarUrl={p.avatar_url} variant="gold" />
             <span className="fd-row-name">
               {p.slug
                 ? <a href={`/projects/${p.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>{p.name}</a>
@@ -176,7 +185,7 @@ export default function FeedDashboard({ posts, onNavigate }: Props) {
             <div style={{ fontSize: 12, color: 'var(--muted2)', padding: '3px 0' }}>No projects added</div>
           ) : watchlist.slice(0, 5).map((p, i) => (
             <div key={p.slug || i} className="fd-row">
-              <Avatar letter={p.name[0]?.toUpperCase() ?? '?'} variant="muted" />
+              <Avatar letter={p.name[0]?.toUpperCase() ?? '?'} avatarUrl={p.avatar_url} variant="muted" />
               <span className="fd-row-name">
                 {p.slug
                   ? <a href={`/projects/${p.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>{p.name}</a>
