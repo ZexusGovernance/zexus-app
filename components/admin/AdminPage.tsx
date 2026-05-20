@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 
 const SUPER_ADMIN = (process.env.NEXT_PUBLIC_SUPER_ADMIN_WALLET ?? '').toLowerCase()
@@ -82,22 +82,24 @@ function calcScore(s: ScoreInputs) {
   else if (s.twitter_followers >= 1000) social += 5
   if (s.discord_members >= 1000) social += 5
   else if (s.discord_members >= 100) social += 3
-  if (s.github_commits_30d > 0) social += 5
+  if (s.github_commits_30d >= 50) social += 5
+  else if (s.github_commits_30d >= 11) social += 4
+  else if (s.github_commits_30d >= 1) social += 2
   social = Math.min(social, 25)
 
   let product = 0
   if (s.product_stage === 'mainnet') product += 15
   else if (s.product_stage === 'testnet') product += 7
-  if (s.has_whitepaper) product += 5
-  if (s.has_audit) product += 5
+  if (s.has_whitepaper) product += 3
+  if (s.has_audit) product += 12
   product = Math.min(product, 25)
 
   let onchain = 0
   if (s.onchain_wallets >= 10000) onchain += 15
   else if (s.onchain_wallets >= 1000) onchain += 10
   else if (s.onchain_wallets >= 100) onchain += 4
-  if (s.onchain_tvl >= 100000) onchain += 5
-  else if (s.onchain_tvl >= 10000) onchain += 3
+  if (s.onchain_tvl >= 1000000) onchain += 5
+  else if (s.onchain_tvl >= 100000) onchain += 3
   onchain = Math.min(onchain, 20)
 
   let team = 0
@@ -209,10 +211,10 @@ function ScoreBuilder({
 
   const twPts   = inputs.twitter_followers >= 20000 ? 15 : inputs.twitter_followers >= 5000 ? 10 : inputs.twitter_followers >= 1000 ? 5 : 0
   const dcPts   = inputs.discord_members >= 1000 ? 5 : inputs.discord_members >= 100 ? 3 : 0
-  const ghPts   = inputs.github_commits_30d > 0 ? 5 : 0
+  const ghPts   = inputs.github_commits_30d >= 50 ? 5 : inputs.github_commits_30d >= 11 ? 4 : inputs.github_commits_30d >= 1 ? 2 : 0
   const stagePts = inputs.product_stage === 'mainnet' ? 15 : inputs.product_stage === 'testnet' ? 7 : 0
   const wPts    = inputs.onchain_wallets >= 10000 ? 15 : inputs.onchain_wallets >= 1000 ? 10 : inputs.onchain_wallets >= 100 ? 4 : 0
-  const tvlPts  = inputs.onchain_tvl >= 100000 ? 5 : inputs.onchain_tvl >= 10000 ? 3 : 0
+  const tvlPts  = inputs.onchain_tvl >= 1000000 ? 5 : inputs.onchain_tvl >= 100000 ? 3 : 0
   const agePts  = inputs.contract_age_months >= 12 ? 10 : inputs.contract_age_months >= 6 ? 5 : 0
 
   const CATS = [
@@ -267,7 +269,7 @@ function ScoreBuilder({
         '<100 = 0 pts  ·  100–999 = +3  ·  1 000+ = +5')}
       {row(
         'GitHub commits (last 30 days)',
-        'Auto-fetched from GitHub URL — any commit activity = +5 pts',
+        '0 = 0 pts  ·  1–10 = +2  ·  11–50 = +4  ·  50+ = +5',
         ghPts,
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <input value={githubUrl} onChange={e => onGithubUrlChange(e.target.value)}
@@ -303,12 +305,12 @@ function ScoreBuilder({
           <option value="mainnet">Mainnet live</option>
         </select>
       )}
-      {checkRow('has_whitepaper', 5,
+      {checkRow('has_whitepaper', 3,
         'Whitepaper / documentation',
-        'Published detailed technical or product docs  →  +5 pts')}
-      {checkRow('has_audit', 5,
+        'Published detailed technical or product docs  →  +3 pts')}
+      {checkRow('has_audit', 12,
         'Smart contract audit',
-        'Audited by CertiK, Hacken, Trail of Bits, or equivalent  →  +5 pts')}
+        'Audited by CertiK, Hacken, Trail of Bits, or equivalent  →  +12 pts')}
 
       {/* ── ON-CHAIN ── */}
       {catHeader('On-chain Activity', bd.onchain, 20)}
@@ -325,10 +327,7 @@ function ScoreBuilder({
         '<100 = 0 pts  ·  100–999 = +4  ·  1k–9 999 = +10  ·  10k+ = +15')}
       {numRow('onchain_tvl', tvlPts,
         'TVL (USD)',
-        '<$10k = 0 pts  ·  $10k–$100k = +3  ·  $100k+ = +5')}
-      {numRow('contract_age_months', agePts,
-        'Contract age (months)',
-        '<6 months = 0 pts  ·  6–11 months = +5  ·  12+ months = +10')}
+        '<$100k = 0 pts  ·  $100k–$1M = +3  ·  $1M+ = +5')}
 
       {/* ── TEAM ── */}
       {catHeader('Team', bd.team, 15)}
@@ -373,7 +372,7 @@ function ScoreBuilder({
 
 const EMPTY_FORM = {
   name: '', slug: '', category: '', description: '',
-  admin_wallet: '', website_url: '', trust_score: 50, is_verified: false,
+  admin_wallet: '', website_url: '', trust_score: 0, is_verified: false,
 }
 
 // ── AdminPage ─────────────────────────────────────────────────────────────────
@@ -401,6 +400,9 @@ export default function AdminPage() {
   const [editVerif,      setEditVerif]      = useState(false)
   const [fetchingGh,     setFetchingGh]     = useState(false)
   const [fetchErr,       setFetchErr]       = useState<string | null>(null)
+  const [uploadingAv,    setUploadingAv]    = useState(false)
+  const [uploadAvMsg,    setUploadAvMsg]    = useState<string | null>(null)
+  const adminAvRef = useRef<HTMLInputElement>(null)
 
   const isAdmin = !!address && address.toLowerCase() === SUPER_ADMIN
 
@@ -457,6 +459,25 @@ export default function AdminPage() {
     } catch (e) {
       setFetchErr(e instanceof Error ? e.message : 'Fetch failed')
     } finally { setFetchingGh(false) }
+  }
+
+  async function uploadAdminAvatar(file: File, slug: string) {
+    if (!address) return
+    setUploadingAv(true); setUploadAvMsg(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('wallet', address)
+      fd.append('slug', slug)
+      const res = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed')
+      setProjects(ps => ps.map(x => x.slug === slug ? { ...x, avatar_url: data.url! } : x))
+      setUploadAvMsg('Updated!')
+      setTimeout(() => setUploadAvMsg(null), 3000)
+    } catch (e) {
+      setUploadAvMsg(e instanceof Error ? e.message : 'Upload failed')
+    } finally { setUploadingAv(false) }
   }
 
   async function saveEdit(id: string) {
@@ -635,7 +656,6 @@ export default function AdminPage() {
                 { label: 'CATEGORY',       key: 'category',     ph: 'AMM, DEX, Lending…' },
                 { label: 'ADMIN WALLET',   key: 'admin_wallet', ph: '0x…' },
                 { label: 'WEBSITE',        key: 'website_url',  ph: 'https://…' },
-                { label: 'TRUST SCORE',    key: 'trust_score',  ph: '50', type: 'number' },
               ] as Array<{ label: string; key: keyof typeof form; ph: string; type?: string }>).map(({ label, key, ph, type }) => (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <label style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.8px' }}>{label}</label>
@@ -775,6 +795,29 @@ export default function AdminPage() {
                           Verified project
                         </label>
                       </div>
+                    </div>
+                    {/* Avatar upload */}
+                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <label style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.8px', whiteSpace: 'nowrap' }}>AVATAR</label>
+                      <input
+                        ref={adminAvRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        style={{ display: 'none' }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) uploadAdminAvatar(f, p.slug) }}
+                      />
+                      {p.avatar_url && (
+                        <img src={p.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: 7, objectFit: 'cover', flexShrink: 0 }} />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => adminAvRef.current?.click()}
+                        disabled={uploadingAv}
+                        style={{ padding: '5px 10px', borderRadius: 7, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
+                          border: '0.5px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.04)', color: 'var(--muted)', opacity: uploadingAv ? 0.6 : 1 }}>
+                        {uploadingAv ? 'Uploading…' : 'Change avatar'}
+                      </button>
+                      {uploadAvMsg && <span style={{ fontSize: 11, color: uploadAvMsg.includes('fail') ? 'var(--red)' : 'var(--green)' }}>{uploadAvMsg}</span>}
                     </div>
 
                     {/* Score builder */}

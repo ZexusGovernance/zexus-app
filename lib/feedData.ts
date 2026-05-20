@@ -29,6 +29,7 @@ export interface FeedPost {
   isEmergency?: boolean
   trustScoreChange?: number
   investment?: { round: string; amount: string; lead: string }
+  avatarUrl?: string
   likeCount?: number
   viewCount?: number
   commentsCount?: number

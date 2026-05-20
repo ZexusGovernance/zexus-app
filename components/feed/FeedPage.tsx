@@ -62,6 +62,7 @@ function dbToFeed(row: DbPost): FeedPost {
     projectId:   row.project_id,
     av:          projectAv(row.project_name),
     letter:      row.project_name[0]?.toUpperCase() ?? '?',
+    avatarUrl:   row.project_avatar_url ?? undefined,
     sub:         row.project_category ?? 'Protocol',
     title:       row.title ?? '',
     text:        row.content,

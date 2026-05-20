@@ -211,7 +211,7 @@ export default function Shell() {
     )
     switch (currentPage) {
       case 'feed':     return feedPage
-      case 'projects': return <ProjectsPage onNavigate={navigate} />
+      case 'projects': return <ProjectsPage />
       case 'alerts':   return <AlertsPage />
       case 'staking':  return <StakingPage />
       case 'profile':  return <ProfilePage />

@@ -270,7 +270,12 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0 }: P
 
       {/* Header */}
       <div className="card-head">
-        <div className={`proj-av ${post.av}`}>{post.letter}</div>
+        {post.avatarUrl ? (
+          <img src={post.avatarUrl} alt={post.project}
+            style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <div className={`proj-av ${post.av}`}>{post.letter}</div>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {post.projectSlug ? (

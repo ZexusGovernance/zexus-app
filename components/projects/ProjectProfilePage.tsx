@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
 import Nav from '@/components/nav/Nav'
@@ -95,6 +95,7 @@ function dbToFeedPost(row: DbPost): FeedPost {
     projectId:   row.project_id,
     av:          projectAv(row.project_name),
     letter:      row.project_name[0]?.toUpperCase() ?? '?',
+    avatarUrl:   row.project_avatar_url ?? undefined,
     sub:         row.project_category ?? 'Protocol',
     title:       row.title ?? '',
     text:        row.content,
@@ -468,6 +469,9 @@ export default function ProjectProfilePage() {
   const [editTwitter,     setEditTwitter]     = useState('')
   const [editDiscord,     setEditDiscord]     = useState('')
   const [editAvatarUrl,   setEditAvatarUrl]   = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarUploadMsg, setAvatarUploadMsg] = useState<string | null>(null)
+  const avatarFileRef = useRef<HTMLInputElement>(null)
   const [editShowHolders, setEditShowHolders] = useState(true)
   const [editShowVotes,   setEditShowVotes]   = useState(true)
   const [editHasToken,    setEditHasToken]    = useState(false)
@@ -697,6 +701,28 @@ export default function ProjectProfilePage() {
     }
   }
 
+  async function handleAvatarUpload(file: File) {
+    if (!address || !slug) return
+    setUploadingAvatar(true); setAvatarUploadMsg(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('wallet', address)
+      fd.append('slug', slug)
+      const res = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed')
+      setEditAvatarUrl(data.url!)
+      setSocialLinks(prev => ({ ...prev, avatar_url: data.url! }))
+      setAvatarUploadMsg('Avatar updated!')
+      setTimeout(() => setAvatarUploadMsg(null), 3000)
+    } catch (e) {
+      setAvatarUploadMsg(e instanceof Error ? e.message : 'Upload failed')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   if (dbLoading && !effectiveProject) {
     return (
       <div className="shell">
@@ -894,8 +920,38 @@ export default function ProjectProfilePage() {
                       <input className="create-input" value={editCategory} onChange={e => setEditCategory(e.target.value)} placeholder="AMM, DEX, Lending…" />
                     </div>
                     <div className="create-field" style={{ marginBottom: 0 }}>
-                      <label className="create-label">AVATAR URL</label>
-                      <input className="create-input" value={editAvatarUrl} onChange={e => setEditAvatarUrl(e.target.value)} placeholder="https://…" />
+                      <label className="create-label">AVATAR</label>
+                      <input
+                        ref={avatarFileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        style={{ display: 'none' }}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f) }}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {editAvatarUrl ? (
+                          <img src={editAvatarUrl} alt="avatar"
+                            style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '0.5px solid var(--border2)' }} />
+                        ) : (
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <i className="ph-bold ph-image" style={{ color: 'var(--muted2)', fontSize: 16 }} />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="action-btn"
+                          style={{ fontSize: 11, padding: '5px 10px', opacity: uploadingAvatar ? 0.6 : 1 }}
+                          disabled={uploadingAvatar}
+                          onClick={() => avatarFileRef.current?.click()}
+                        >
+                          {uploadingAvatar ? 'Uploading…' : 'Change'}
+                        </button>
+                        {avatarUploadMsg && (
+                          <span style={{ fontSize: 11, color: avatarUploadMsg.includes('fail') || avatarUploadMsg.includes('fail') ? 'var(--red)' : 'var(--green)' }}>
+                            {avatarUploadMsg}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
