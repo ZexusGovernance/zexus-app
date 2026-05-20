@@ -1,7 +1,5 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function sendListingEmail({
   to,
   projectName,
@@ -15,6 +13,10 @@ export async function sendListingEmail({
   trustScore: number
   adminWallet?: string | null
 }) {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return
+
+  const resend = new Resend(apiKey)
   const profileUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://app.zexus.xyz'}/projects/${slug}`
 
   const { error } = await resend.emails.send({
