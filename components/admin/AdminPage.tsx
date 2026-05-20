@@ -496,7 +496,7 @@ export default function AdminPage() {
         is_verified:      editVerif,
         contract_address: editContract || null,
         github_url:       editGithubUrl || null,
-        trust_score:      score.total,
+        trust_score:      Math.min(score.total, 110),
         ...scoreInputs,
       }),
     })
