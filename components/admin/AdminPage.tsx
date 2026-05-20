@@ -43,6 +43,7 @@ interface Project {
   show_votes:   boolean
   avatar_url:   string | null
   created_at:   string
+  contact_email:        string | null
   contract_address:     string | null
   twitter_followers:    number
   discord_members:      number
@@ -372,7 +373,7 @@ function ScoreBuilder({
 
 const EMPTY_FORM = {
   name: '', slug: '', category: '', description: '',
-  admin_wallet: '', website_url: '', trust_score: 0, is_verified: false,
+  admin_wallet: '', website_url: '', contact_email: '', trust_score: 0, is_verified: false,
 }
 
 // ── AdminPage ─────────────────────────────────────────────────────────────────
@@ -397,6 +398,7 @@ export default function AdminPage() {
   const [editContract,   setEditContract]   = useState('')
   const [editGithubUrl,  setEditGithubUrl]  = useState('')
   const [editWallet,     setEditWallet]     = useState('')
+  const [editEmail,      setEditEmail]      = useState('')
   const [editVerif,      setEditVerif]      = useState(false)
   const [fetchingGh,     setFetchingGh]     = useState(false)
   const [fetchErr,       setFetchErr]       = useState<string | null>(null)
@@ -421,6 +423,7 @@ export default function AdminPage() {
   function openEdit(p: Project) {
     setEditId(p.id)
     setEditWallet(p.admin_wallet ?? '')
+    setEditEmail(p.contact_email ?? '')
     setEditVerif(p.is_verified)
     setEditContract(p.contract_address ?? '')
     setEditGithubUrl(p.github_url ?? '')
@@ -489,6 +492,7 @@ export default function AdminPage() {
       body: JSON.stringify({
         wallet: address, id,
         admin_wallet:     editWallet || null,
+        contact_email:    editEmail || null,
         is_verified:      editVerif,
         contract_address: editContract || null,
         github_url:       editGithubUrl || null,
@@ -654,8 +658,9 @@ export default function AdminPage() {
                 { label: 'PROJECT NAME *', key: 'name',         ph: 'AeroBase' },
                 { label: 'SLUG *',         key: 'slug',         ph: 'aerobase' },
                 { label: 'CATEGORY',       key: 'category',     ph: 'AMM, DEX, Lending…' },
-                { label: 'ADMIN WALLET',   key: 'admin_wallet', ph: '0x…' },
-                { label: 'WEBSITE',        key: 'website_url',  ph: 'https://…' },
+                { label: 'ADMIN WALLET',   key: 'admin_wallet',  ph: '0x…' },
+                { label: 'WEBSITE',        key: 'website_url',   ph: 'https://…' },
+                { label: 'CONTACT EMAIL',  key: 'contact_email', ph: 'team@project.xyz' },
               ] as Array<{ label: string; key: keyof typeof form; ph: string; type?: string }>).map(({ label, key, ph, type }) => (
                 <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <label style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.8px' }}>{label}</label>
@@ -776,7 +781,8 @@ export default function AdminPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 14,
                       paddingTop: 14, borderTop: '0.5px solid rgba(255,255,255,0.06)' }}>
                       {[
-                        { label: 'ADMIN WALLET', val: editWallet, set: setEditWallet, ph: '0x…', mono: true },
+                        { label: 'ADMIN WALLET',   val: editWallet, set: setEditWallet, ph: '0x…',               mono: true  },
+                        { label: 'CONTACT EMAIL',  val: editEmail,  set: setEditEmail,  ph: 'team@project.xyz',   mono: false },
                       ].map(f => (
                         <div key={f.label} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <label style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.8px' }}>{f.label}</label>
