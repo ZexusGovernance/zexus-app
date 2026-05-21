@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 import Nav from '@/components/nav/Nav'
+import NotifPopup from '@/components/notif/NotifPopup'
 import SearchOverlay from '@/components/search/SearchOverlay'
+import { useNotifs } from '@/lib/useNotifs'
 import FeedPage from '@/components/feed/FeedPage'
 import ProjectsPage from '@/components/projects/ProjectsPage'
 import AlertsPage from '@/components/alerts/AlertsPage'
@@ -143,6 +145,10 @@ export default function Shell() {
   const [initialPostId, setInitialPostId] = useState<string | null>(null)
 
   const { address } = useAppKitAccount()
+  const { notifs, unread, loaded, load, markAll, markOne } = useNotifs(address)
+  const [mobNotifOpen, setMobNotifOpen] = useState(false)
+  const mobBellRef = useRef<HTMLButtonElement>(null)
+
   const [userRole,     setUserRole]     = useState<'user' | 'project'>('user')
   const [adminProject, setAdminProject] = useState<{ name: string } | null>(null)
   const isProjectAdmin = userRole === 'project' && !!adminProject
@@ -230,11 +236,38 @@ export default function Shell() {
           <button className="mob-btn mob-btn-gold" onClick={() => setSearchOpen(true)} aria-label="Search">
             <i className="ph-bold ph-magnifying-glass" />
           </button>
+          <button
+            ref={mobBellRef}
+            className="mob-btn mob-btn-notif"
+            style={{ position: 'relative' }}
+            onClick={() => { if (!mobNotifOpen && !loaded) load(); setMobNotifOpen(v => !v) }}
+            aria-label="Notifications"
+          >
+            <i className="ph-bold ph-bell" />
+            {unread > 0 && (
+              <span className="mob-notif-dot">{unread > 9 ? '9+' : unread}</span>
+            )}
+          </button>
           <button className="mob-btn mob-btn-checkin" onClick={() => setCheckInOpen(true)} aria-label="Daily check-in">
             <i className="ph-bold ph-flame" />
           </button>
         </div>
       </header>
+
+      {mobNotifOpen && (
+        <NotifPopup
+          address={address}
+          notifs={notifs}
+          unread={unread}
+          loaded={loaded}
+          onMarkAll={markAll}
+          onMarkOne={markOne}
+          onOpenPost={(id) => { setCurrentPage('feed'); setInitialPostId(id) }}
+          onClose={() => setMobNotifOpen(false)}
+          anchorRef={mobBellRef}
+          mobile
+        />
+      )}
 
       {/* Sidebar nav — desktop/tablet only */}
       <Nav
