@@ -41,7 +41,7 @@ const TYPE_ICON: Record<string, string> = {
 export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOpen, onOpenPost, isOpen }: NavProps) {
   const { open } = useAppKit()
   const { address, isConnected } = useAppKitAccount()
-  const { profile } = useProfile()
+  const { profile, refreshProfile } = useProfile()
 
   const shortAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null
   const zxpBalance = profile?.zxp_balance ?? 0
@@ -81,9 +81,19 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
   }, [address, loadNotifs])
 
   useEffect(() => {
-    setTgConnected(!!(profile as Record<string, unknown> | null)?.telegram_chat_id)
-    setTgCode(null)
+    const connected = !!(profile as Record<string, unknown> | null)?.telegram_chat_id
+    setTgConnected(connected)
+    if (connected) setTgCode(null)
   }, [profile])
+
+  // Poll profile every 3s while a code is active — stops when telegram connects
+  useEffect(() => {
+    if (!tgCode || !address || tgConnected) return
+    const id = setInterval(async () => {
+      await refreshProfile(address)
+    }, 3000)
+    return () => clearInterval(id)
+  }, [tgCode, address, tgConnected, refreshProfile])
 
   // Close popup when clicking outside
   useEffect(() => {
