@@ -10,6 +10,7 @@ export interface Profile {
   last_claim_at: string | null
   settings: Record<string, unknown>
   rank: number
+  telegram_chat_id: number | null
 }
 
 export interface VerdictHistoryRow {

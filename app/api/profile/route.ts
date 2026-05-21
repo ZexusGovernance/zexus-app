@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   // Try full select first (all columns), fall back to ZXP-only, then minimal
   let profile: Record<string, unknown> | null = null
   for (const cols of [
-    'wallet_address, display_name, avatar_url, zxp_balance, zxp_staked, claim_streak, last_claim_at, settings',
+    'wallet_address, display_name, avatar_url, zxp_balance, zxp_staked, claim_streak, last_claim_at, settings, telegram_chat_id',
     'wallet_address, zxp_balance, zxp_staked, claim_streak, last_claim_at, settings',
     'wallet_address',
   ]) {

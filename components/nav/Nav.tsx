@@ -81,7 +81,7 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
   }, [address, loadNotifs])
 
   useEffect(() => {
-    const connected = !!(profile as Record<string, unknown> | null)?.telegram_chat_id
+    const connected = !!profile?.telegram_chat_id
     setTgConnected(connected)
     if (connected) setTgCode(null)
   }, [profile])
