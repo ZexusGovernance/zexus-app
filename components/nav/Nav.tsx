@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 
@@ -57,7 +58,9 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
   const [tgCode,      setTgCode]      = useState<string | null>(null)
   const [tgLoading,   setTgLoading]   = useState(false)
 
-  const popupRef = useRef<HTMLDivElement>(null)
+  const popupRef  = useRef<HTMLDivElement>(null)
+  const bellRef   = useRef<HTMLDivElement>(null)
+  const [popupBottom, setPopupBottom] = useState(0)
 
   const loadNotifs = useCallback(async () => {
     if (!address) return
@@ -95,6 +98,10 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
   }, [notifOpen])
 
   function toggleNotif() {
+    if (bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect()
+      setPopupBottom(window.innerHeight - rect.top + 8)
+    }
     setNotifOpen(prev => {
       if (!prev && !notifLoaded && address) loadNotifs()
       return !prev
@@ -166,6 +173,7 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
   }
 
   return (
+    <>
     <nav className={`nav nav-clean${isOpen ? ' nav-open' : ''}`}>
       <div className="nav-brand">
         <div className="nav-brand-name">ZEXUS</div>
@@ -212,73 +220,7 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
       </div>
 
       {/* ── Nav bottom ── */}
-      <div className="nav-bottom" style={{ position: 'relative' }}>
-
-        {/* Notification popup — floats above bell */}
-        {notifOpen && (
-          <div className="notif-popup" ref={popupRef}>
-            <div className="notif-popup-head">
-              <span>Notifications</span>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {unread > 0 && (
-                  <button className="notif-mark-all" onClick={markAllRead}>Mark all read</button>
-                )}
-                <i className="ph-bold ph-x" style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 13 }} onClick={() => setNotifOpen(false)} />
-              </div>
-            </div>
-
-            <div className="notif-popup-list">
-              {!address ? (
-                <div className="notif-empty">Connect wallet to see notifications</div>
-              ) : !notifLoaded ? (
-                <div className="notif-empty">Loading…</div>
-              ) : notifs.length === 0 ? (
-                <div className="notif-empty">No notifications yet.<br />Add projects to watchlist.</div>
-              ) : (
-                notifs.map(n => (
-                  <div
-                    key={n.id}
-                    className={`notif-item${!n.is_read ? ' unread' : ''}${n.post_id ? ' clickable' : ''}`}
-                    onClick={() => handleNotifClick(n)}
-                  >
-                    <div className="notif-av">{TYPE_ICON[n.type] ?? '🔔'}</div>
-                    <div className="notif-body">
-                      <div className="notif-title">{n.title}</div>
-                      <div className="notif-desc">{n.body}</div>
-                      <div className="notif-time">{timeAgo(n.created_at)}</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="notif-popup-foot">
-              {tgConnected ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div className="tg-status-row">
-                    <i className="ph-bold ph-telegram-logo" style={{ color: '#82b4f0', fontSize: 13 }} />
-                    <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 500 }}>Telegram connected</span>
-                  </div>
-                  <button className="tg-change-btn" onClick={handleChangeAccount} disabled={tgLoading}>
-                    {tgLoading ? 'Loading…' : 'Change account'}
-                  </button>
-                </div>
-              ) : (
-                <button className="tg-connect-btn" onClick={generateTgCode} disabled={tgLoading}>
-                  <i className="ph-bold ph-telegram-logo"></i>
-                  <span>{tgLoading ? 'Loading…' : 'Connect Telegram'}</span>
-                </button>
-              )}
-              {tgCode && (
-                <div className="tg-code-box">
-                  Open <b>@zexusxyz_bot</b> and send:<br />
-                  <span className="tg-code">/connect {tgCode}</span>
-                  <span style={{ fontSize: 10, color: 'var(--muted2)' }}>Valid 10 min</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+      <div className="nav-bottom">
 
         {/* ZXP card */}
         <div style={{ background: 'var(--surface2)', border: '0.5px solid var(--border2)', borderRadius: 8, padding: '10px 12px', marginBottom: 8 }}>
@@ -297,7 +239,7 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
         </div>
 
         {/* Bell button */}
-        <div className="notif-bell" onClick={toggleNotif}>
+        <div className="notif-bell" ref={bellRef} onClick={toggleNotif}>
           <div className="notif-bell-left">
             <i className="ph-bold ph-bell" style={{ fontSize: 16, width: 18, flexShrink: 0 }}></i>
             <span>Notifications</span>
@@ -312,5 +254,75 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onCheckInOp
         </button>
       </div>
     </nav>
+
+    {/* Notification popup — rendered via portal to escape nav overflow clipping */}
+    {notifOpen && typeof document !== 'undefined' && createPortal(
+      <div
+        ref={popupRef}
+        className="notif-popup"
+        style={{ bottom: popupBottom, left: 8, width: 224 }}
+      >
+        <div className="notif-popup-head">
+          <span>Notifications</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {unread > 0 && (
+              <button className="notif-mark-all" onClick={markAllRead}>Mark all read</button>
+            )}
+            <i className="ph-bold ph-x" style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 13 }} onClick={() => setNotifOpen(false)} />
+          </div>
+        </div>
+
+        <div className="notif-popup-list">
+          {!address ? (
+            <div className="notif-empty">Connect wallet to see notifications</div>
+          ) : !notifLoaded ? (
+            <div className="notif-empty">Loading…</div>
+          ) : notifs.length === 0 ? (
+            <div className="notif-empty">No notifications yet.<br />Add projects to watchlist.</div>
+          ) : notifs.map(n => (
+            <div
+              key={n.id}
+              className={`notif-item${!n.is_read ? ' unread' : ''}${n.post_id ? ' clickable' : ''}`}
+              onClick={() => handleNotifClick(n)}
+            >
+              <div className="notif-av">{TYPE_ICON[n.type] ?? '🔔'}</div>
+              <div className="notif-body">
+                <div className="notif-title">{n.title}</div>
+                <div className="notif-desc">{n.body}</div>
+                <div className="notif-time">{timeAgo(n.created_at)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="notif-popup-foot">
+          {tgConnected ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className="tg-status-row">
+                <i className="ph-bold ph-telegram-logo" style={{ color: '#82b4f0', fontSize: 13 }} />
+                <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 500 }}>Telegram connected</span>
+              </div>
+              <button className="tg-change-btn" onClick={handleChangeAccount} disabled={tgLoading}>
+                {tgLoading ? 'Loading…' : 'Change account'}
+              </button>
+            </div>
+          ) : (
+            <button className="tg-connect-btn" onClick={generateTgCode} disabled={tgLoading}>
+              <i className="ph-bold ph-telegram-logo"></i>
+              <span>{tgLoading ? 'Loading…' : 'Connect Telegram'}</span>
+            </button>
+          )}
+          {tgCode && (
+            <div className="tg-code-box">
+              Open <b>@zexusxyz_bot</b> and send:<br />
+              <span className="tg-code">/connect {tgCode}</span>
+              <span style={{ fontSize: 10, color: 'var(--muted2)', display: 'block', marginTop: 2 }}>Valid 10 min</span>
+            </div>
+          )}
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   )
 }
