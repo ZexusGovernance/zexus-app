@@ -2154,8 +2154,6 @@ body::after {
 .notif-inline {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   overflow: hidden;
 }
 .notif-inline-head {
@@ -2170,8 +2168,8 @@ body::after {
   flex-shrink: 0;
 }
 .notif-inline-list {
-  flex: 1;
   overflow-y: auto;
+  max-height: 300px;
   margin: 0 -4px;
 }
 .notif-item.clickable { cursor: pointer; }
