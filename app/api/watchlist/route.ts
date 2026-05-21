@@ -3,8 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase-server'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
-// GET /api/watchlist?wallet=0x...
+// GET /api/watchlist?wallet=0x...  OR  GET /api/watchlist?project_id=X (returns watcher count)
 export async function GET(req: NextRequest) {
+  const project_id = req.nextUrl.searchParams.get('project_id')
+  if (project_id) {
+    const { count, error } = await supabaseAdmin
+      .from('user_watchlist')
+      .select('*', { count: 'exact', head: true })
+      .eq('project_id', project_id)
+    if (error) return NextResponse.json({ count: 0 })
+    return NextResponse.json({ count: count ?? 0 })
+  }
+
   const wallet = req.nextUrl.searchParams.get('wallet')?.toLowerCase().trim() ?? ''
   if (!WALLET_RE.test(wallet)) return NextResponse.json({ items: [] })
 

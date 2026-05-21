@@ -1,8 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { sendTelegramMessage } from '@/lib/telegram'
 
 const VALID_TYPES = ['update', 'verdict', 'alert'] as const
 type PostType = (typeof VALID_TYPES)[number]
+
+const POST_TYPE_LABEL: Record<PostType, string> = {
+  update:  'Update',
+  verdict: 'Verdict',
+  alert:   '⚠️ Alert',
+}
+
+async function fanOutNotifications(
+  projectId: string,
+  projectName: string,
+  postId: string,
+  postType: PostType,
+  title: string | undefined,
+  content: string,
+) {
+  const { data: watchers } = await supabaseAdmin
+    .from('user_watchlist')
+    .select('wallet_address')
+    .eq('project_id', projectId)
+
+  if (!watchers?.length) return
+
+  const wallets = watchers.map(w => w.wallet_address)
+  const label   = POST_TYPE_LABEL[postType]
+  const notifTitle = `${label} · ${projectName}`
+  const notifBody  = title || content.slice(0, 80) + (content.length > 80 ? '…' : '')
+
+  // Insert notifications in one batch
+  await supabaseAdmin.from('notifications').insert(
+    wallets.map(wallet_address => ({
+      wallet_address,
+      type:       postType,
+      title:      notifTitle,
+      body:       notifBody,
+      project_id: projectId,
+      post_id:    postId,
+    })),
+  )
+
+  // Send Telegram to those who connected it
+  const { data: tgProfiles } = await supabaseAdmin
+    .from('profiles')
+    .select('telegram_chat_id')
+    .in('wallet_address', wallets)
+    .not('telegram_chat_id', 'is', null)
+
+  if (!tgProfiles?.length) return
+
+  const tgText = `🔔 <b>${notifTitle}</b>\n${notifBody}\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`
+  await Promise.allSettled(
+    tgProfiles.map(p => sendTelegramMessage(p.telegram_chat_id, tgText)),
+  )
+}
 
 const AUTO_TRUST_DELTA: Record<PostType, number> = {
   verdict: +8,
@@ -99,12 +153,15 @@ export async function POST(req: NextRequest) {
 
   // Apply trust score delta to the project
   if (tsc !== 0) {
-    const newScore = Math.max(0, Math.min(100, project.trust_score + tsc))
+    const newScore = Math.max(0, Math.min(110, project.trust_score + tsc))
     await supabaseAdmin
       .from('projects')
       .update({ trust_score: newScore })
       .eq('id', project.id)
   }
+
+  // Fan-out notifications to watchlist followers (fire-and-forget)
+  void fanOutNotifications(project.id, project.name, post.id, post_type as PostType, title as string | undefined, content as string)
 
   return NextResponse.json({ post }, { status: 201 })
 }

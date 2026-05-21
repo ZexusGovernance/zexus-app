@@ -82,17 +82,36 @@ export async function PATCH(req: NextRequest) {
   const { wallet, id, status } = body
   if (!wallet || !id || !status) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-  const { data: ms } = await supabaseAdmin
-    .from('project_milestones').select('project_id').eq('id', id as string).maybeSingle()
-  if (!ms) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  // Fetch current milestone (need status + year + quarter before update)
+  const { data: oldMs } = await supabaseAdmin
+    .from('project_milestones').select('project_id, status, year, quarter').eq('id', id as string).maybeSingle()
+  if (!oldMs) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const { data: proj } = await supabaseAdmin
-    .from('projects').select('id').eq('id', ms.project_id)
+    .from('projects').select('id, trust_score').eq('id', oldMs.project_id)
     .eq('admin_wallet', (wallet as string).toLowerCase()).maybeSingle()
   if (!proj) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data, error } = await supabaseAdmin
     .from('project_milestones').update({ status }).eq('id', id as string).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // +3 trust score only when transitioning to completed AND this quarter has no other completed milestone
+  if (status === 'completed' && oldMs.status !== 'completed') {
+    const { count } = await supabaseAdmin
+      .from('project_milestones')
+      .select('id', { count: 'exact', head: true })
+      .eq('project_id', oldMs.project_id)
+      .eq('year', oldMs.year)
+      .eq('quarter', oldMs.quarter)
+      .eq('status', 'completed')
+      .neq('id', id as string)
+
+    if ((count ?? 0) === 0) {
+      const newScore = Math.min(110, proj.trust_score + 3)
+      await supabaseAdmin.from('projects').update({ trust_score: newScore }).eq('id', proj.id)
+    }
+  }
+
   return NextResponse.json({ milestone: data })
 }
