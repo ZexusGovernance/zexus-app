@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -3477,34 +3477,6 @@
 
       /* ── Edit Project modal (reuses .create-post-modal layout) ── */
       #edit-project-overlay { z-index: 200; }
-
-      /* ── Daily Check-in modal ── */
-      #daily-checkin-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.72);
-        z-index: 300; display: none; align-items: center; justify-content: center;
-      }
-      #daily-checkin-overlay.active { display: flex; }
-      .daily-checkin-modal {
-        background: var(--surface); border: 0.5px solid var(--border2);
-        border-radius: 14px; padding: 24px; width: 300px;
-        display: flex; flex-direction: column; gap: 10px;
-      }
-
-      /* Mobile fire button — shown only on mobile (≤720px) */
-      .mob-checkin-btn {
-        display: none;
-        align-items: center; justify-content: center; gap: 6px;
-        padding: 7px 12px; border-radius: 9px; margin-top: 8px; width: 100%;
-        border: 0.5px solid rgba(238,121,121,0.3);
-        background: rgba(238,121,121,0.07); color: #ff9a9a;
-        font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit;
-        transition: background 0.15s;
-      }
-      .mob-checkin-btn:hover { background: rgba(238,121,121,0.14); }
-      @media (max-width: 720px) {
-        .mob-checkin-btn { display: flex !important; }
-        #nav-daily-checkin-desktop { display: none !important; }
-      }
       </style>
   </head>
   <body>
@@ -3515,26 +3487,22 @@
           <div class="nav-brand-name">ZEXUS</div>
           <div class="nav-brand-sub">Governance</div>
           <button class="nav-search" type="button" aria-label="Search placeholder">
-            <i class="ph-bold ph-magnifying-glass"></i><span>Search</span><kbd>/</kbd>
-          </button>
-          <!-- Mobile-only: Daily Check-in fire button -->
-          <button class="mob-checkin-btn" onclick="openDailyCheckin()" type="button">
-            <i class="ph-bold ph-flame" style="font-size:14px;"></i> Daily Check-in
+            <i class="ti ti-search"></i><span>Search</span><kbd>/</kbd>
           </button>
         </div>
 
         <div class="nav-section">Main</div>
         <div class="nav-item" onclick="showPage('feed')" id="nav-feed">
-          <i class="ph-bold ph-squares-four nav-icon"></i> Feed
+          <i class="ti ti-layout-dashboard nav-icon"></i> Feed
         </div>
         <div class="nav-item" onclick="showPage('projects')" id="nav-projects">
-          <i class="ph-bold ph-buildings nav-icon"></i> Projects
+          <i class="ti ti-building-community nav-icon"></i> Projects
         </div>
         <div class="nav-item" onclick="showPage('staking')" id="nav-staking">
-          <i class="ph-bold ph-coin nav-icon"></i> Staking
+          <i class="ti ti-coin nav-icon"></i> Staking
         </div>
         <div class="nav-item" onclick="showPage('profile')" id="nav-profile">
-          <i class="ph-bold ph-user nav-icon"></i> Profile
+          <i class="ti ti-user nav-icon"></i> Profile
         </div>
 
         <!-- Predict button -->
@@ -3557,7 +3525,7 @@
             onmouseout="this.style.background='rgba(201,165,90,0.08)'"
           >
             <i
-              class="ph-bold ph-trophy"
+              class="ti ti-trophy"
               style="
                 color: var(--gold);
                 font-size: 15px;
@@ -3573,44 +3541,6 @@
               </div>
               <div style="font-size: 9px; color: var(--gold-dim)">
                 3 active events
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Daily Check-in button (desktop only) -->
-        <div id="nav-daily-checkin-desktop" style="padding: 4px 0 4px">
-          <div
-            onclick="openDailyCheckin()"
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 9px 11px;
-              border-radius: 8px;
-              background: rgba(238, 121, 121, 0.07);
-              border: 0.5px solid rgba(238, 121, 121, 0.25);
-              cursor: pointer;
-              transition: all 0.15s;
-            "
-            onmouseover="this.style.background='rgba(238,121,121,0.13)'"
-            onmouseout="this.style.background='rgba(238,121,121,0.07)'"
-          >
-            <i
-              class="ph-bold ph-flame"
-              style="
-                color: #ff9a9a;
-                font-size: 15px;
-                width: 17px;
-                flex-shrink: 0;
-              "
-            ></i>
-            <div style="flex: 1; min-width: 0">
-              <div style="font-size: 12px; font-weight: 500; color: #ff9a9a">
-                Daily Check-in
-              </div>
-              <div style="font-size: 9px; color: rgba(255,154,154,0.55)" id="nav-checkin-streak">
-                +1 ZXP · day 5 streak
               </div>
             </div>
           </div>
@@ -3992,7 +3922,7 @@
             </div>
           </div>
           <div class="wallet-pill" id="wallet-pill" onclick="openWalletModal()" style="cursor:pointer;" title="Connect wallet">
-            <i class="ph-bold ph-wallet" style="font-size:14px;color:var(--gold);"></i>
+            <i class="ti ti-wallet" style="font-size:14px;color:var(--gold);"></i>
             <span class="w-addr" style="color:var(--gold);">Connect Wallet</span>
           </div>
         </div>
@@ -4042,7 +3972,7 @@
             <!-- ── COMPOSE (project-only) ── -->
             <div class="compose-box" id="compose-box" style="display:none">
               <div class="compose-project-tag">
-                <i class="ph-bold ph-shield-check" style="font-size:9px"></i>
+                <i class="ti ti-shield-check" style="font-size:9px"></i>
                 <span id="compose-project-badge">Project</span>
               </div>
               <div class="compose-top">
@@ -4052,7 +3982,7 @@
             </div>
 
             <div id="feed-posts-container" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start">
-              <div class="posts-loading"><i class="ph-bold ph-spinner spin"></i> Loading posts…</div>
+              <div class="posts-loading"><i class="ti ti-loader spin"></i> Loading posts…</div>
             </div>
           </div>
         </div>
@@ -4140,7 +4070,7 @@
               class="action-btn primary"
               style="font-size: 12px; padding: 8px; margin-bottom: 0"
             >
-              <i class="ph-bold ph-shield-check"></i> Vote · +15 ZXP
+              <i class="ti ti-shield-check"></i> Vote · +15 ZXP
             </button>
           </div>
 
@@ -4389,13 +4319,13 @@
                 <div class="plc-name">Umia Protocol</div>
                 <div class="plc-sub">DeFi · Base Mainnet · 12.4k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"><i class="ph-bold ph-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
                   <span class="plc-tag">DeFi</span><span class="plc-tag">Genesis T2</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score hi">72</div>
-                <div class="plc-trend plt-up"><i class="ph-bold ph-trend-up" style="font-size:10px"></i> +12</div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +12</div>
               </div>
             </div>
             <div class="proj-list-card" onclick="showProjectDetail(1)">
@@ -4404,13 +4334,13 @@
                 <div class="plc-name">BaseSwap Pro</div>
                 <div class="plc-sub">DEX · Base Mainnet · 9.8k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"><i class="ph-bold ph-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
                   <span class="plc-tag">DEX</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score mi">68</div>
-                <div class="plc-trend plt-up"><i class="ph-bold ph-trend-up" style="font-size:10px"></i> +5</div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +5</div>
               </div>
             </div>
             <div class="proj-list-card" onclick="showProjectDetail(2)">
@@ -4419,7 +4349,7 @@
                 <div class="plc-name">ZeroLend</div>
                 <div class="plc-sub">Lending · Base Mainnet · 18.2k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"><i class="ph-bold ph-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
                   <span class="plc-tag">Lending</span><span class="plc-tag">Genesis T2</span>
                 </div>
               </div>
@@ -4437,7 +4367,7 @@
               </div>
               <div class="plc-score-col">
                 <div class="plc-score lo">41</div>
-                <div class="plc-trend plt-down"><i class="ph-bold ph-trend-down" style="font-size:10px"></i> −18</div>
+                <div class="plc-trend plt-down"><i class="ti ti-trending-down" style="font-size:10px"></i> −18</div>
               </div>
             </div>
             <div class="proj-list-card" onclick="showProjectDetail(4)">
@@ -4446,13 +4376,13 @@
                 <div class="plc-name">AeroBase</div>
                 <div class="plc-sub">AMM · Base Mainnet · 14.6k followers</div>
                 <div class="plc-tags">
-                  <span class="plc-tag verified"><i class="ph-bold ph-check" style="font-size:9px"></i> Verified</span>
+                  <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
                   <span class="plc-tag">AMM</span><span class="plc-tag">Genesis T1</span>
                 </div>
               </div>
               <div class="plc-score-col">
                 <div class="plc-score hi">85</div>
-                <div class="plc-trend plt-up"><i class="ph-bold ph-trend-up" style="font-size:10px"></i> +8</div>
+                <div class="plc-trend plt-up"><i class="ti ti-trending-up" style="font-size:10px"></i> +8</div>
               </div>
             </div>
           </div>
@@ -4460,7 +4390,7 @@
           <div style="display:none;flex-direction:column;flex:1;overflow:hidden;" id="project-detail">
             <div class="proj-detail-header">
               <div class="back-btn" onclick="hideProjectDetail()">
-                <i class="ph-bold ph-arrow-left"></i> Back to projects
+                <i class="ti ti-arrow-left"></i> Back to projects
               </div>
               <div class="pdh-top">
                 <div id="proj-pdh-av" class="pdh-av av-blue" style="width:52px;height:52px;font-size:20px;">U</div>
@@ -4468,7 +4398,7 @@
                   <div id="proj-pdh-name" class="pdh-name">Umia Protocol</div>
                   <div id="proj-pdh-sub" class="pdh-sub">DeFi · Base Mainnet · 12,400 followers · on platform for 14 days</div>
                   <div id="proj-pdh-tags" class="plc-tags">
-                    <span class="plc-tag verified"><i class="ph-bold ph-check" style="font-size:9px"></i> Verified</span>
+                    <span class="plc-tag verified"><i class="ti ti-check" style="font-size:9px"></i> Verified</span>
                     <span class="plc-tag">DeFi</span><span class="plc-tag">Genesis T2</span>
                   </div>
                 </div>
@@ -4534,16 +4464,16 @@
           <div class="panel">
             <div class="panel-title">Actions</div>
             <button id="proj-edit-btn" class="action-btn" style="display:none;background:rgba(201,165,90,0.1);color:var(--gold);border-color:rgba(201,165,90,0.25);" onclick="openEditProjectModal()">
-              <i class="ph-bold ph-pencil"></i> Edit project
+              <i class="ti ti-edit"></i> Edit project
             </button>
             <button id="proj-verify-btn" class="action-btn primary" style="opacity:0.5;" disabled onclick="connectBrowserWallet()">
-              <i class="ph-bold ph-wallet"></i> Verify holder
+              <i class="ti ti-wallet"></i> Verify holder
             </button>
             <button id="proj-watchlist-btn" class="action-btn" onclick="toggleWatchlist()">
-              <i class="ph-bold ph-bookmark"></i> Watchlist
+              <i class="ti ti-bookmark"></i> Watchlist
             </button>
             <button class="emergency-btn">
-              <i class="ph-bold ph-warning"></i> Emergency Call
+              <i class="ti ti-alert-triangle"></i> Emergency Call
             </button>
           </div>
           <div class="panel">
@@ -4602,7 +4532,7 @@
               </div>
               <div class="card-footer">
                 <div class="foot-btn danger">
-                  <i class="ph-bold ph-warning"></i> Activate Emergency
+                  <i class="ti ti-alert-triangle"></i> Activate Emergency
                   Call
                 </div>
               </div>
@@ -4631,7 +4561,7 @@
               </div>
               <div class="card-footer">
                 <div class="foot-btn">
-                  <i class="ph-bold ph-shield-check"></i> Vote now
+                  <i class="ti ti-shield-check"></i> Vote now
                 </div>
               </div>
             </div>
@@ -4721,7 +4651,7 @@
           <div class="scroll">
             <div class="pcard mine">
               <div class="my-stake-tag">
-                <i class="ph-bold ph-coin" style="font-size: 11px"></i> My bet:
+                <i class="ti ti-coin" style="font-size: 11px"></i> My bet:
                 50 ZXP → Yes
               </div>
               <div class="pcard-top">
@@ -4732,7 +4662,7 @@
                     2026?
                   </div>
                 </div>
-                <div class="ptimer hot"><i class="ph-bold ph-clock"></i> 18d 4h</div>
+                <div class="ptimer hot"><i class="ti ti-clock"></i> 18d 4h</div>
               </div>
               <div class="split-labels">
                 <span class="sl-yes">Yes — 63%</span
@@ -4748,9 +4678,9 @@
               </div>
               <div class="bet-row">
                 <button class="bet-btn bb-yes">
-                  <i class="ph-bold ph-check"></i> Bet Yes</button
+                  <i class="ti ti-check"></i> Bet Yes</button
                 ><button class="bet-btn bb-no">
-                  <i class="ph-bold ph-x"></i> Bet No
+                  <i class="ti ti-x"></i> Bet No
                 </button>
               </div>
             </div>
@@ -4762,7 +4692,7 @@
                     Will all 10 Genesis Tier 1 spots be filled by June 30, 2026?
                   </div>
                 </div>
-                <div class="ptimer"><i class="ph-bold ph-clock"></i> 37d 12h</div>
+                <div class="ptimer"><i class="ti ti-clock"></i> 37d 12h</div>
               </div>
               <div class="split-labels">
                 <span class="sl-yes">Yes — 78%</span
@@ -4778,9 +4708,9 @@
               </div>
               <div class="bet-row">
                 <button class="bet-btn bb-yes">
-                  <i class="ph-bold ph-check"></i> Bet Yes</button
+                  <i class="ti ti-check"></i> Bet Yes</button
                 ><button class="bet-btn bb-no">
-                  <i class="ph-bold ph-x"></i> Bet No
+                  <i class="ti ti-x"></i> Bet No
                 </button>
               </div>
             </div>
@@ -4792,7 +4722,7 @@
                     Will on-chain staking (Layer 2 / Base) launch in Q3 2026?
                   </div>
                 </div>
-                <div class="ptimer"><i class="ph-bold ph-clock"></i> 52d 8h</div>
+                <div class="ptimer"><i class="ti ti-clock"></i> 52d 8h</div>
               </div>
               <div class="split-labels">
                 <span class="sl-yes">Yes — 55%</span
@@ -4808,9 +4738,9 @@
               </div>
               <div class="bet-row">
                 <button class="bet-btn bb-yes">
-                  <i class="ph-bold ph-check"></i> Bet Yes</button
+                  <i class="ti ti-check"></i> Bet Yes</button
                 ><button class="bet-btn bb-no">
-                  <i class="ph-bold ph-x"></i> Bet No
+                  <i class="ti ti-x"></i> Bet No
                 </button>
               </div>
             </div>
@@ -4820,7 +4750,7 @@
                   <div class="pcard-cat">
                     Partnerships
                     <span class="resolved-tag rt-yes"
-                      ><i class="ph-bold ph-check" style="font-size: 9px"></i>
+                      ><i class="ti ti-check" style="font-size: 9px"></i>
                       Completed</span
                     >
                   </div>
@@ -4828,7 +4758,7 @@
                     Will Zexus sign 5+ Genesis partners before MVP launch?
                   </div>
                 </div>
-                <div class="ptimer"><i class="ph-bold ph-lock"></i> Closed</div>
+                <div class="ptimer"><i class="ti ti-lock"></i> Closed</div>
               </div>
               <div class="split-labels">
                 <span class="sl-yes">Yes — 71%</span
@@ -4894,21 +4824,21 @@
           <div class="panel">
             <div class="panel-title">Rules</div>
             <div class="rule-row">
-              <i class="ph-bold ph-info"></i>
+              <i class="ti ti-info-circle"></i>
               <div class="rule-text">
                 Only internal Zexus events: growth, product, partnerships
               </div>
             </div>
             <div class="rule-row">
-              <i class="ph-bold ph-coin"></i>
+              <i class="ti ti-coin"></i>
               <div class="rule-text">Bets in ZXP only · Minimum 10 ZXP</div>
             </div>
             <div class="rule-row">
-              <i class="ph-bold ph-percent"></i>
+              <i class="ti ti-percentage"></i>
               <div class="rule-text">1-2% pool fee goes to the ecosystem</div>
             </div>
             <div class="rule-row">
-              <i class="ph-bold ph-shield-check"></i>
+              <i class="ti ti-shield-check"></i>
               <div class="rule-text">
                 Result is verified on-chain, so manipulation is impossible
               </div>
@@ -5025,7 +4955,7 @@
                 ><span>Recalc in 4 days</span>
               </div>
               <div class="apy-note">
-                <i class="ph-bold ph-trend-down"></i>Pool grows -> APY decreases.
+                <i class="ti ti-trending-down"></i>Pool grows -> APY decreases.
                 Join now: Genesis stakers lock their multiplier forever.
               </div>
             </div>
@@ -5073,7 +5003,7 @@
                   ><button class="stake-btn sb-l1">Stake</button>
                 </div>
                 <div class="mult-note">
-                  <i class="ph-bold ph-info"></i>30d -> 1.1x &nbsp;·&nbsp; 90d
+                  <i class="ti ti-info-circle"></i>30d -> 1.1x &nbsp;·&nbsp; 90d
                   → 1.2x &nbsp;·&nbsp; 180d → 1.35x
                 </div>
               </div>
@@ -5167,7 +5097,7 @@
                   </div>
                 </div>
                 <div class="mult-note" style="margin-top: 10px">
-                  <i class="ph-bold ph-shield-check"></i>On-chain stake =
+                  <i class="ti ti-shield-check"></i>On-chain stake =
                   maximum weight in project verification
                 </div>
               </div>
@@ -5250,7 +5180,7 @@
             <div class="panel-title">How to earn ZXP</div>
             <div class="rule-row">
               <i
-                class="ph-bold ph-calendar-check"
+                class="ti ti-calendar-check"
                 style="
                   color: var(--gold);
                   font-size: 13px;
@@ -5262,7 +5192,7 @@
             </div>
             <div class="rule-row">
               <i
-                class="ph-bold ph-shield-check"
+                class="ti ti-shield-check"
                 style="
                   color: var(--gold);
                   font-size: 13px;
@@ -5274,7 +5204,7 @@
             </div>
             <div class="rule-row">
               <i
-                class="ph-bold ph-trophy"
+                class="ti ti-trophy"
                 style="
                   color: var(--gold);
                   font-size: 13px;
@@ -5286,7 +5216,7 @@
             </div>
             <div class="rule-row">
               <i
-                class="ph-bold ph-users"
+                class="ti ti-users"
                 style="
                   color: var(--gold);
                   font-size: 13px;
@@ -5321,15 +5251,15 @@
                 </div>
                 <div class="badge-row" id="profile-badge-row">
                   <span class="badge badge-verified"
-                    ><i class="ph-bold ph-shield-check" style="font-size: 10px"></i>
+                    ><i class="ti ti-shield-check" style="font-size: 10px"></i>
                     Verified Holder</span
                   >
                   <span class="badge badge-rank"
-                    ><i class="ph-bold ph-medal" style="font-size: 10px"></i> Rank
+                    ><i class="ti ti-medal" style="font-size: 10px"></i> Rank
                     #312</span
                   >
                   <span class="badge badge-days"
-                    ><i class="ph-bold ph-calendar" style="font-size: 10px"></i> 14
+                    ><i class="ti ti-calendar" style="font-size: 10px"></i> 14
                     days</span
                   >
                 </div>
@@ -5385,7 +5315,7 @@
                 </div>
                 <span class="vside vs-yes">Yes</span
                 ><span class="vresult vr-ok"
-                  ><i class="ph-bold ph-check" style="font-size: 11px"></i>
+                  ><i class="ti ti-check" style="font-size: 11px"></i>
                   Correct</span
                 ><span class="vzxp earn">+8 ZXP</span>
               </div>
@@ -5409,7 +5339,7 @@
                 </div>
                 <span class="vside vs-no">No</span
                 ><span class="vresult vr-ok"
-                  ><i class="ph-bold ph-check" style="font-size: 11px"></i>
+                  ><i class="ti ti-check" style="font-size: 11px"></i>
                   Correct</span
                 ><span class="vzxp earn">+12 ZXP</span>
               </div>
@@ -5431,7 +5361,7 @@
                 </div>
                 <span class="vside vs-yes">Yes</span
                 ><span class="vresult vr-ok"
-                  ><i class="ph-bold ph-check" style="font-size: 11px"></i>
+                  ><i class="ti ti-check" style="font-size: 11px"></i>
                   Correct</span
                 ><span class="vzxp earn">+6 ZXP</span>
               </div>
@@ -5453,7 +5383,7 @@
                 </div>
                 <span class="vside vs-yes">Yes</span
                 ><span class="vresult vr-bad"
-                  ><i class="ph-bold ph-x" style="font-size: 11px"></i> Wrong</span
+                  ><i class="ti ti-x" style="font-size: 11px"></i> Wrong</span
                 ><span class="vzxp lose">−3 ZXP</span>
               </div>
               <div class="vrow">
@@ -5474,7 +5404,7 @@
                 </div>
                 <span class="vside vs-yes">Yes</span
                 ><span class="vresult vr-pend"
-                  ><i class="ph-bold ph-clock" style="font-size: 11px"></i>
+                  ><i class="ti ti-clock" style="font-size: 11px"></i>
                   Waiting</span
                 ><span class="vzxp pend">—</span>
               </div>
@@ -5487,7 +5417,7 @@
               </div>
               <div class="ach-full-list">
                 <div class="ach-full-row">
-                  <div class="ach-full-icon ai-gold"><i class="ph-bold ph-shield-check"></i></div>
+                  <div class="ach-full-icon ai-gold"><i class="ti ti-shield-check"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">First verdict</div>
                     <div class="ach-full-desc">Cast your first community verdict</div>
@@ -5495,7 +5425,7 @@
                   <span class="ach-badge-ok">Unlocked</span>
                 </div>
                 <div class="ach-full-row">
-                  <div class="ach-full-icon ai-blue"><i class="ph-bold ph-coin"></i></div>
+                  <div class="ach-full-icon ai-blue"><i class="ti ti-coin"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">First stake</div>
                     <div class="ach-full-desc">Lock ZXP in the staking pool for the first time</div>
@@ -5503,7 +5433,7 @@
                   <span class="ach-badge-ok">Unlocked</span>
                 </div>
                 <div class="ach-full-row">
-                  <div class="ach-full-icon ai-green"><i class="ph-bold ph-calendar-check"></i></div>
+                  <div class="ach-full-icon ai-green"><i class="ti ti-calendar-check"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">7-day streak</div>
                     <div class="ach-full-desc">Check in every day for 7 days in a row</div>
@@ -5511,7 +5441,7 @@
                   <span class="ach-badge-ok">Unlocked</span>
                 </div>
                 <div class="ach-full-row ach-locked">
-                  <div class="ach-full-icon ai-gray"><i class="ph-bold ph-trophy"></i></div>
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-trophy"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">Genesis Tier</div>
                     <div class="ach-full-desc">Reach Genesis Tier 3 — need 600 ZXP total</div>
@@ -5519,7 +5449,7 @@
                   <span class="ach-badge-lock">Locked</span>
                 </div>
                 <div class="ach-full-row ach-locked">
-                  <div class="ach-full-icon ai-gray"><i class="ph-bold ph-star"></i></div>
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-star"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">100 verdicts</div>
                     <div class="ach-full-desc">Submit 100 community verdicts — 7 of 100 done</div>
@@ -5527,7 +5457,7 @@
                   <span class="ach-badge-lock">7 / 100</span>
                 </div>
                 <div class="ach-full-row ach-locked">
-                  <div class="ach-full-icon ai-gray"><i class="ph-bold ph-users"></i></div>
+                  <div class="ach-full-icon ai-gray"><i class="ti ti-users"></i></div>
                   <div class="ach-full-body">
                     <div class="ach-full-name">5 referrals</div>
                     <div class="ach-full-desc">Invite 5 verified holders to Zexus — 0 of 5 done</div>
@@ -5557,11 +5487,11 @@
                   <div class="wrow-name">Umia Protocol</div>
                   <div class="wrow-cat">DeFi · Base</div>
                 </div>
-                <span class="holder-tag"><i class="ph-bold ph-wallet" style="font-size:10px;"></i> Holder</span>
-                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ph-bold ph-bell"></i> Alerts</button>
+                <span class="holder-tag"><i class="ti ti-wallet" style="font-size:10px;"></i> Holder</span>
+                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ti ti-bell"></i> Alerts</button>
                 <div style="text-align:right;margin-left:8px;">
                   <div class="w-score hi">72</div>
-                  <div class="w-trend wt-up"><i class="ph-bold ph-trend-up" style="font-size:10px;"></i> +12</div>
+                  <div class="w-trend wt-up"><i class="ti ti-trending-up" style="font-size:10px;"></i> +12</div>
                 </div>
               </div>
               <div class="wrow">
@@ -5570,11 +5500,11 @@
                   <div class="wrow-name">BaseSwap Pro</div>
                   <div class="wrow-cat">DEX · Base</div>
                 </div>
-                <span class="holder-tag"><i class="ph-bold ph-wallet" style="font-size:10px;"></i> Holder</span>
-                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ph-bold ph-bell"></i> Alerts</button>
+                <span class="holder-tag"><i class="ti ti-wallet" style="font-size:10px;"></i> Holder</span>
+                <button class="wrow-alert-btn alert-on" title="Alerts on"><i class="ti ti-bell"></i> Alerts</button>
                 <div style="text-align:right;margin-left:8px;">
                   <div class="w-score mi">68</div>
-                  <div class="w-trend wt-up"><i class="ph-bold ph-trend-up" style="font-size:10px;"></i> +5</div>
+                  <div class="w-trend wt-up"><i class="ti ti-trending-up" style="font-size:10px;"></i> +5</div>
                 </div>
               </div>
               <div class="wrow">
@@ -5584,10 +5514,10 @@
                   <div class="wrow-cat">DEX · Base</div>
                 </div>
                 <span style="font-size:10px;color:var(--muted2);padding:2px 7px;">Watching</span>
-                <button class="wrow-alert-btn" title="Enable alerts"><i class="ph-bold ph-bell-slash"></i> Off</button>
+                <button class="wrow-alert-btn" title="Enable alerts"><i class="ti ti-bell-off"></i> Off</button>
                 <div style="text-align:right;margin-left:8px;">
                   <div class="w-score lo">41</div>
-                  <div class="w-trend wt-down"><i class="ph-bold ph-trend-down" style="font-size:10px;"></i> −18</div>
+                  <div class="w-trend wt-down"><i class="ti ti-trending-down" style="font-size:10px;"></i> −18</div>
                 </div>
               </div>
               <div class="wrow">
@@ -5597,7 +5527,7 @@
                   <div class="wrow-cat">Lending · Base</div>
                 </div>
                 <span style="font-size:10px;color:var(--muted2);padding:2px 7px;">Watching</span>
-                <button class="wrow-alert-btn" title="Enable alerts"><i class="ph-bold ph-bell-slash"></i> Off</button>
+                <button class="wrow-alert-btn" title="Enable alerts"><i class="ti ti-bell-off"></i> Off</button>
                 <div style="text-align:right;margin-left:8px;">
                   <div class="w-score na">—</div>
                   <div class="w-trend wt-na">New</div>
@@ -5696,7 +5626,7 @@
         <div class="wallet-modal-sub">Connect to Base Mainnet to vote, verify, and earn ZXP</div>
         <button class="wallet-option" onclick="connectBrowserWallet()">
           <div class="wallet-option-icon" style="background:rgba(255,143,0,0.12);">
-            <i class="ph-bold ph-wallet" style="color:#ff8f00;font-size:18px;"></i>
+            <i class="ti ti-wallet" style="color:#ff8f00;font-size:18px;"></i>
           </div>
           <div>
             <div>Browser Wallet</div>
@@ -5705,7 +5635,7 @@
         </button>
         <button class="wallet-option" onclick="showToast('Add your WalletConnect Project ID to enable QR scanning');closeWalletModal()">
           <div class="wallet-option-icon" style="background:rgba(90,130,201,0.12);">
-            <i class="ph-bold ph-qr-code" style="color:var(--blue);font-size:18px;"></i>
+            <i class="ti ti-qrcode" style="color:var(--blue);font-size:18px;"></i>
           </div>
           <div>
             <div>WalletConnect</div>
@@ -5713,32 +5643,6 @@
           </div>
         </button>
         <div class="wallet-modal-cancel" onclick="closeWalletModal()">Cancel</div>
-      </div>
-    </div>
-
-    <!-- ── Daily Check-in Modal ── -->
-    <div id="daily-checkin-overlay" onclick="if(event.target===this)closeDailyCheckin()">
-      <div class="daily-checkin-modal">
-        <div style="text-align:center;margin-bottom:4px;">
-          <div style="width:52px;height:52px;border-radius:14px;background:rgba(238,121,121,0.12);border:0.5px solid rgba(238,121,121,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-            <i class="ph-bold ph-flame" style="color:#ff9a9a;font-size:26px;"></i>
-          </div>
-          <div style="font-size:16px;font-weight:600;color:var(--text);">Daily Check-in</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Claim your daily +1 ZXP reward</div>
-        </div>
-        <div style="background:var(--bg);border:0.5px solid var(--border2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
-          <div style="width:36px;height:36px;border-radius:9px;background:rgba(201,165,90,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="ph-bold ph-lightning" style="color:var(--gold);font-size:18px;"></i>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;color:var(--gold);">+1 ZXP</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Streak bonus up to 3× · day <span id="checkin-streak-day">5</span></div>
-          </div>
-        </div>
-        <button id="daily-checkin-btn" type="button" onclick="claimDailyCheckin()" style="font-size:13px;font-weight:600;padding:11px;border-radius:9px;border:0.5px solid rgba(201,165,90,0.4);background:rgba(201,165,90,0.1);color:var(--gold);cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(201,165,90,0.18)'" onmouseout="this.style.background='rgba(201,165,90,0.1)'">
-          <i class="ph-bold ph-lightning"></i> Claim +1 ZXP
-        </button>
-        <div class="wallet-modal-cancel" onclick="closeDailyCheckin()">Cancel</div>
       </div>
     </div>
 
@@ -5755,13 +5659,13 @@
           <div class="cpm-label">Post type</div>
           <div class="type-row">
             <button class="post-type-btn t-update" data-type="update" onclick="selectPostType('update')">
-              <i class="ph-bold ph-arrow-clockwise" style="font-size:11px"></i> Update
+              <i class="ti ti-refresh" style="font-size:11px"></i> Update
             </button>
             <button class="post-type-btn" data-type="verdict" onclick="selectPostType('verdict')">
-              <i class="ph-bold ph-gavel" style="font-size:11px"></i> Verdict
+              <i class="ti ti-gavel" style="font-size:11px"></i> Verdict
             </button>
             <button class="post-type-btn" data-type="alert" onclick="selectPostType('alert')">
-              <i class="ph-bold ph-warning" style="font-size:11px"></i> Alert
+              <i class="ti ti-alert-triangle" style="font-size:11px"></i> Alert
             </button>
           </div>
         </div>
@@ -5787,7 +5691,7 @@
         <div class="cpm-footer">
           <button class="cpm-cancel" onclick="closeCreatePostModal()">Cancel</button>
           <button class="cpm-submit" id="cpm-submit-btn" onclick="submitNewPost()">
-            <i class="ph-bold ph-paper-plane-tilt" style="font-size:12px"></i> Publish
+            <i class="ti ti-send" style="font-size:12px"></i> Publish
           </button>
         </div>
       </div>
@@ -5825,7 +5729,7 @@
         <div class="cpm-footer">
           <button class="cpm-cancel" onclick="closeEditProjectModal()">Cancel</button>
           <button class="cpm-submit" id="epm-submit-btn" onclick="submitEditProject()">
-            <i class="ph-bold ph-check" style="font-size:12px"></i> Save changes
+            <i class="ti ti-check" style="font-size:12px"></i> Save changes
           </button>
         </div>
       </div>
@@ -5871,7 +5775,7 @@
         if (nameEl) nameEl.textContent = p.name;
         if (subEl) subEl.textContent = p.cat + ' · ' + p.chain + ' · ' + p.followers + ' followers · on platform for ' + p.days + ' days';
         if (tagsEl) tagsEl.innerHTML = p.tags.map(([lbl, cls]) =>
-          '<span class="plc-tag' + (cls ? ' ' + cls : '') + '">' + (cls === 'verified' ? '<i class="ph-bold ph-check" style="font-size:9px"></i> ' : '') + lbl + '</span>'
+          '<span class="plc-tag' + (cls ? ' ' + cls : '') + '">' + (cls === 'verified' ? '<i class="ti ti-check" style="font-size:9px"></i> ' : '') + lbl + '</span>'
         ).join('');
 
         _updateProjectDetailRight(p);
@@ -5910,7 +5814,7 @@
         const wBtn = document.getElementById('proj-watchlist-btn');
         if (wBtn) {
           const inWL = _watchlist.has(_currentProjectIdx);
-          wBtn.innerHTML = '<i class="ph-bold ph-bookmark' + (inWL ? '-filled' : '') + '"></i> ' + (inWL ? 'Watching' : 'Watchlist');
+          wBtn.innerHTML = '<i class="ti ti-bookmark' + (inWL ? '-filled' : '') + '"></i> ' + (inWL ? 'Watching' : 'Watchlist');
           wBtn.style.background = inWL ? 'rgba(201,165,90,0.12)' : '';
           wBtn.style.borderColor = inWL ? 'rgba(201,165,90,0.5)' : '';
           wBtn.style.color = inWL ? 'var(--gold)' : '';
@@ -5943,7 +5847,7 @@
         let voteHtml;
         if (vote) {
           const pill = vote.open
-            ? '<span class="score-pill" style="background:rgba(201,165,90,0.08);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);margin-top:10px;"><i class="ph-bold ph-clock"></i> ' + vote.left + ' left · ' + vote.reward + '</span>'
+            ? '<span class="score-pill" style="background:rgba(201,165,90,0.08);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);margin-top:10px;"><i class="ti ti-clock"></i> ' + vote.left + ' left · ' + vote.reward + '</span>'
             : '<span class="score-pill sp-' + (vote.impact.startsWith('+') ? 'up' : 'down') + '" style="margin-top:10px;">' + vote.impact + '</span>';
           voteHtml = '<div class="card c-verdict">' +
             '<div class="card-head"><div class="proj-av ' + p.av + '">' + p.letter + '</div><div><div style="font-size:12px;color:var(--muted2);">Latest verdict</div></div><div class="card-time">' + vote.time + '</div></div>' +
@@ -6021,10 +5925,10 @@
         return p.votes.map(v => {
           const border = v.open ? 'border-color:rgba(201,165,90,0.28);background:rgba(201,165,90,0.02);' : '';
           const badge = v.open
-            ? '<span class="type-badge" style="background:rgba(201,165,90,0.1);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);"><i class="ph-bold ph-clock" style="font-size:9px"></i> Voting</span>'
-            : '<span class="type-badge tb-verdict"><i class="ph-bold ph-shield-check" style="font-size:9px"></i> Closed</span>';
+            ? '<span class="type-badge" style="background:rgba(201,165,90,0.1);color:var(--gold);border:0.5px solid rgba(201,165,90,0.25);"><i class="ti ti-clock" style="font-size:9px"></i> Voting</span>'
+            : '<span class="type-badge tb-verdict"><i class="ti ti-shield-check" style="font-size:9px"></i> Closed</span>';
           const bottom = v.open
-            ? '<div style="display:flex;gap:8px;margin-top:12px;align-items:center;"><button class="bet-btn bb-yes" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ph-bold ph-thumbs-up"></i> Confirm</button><button class="bet-btn bb-no" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ph-bold ph-thumbs-down"></i> Dispute</button><div style="margin-left:auto;font-size:11px;color:var(--gold-dim);"><i class="ph-bold ph-clock"></i> ' + v.left + ' · ' + v.reward + '</div></div>'
+            ? '<div style="display:flex;gap:8px;margin-top:12px;align-items:center;"><button class="bet-btn bb-yes" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ti ti-thumb-up"></i> Confirm</button><button class="bet-btn bb-no" style="font-size:12px;padding:7px 16px;" onclick="castVote(this)"><i class="ti ti-thumb-down"></i> Dispute</button><div style="margin-left:auto;font-size:11px;color:var(--gold-dim);"><i class="ti ti-clock"></i> ' + v.left + ' · ' + v.reward + '</div></div>'
             : '<span class="score-pill sp-' + (v.impact.startsWith('+') ? 'up' : 'down') + '" style="margin-top:10px;">' + v.impact + '</span>';
           return '<div class="card c-verdict" style="' + border + '">' +
             '<div class="card-head"><div class="proj-av ' + PROJECTS_DATA[_currentProjectIdx].av + '">' + PROJECTS_DATA[_currentProjectIdx].letter + '</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);">' + v.title + '</div><div style="font-size:11px;color:var(--muted);">' + v.count + ' votes</div></div>' + badge + '<div class="card-time">' + v.time + '</div></div>' +
@@ -6261,7 +6165,7 @@
         document.querySelectorAll('.wrow-alert-btn').forEach(btn => {
           btn.addEventListener('click', function() {
             const on = this.classList.toggle('alert-on');
-            this.innerHTML = on ? '<i class="ph-bold ph-bell"></i> Alerts' : '<i class="ph-bold ph-bell-slash"></i> Off';
+            this.innerHTML = on ? '<i class="ti ti-bell"></i> Alerts' : '<i class="ti ti-bell-off"></i> Off';
           });
         });
 
@@ -6401,35 +6305,77 @@
           // Header
           '<div style="margin-bottom:12px;">' +
             '<div style="font-size:14px;font-weight:600;color:var(--text);">ZXP Loop</div>' +
-            '<div style="font-size:11px;color:var(--muted);margin-top:2px;">Burn ZXP to boost your Trust Score influence.</div>' +
+            '<div style="font-size:11px;color:var(--muted);margin-top:2px;">Daily loop: claim → burn → influence (staking lives in the cards below).</div>' +
           '</div>' +
 
-          // Burn ZXP (full width)
-          '<div style="padding:10px 12px;border-radius:9px;border:0.5px solid var(--border);background:var(--bg);display:flex;flex-direction:column;">' +
-            // header row: icon+title left | "To burn" top-right
-            '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">' +
-              '<div style="width:28px;height:28px;border-radius:7px;background:rgba(238,121,121,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<i class="ph-bold ph-flame" style="color:#ff9a9a;font-size:13px;"></i>' +
-              '</div>' +
-              '<div style="flex:1;min-width:0;">' +
-                '<div style="font-size:12px;font-weight:600;color:var(--text);">Burn ZXP</div>' +
-                '<div style="font-size:10px;color:var(--muted);">Max 10 per action · boosts &amp; goals</div>' +
-              '</div>' +
-              '<span style="font-size:10px;color:var(--muted);white-space:nowrap;padding-top:1px;">To burn: <span data-burn-display style="color:#ff9a9a;font-weight:600;">10</span> ZXP</span>' +
+          // Daily claim row (full width)
+          '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;border:0.5px solid var(--border);background:var(--bg);margin-bottom:8px;">' +
+            '<div style="width:32px;height:32px;border-radius:8px;background:rgba(225,184,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+              '<i class="ti ti-bolt" style="color:var(--gold);font-size:15px;"></i>' +
             '</div>' +
-            // slider
-            '<input data-burn-slider type="range" min="1" max="10" value="10" style="width:100%;height:3px;-webkit-appearance:none;appearance:none;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;margin-bottom:7px;" />' +
-            // chips + Burn button on same row
-            '<div style="display:flex;gap:4px;align-items:center;">' +
-              '<button data-preset="1"  style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">1</button>' +
-              '<button data-preset="5"  style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">5</button>' +
-              '<button data-preset="10" style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid rgba(238,121,121,0.4);background:rgba(238,121,121,0.08);color:#ff9a9a;cursor:pointer;" data-active="true">10</button>' +
-              '<button data-burn-exec type="button" style="font-size:10px;padding:3px 10px;border-radius:7px;border:0.5px solid rgba(238,121,121,0.35);background:rgba(238,121,121,0.08);color:#ff9a9a;cursor:pointer;font-weight:500;margin-left:auto;white-space:nowrap;">' +
-                '<i class="ph-bold ph-flame"></i> Burn' +
-              '</button>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:12px;font-weight:600;color:var(--text);">Daily claim</div>' +
+              '<div style="font-size:10px;color:var(--muted);">+1 ZXP · streak bonus up to 3×</div>' +
             '</div>' +
+            '<button data-zxp-claim type="button" style="font-size:11px;padding:6px 12px;border-radius:7px;border:0.5px solid rgba(201,165,90,0.4);background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap;font-weight:500;flex-shrink:0;">' +
+              '<i class="ti ti-bolt"></i> Claim +1' +
+            '</button>' +
           '</div>' +
 
+          // Bottom 2 columns: Burn | Influence
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;">' +
+
+            // Burn ZXP (left)
+            '<div style="padding:10px 12px;border-radius:9px;border:0.5px solid var(--border);background:var(--bg);display:flex;flex-direction:column;">' +
+              // header row: icon+title left | "To burn" top-right
+              '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">' +
+                '<div style="width:28px;height:28px;border-radius:7px;background:rgba(238,121,121,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<i class="ti ti-flame" style="color:#ff9a9a;font-size:13px;"></i>' +
+                '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                  '<div style="font-size:12px;font-weight:600;color:var(--text);">Burn ZXP</div>' +
+                  '<div style="font-size:10px;color:var(--muted);">Max 10 per action · boosts &amp; goals</div>' +
+                '</div>' +
+                '<span style="font-size:10px;color:var(--muted);white-space:nowrap;padding-top:1px;">To burn: <span data-burn-display style="color:#ff9a9a;font-weight:600;">10</span> ZXP</span>' +
+              '</div>' +
+              // slider
+              '<input data-burn-slider type="range" min="1" max="10" value="10" style="width:100%;height:3px;-webkit-appearance:none;appearance:none;background:var(--border2);border-radius:2px;outline:none;cursor:pointer;margin-bottom:7px;" />' +
+              // chips + Burn button on same row
+              '<div style="display:flex;gap:4px;align-items:center;">' +
+                '<button data-preset="1"  style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">1</button>' +
+                '<button data-preset="5"  style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;">5</button>' +
+                '<button data-preset="10" style="font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid rgba(238,121,121,0.4);background:rgba(238,121,121,0.08);color:#ff9a9a;cursor:pointer;" data-active="true">10</button>' +
+                '<button data-burn-exec type="button" style="font-size:10px;padding:3px 10px;border-radius:7px;border:0.5px solid rgba(238,121,121,0.35);background:rgba(238,121,121,0.08);color:#ff9a9a;cursor:pointer;font-weight:500;margin-left:auto;white-space:nowrap;">' +
+                  '<i class="ti ti-flame"></i> Burn' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+
+            // Influence (right)
+            '<div style="padding:10px 12px;border-radius:9px;border:0.5px solid var(--border);background:var(--bg);display:flex;flex-direction:column;justify-content:space-between;">' +
+              // header row
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+                '<div style="width:28px;height:28px;border-radius:7px;background:rgba(90,130,201,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<i class="ti ti-award" style="color:var(--blue);font-size:13px;"></i>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-size:12px;font-weight:600;color:var(--text);">Influence</div>' +
+                  '<div style="font-size:10px;color:var(--muted);">Voting weight &amp; status</div>' +
+                '</div>' +
+              '</div>' +
+              // number + bar (bottom section)
+              '<div>' +
+                '<div style="font-size:24px;font-weight:700;color:var(--green);line-height:1;margin-bottom:5px;"><span data-influence>202</span></div>' +
+                '<div style="display:flex;align-items:center;gap:6px;">' +
+                  '<div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;">' +
+                    '<div style="width:80%;height:100%;background:var(--green);border-radius:2px;"></div>' +
+                  '</div>' +
+                  '<span style="font-size:10px;color:var(--muted2);">→ 250</span>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+
+          '</div>' + // end bottom grid
           '</div>'   // end card
         );
       }
@@ -6535,7 +6481,7 @@
         overlay.innerHTML =
           '<div class="search-modal">' +
             '<div class="search-input-wrap">' +
-              '<i class="ph-bold ph-magnifying-glass"></i>' +
+              '<i class="ti ti-search"></i>' +
               '<input class="search-input" type="text" placeholder="Search projects…" autocomplete="off"/>' +
               '<kbd class="search-esc">Esc</kbd>' +
             '</div>' +
@@ -6913,7 +6859,7 @@
           b.id        = 'profile-admin-badge'
           b.className = 'badge badge-admin'
           b.title     = 'Admin of ' + _currentProject.name + ' — click to open project'
-          b.innerHTML = '<i class="ph-bold ph-shield-check" style="font-size:10px"></i> Admin: ' + _esc(_currentProject.name)
+          b.innerHTML = '<i class="ti ti-shield-check" style="font-size:10px"></i> Admin: ' + _esc(_currentProject.name)
           b.onclick   = () => { showProjectBySlug(_currentProject.slug); showPage('projects') }
           badgeRow.prepend(b)
         }
@@ -6945,7 +6891,7 @@
         const container = document.getElementById('feed-posts-container')
         if (!container) return
 
-        container.innerHTML = '<div class="posts-loading"><i class="ph-bold ph-spinner spin"></i> Loading posts…</div>'
+        container.innerHTML = '<div class="posts-loading"><i class="ti ti-loader spin"></i> Loading posts…</div>'
 
         try {
           const res = await fetch('/api/posts?limit=20')
@@ -7083,17 +7029,17 @@
           `<div class="card-footer">` +
             `<div class="reactions">` +
               `<button class="reaction-btn${myReact === 'like' ? ' liked' : ''}" onclick="toggleReaction('${p.id}','like',this)">` +
-                `<i class="ph-bold ph-thumbs-up" style="font-size:12px"></i> <span class="like-count">${likes}</span>` +
+                `<i class="ti ti-thumb-up" style="font-size:12px"></i> <span class="like-count">${likes}</span>` +
               `</button>` +
               `<button class="reaction-btn${myReact === 'dislike' ? ' disliked' : ''}" onclick="toggleReaction('${p.id}','dislike',this)">` +
-                `<i class="ph-bold ph-thumbs-down" style="font-size:12px"></i> <span class="dislike-count">${dislikes}</span>` +
+                `<i class="ti ti-thumb-down" style="font-size:12px"></i> <span class="dislike-count">${dislikes}</span>` +
               `</button>` +
             `</div>` +
             `<div class="foot-btn" onclick="toggleComments('${p.id}',this)">` +
-              `<i class="ph-bold ph-chat"></i> ${comments > 0 ? comments + ' ' : ''}Comment${comments !== 1 ? 's' : ''}` +
+              `<i class="ti ti-message"></i> ${comments > 0 ? comments + ' ' : ''}Comment${comments !== 1 ? 's' : ''}` +
             `</div>` +
             `<div class="foot-btn" onclick="showProjectBySlug('${_esc(p.project_slug || '')}')">` +
-              `<i class="ph-bold ph-eye"></i> View project` +
+              `<i class="ti ti-eye"></i> View project` +
             `</div>` +
           `</div>` +
           `<div class="comments-section" id="comments-${p.id}" style="display:none"></div>`
@@ -7147,11 +7093,11 @@
         if (sec.style.display === 'none') {
           sec.style.display = 'block'
           sec.innerHTML = '<div style="padding:8px 0;color:var(--muted);font-size:12px">Loading…</div>'
-          btn.innerHTML = '<i class="ph-bold ph-chat"></i> Hide'
+          btn.innerHTML = '<i class="ti ti-message"></i> Hide'
           await _loadComments(postId)
         } else {
           sec.style.display = 'none'
-          btn.innerHTML = '<i class="ph-bold ph-chat"></i> Comments'
+          btn.innerHTML = '<i class="ti ti-message"></i> Comments'
         }
       }
 
@@ -7237,7 +7183,7 @@
 
         const btn = document.getElementById('cpm-submit-btn')
         btn.disabled = true
-        btn.innerHTML = '<i class="ph-bold ph-spinner spin" style="font-size:12px"></i> Publishing…'
+        btn.innerHTML = '<i class="ti ti-loader spin" style="font-size:12px"></i> Publishing…'
 
         try {
           const res  = await fetch('/api/posts', {
@@ -7251,7 +7197,7 @@
         } catch { showToast('Network error') }
         finally  {
           btn.disabled = false
-          btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt" style="font-size:12px"></i> Publish'
+          btn.innerHTML = '<i class="ti ti-send" style="font-size:12px"></i> Publish'
         }
       }
 
@@ -7287,7 +7233,7 @@
 
         const btn = document.getElementById('epm-submit-btn')
         btn.disabled = true
-        btn.innerHTML = '<i class="ph-bold ph-spinner spin" style="font-size:12px"></i> Saving…'
+        btn.innerHTML = '<i class="ti ti-loader spin" style="font-size:12px"></i> Saving…'
 
         try {
           const res = await fetch('/api/projects', {
@@ -7308,7 +7254,7 @@
         } catch { showToast('Network error') }
         finally {
           btn.disabled = false
-          btn.innerHTML = '<i class="ph-bold ph-check" style="font-size:12px"></i> Save changes'
+          btn.innerHTML = '<i class="ti ti-check" style="font-size:12px"></i> Save changes'
         }
       }
 
@@ -7320,68 +7266,6 @@
         )
         if (idx >= 0) showProjectDetail(idx)
       }
-
-      // ── DAILY CHECK-IN ──
-      (function() {
-        const STORAGE_KEY = 'zxp_last_checkin';
-        const STREAK_KEY  = 'zxp_checkin_streak';
-
-        function _todayStr() {
-          return new Date().toISOString().slice(0, 10);
-        }
-
-        function _isClaimed() {
-          return localStorage.getItem(STORAGE_KEY) === _todayStr();
-        }
-
-        function _getStreak() {
-          return parseInt(localStorage.getItem(STREAK_KEY) || '0', 10);
-        }
-
-        function _updateUI() {
-          const streak = _getStreak();
-          const claimed = _isClaimed();
-          const streakEl = document.getElementById('checkin-streak-day');
-          const navStreakEl = document.getElementById('nav-checkin-streak');
-          if (streakEl) streakEl.textContent = streak;
-          if (navStreakEl) navStreakEl.textContent = '+1 ZXP · day ' + streak + ' streak';
-          const btn = document.getElementById('daily-checkin-btn');
-          if (btn) {
-            if (claimed) {
-              btn.innerHTML = '<i class="ph-bold ph-check"></i> Claimed today';
-              btn.disabled = true;
-              btn.style.opacity = '0.5';
-              btn.style.cursor = 'default';
-            } else {
-              btn.innerHTML = '<i class="ph-bold ph-lightning"></i> Claim +1 ZXP';
-              btn.disabled = false;
-              btn.style.opacity = '1';
-              btn.style.cursor = 'pointer';
-            }
-          }
-        }
-
-        window.openDailyCheckin = function() {
-          _updateUI();
-          document.getElementById('daily-checkin-overlay').classList.add('active');
-        };
-
-        window.closeDailyCheckin = function() {
-          document.getElementById('daily-checkin-overlay').classList.remove('active');
-        };
-
-        window.claimDailyCheckin = function() {
-          if (_isClaimed()) return;
-          const today = _todayStr();
-          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-          const last = localStorage.getItem(STORAGE_KEY);
-          const streak = last === yesterday ? _getStreak() + 1 : 1;
-          localStorage.setItem(STORAGE_KEY, today);
-          localStorage.setItem(STREAK_KEY, streak);
-          _updateUI();
-          showToast('+1 ZXP claimed! Day ' + streak + ' streak 🔥');
-        };
-      })();
 
       // ── WALLET CONNECTION ──
       let _walletAddress = null;
@@ -7451,7 +7335,7 @@
           const profName = document.getElementById('prof-name-display');
           if (profName) profName.textContent = short;
         } else {
-          pill.innerHTML = '<i class="ph-bold ph-wallet" style="font-size:14px;color:var(--gold);"></i><span class="w-addr" style="color:var(--gold);">Connect Wallet</span>';
+          pill.innerHTML = '<i class="ti ti-wallet" style="font-size:14px;color:var(--gold);"></i><span class="w-addr" style="color:var(--gold);">Connect Wallet</span>';
           pill.style.borderColor = '';
           pill.title = 'Connect wallet';
           const profName = document.getElementById('prof-name-display');
@@ -7547,7 +7431,7 @@
           '</div>' +
           (text ? '<div class="card-text" style="margin-top:8px;' + (_pendingImageData ? 'padding-right:84px;' : '') + '">' + _esc(text) + '</div>' : '') +
           thumbHtml +
-          '<div class="card-footer"><div class="foot-btn"><i class="ph-bold ph-heart"></i> 0</div><div class="foot-btn"><i class="ph-bold ph-chat"></i> Reply</div></div>';
+          '<div class="card-footer"><div class="foot-btn"><i class="ti ti-heart"></i> 0</div><div class="foot-btn"><i class="ti ti-message"></i> Reply</div></div>';
         const compose = scroll.querySelector('.compose-box');
         if (compose && compose.nextSibling) scroll.insertBefore(card, compose.nextSibling);
         else scroll.appendChild(card);
