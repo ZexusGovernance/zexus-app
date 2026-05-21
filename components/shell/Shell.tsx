@@ -242,6 +242,7 @@ export default function Shell() {
         onNavigate={navigate}
         onSearchOpen={() => setSearchOpen(true)}
         onCheckInOpen={() => setCheckInOpen(true)}
+        onOpenPost={(postId) => { setCurrentPage('feed'); setInitialPostId(postId) }}
         isOpen={false}
       />
 
