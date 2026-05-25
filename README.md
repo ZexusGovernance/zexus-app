@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zexus Governance
+
+Zexus is a Web3 governance and community intelligence app for crypto projects. It combines project profiles, token-holder verification, community voting, ZXP reputation mechanics, prediction markets, staking, alerts, and admin analytics in one public-facing dApp.
+
+Live app: https://zexus-app.vercel.app
+
+## What It Does
+
+- Project profiles with trust score, roadmap, posts, holder data, and social links
+- Community voting that feeds into project trust and reputation signals
+- ZXP staking, burn, rewards, milestones, achievements, and profile badges
+- Prediction markets for community sentiment and project outcomes
+- Emergency Call flows for project/community escalation
+- Admin dashboard for project scoring, invites, analytics, and market creation
+- Telegram notifications for important wallet and project events
+- Mobile-first interface with wallet connection and app-style navigation
+
+## Tech Stack
+
+- Next.js App Router
+- React
+- TypeScript
+- Supabase
+- Wagmi, Viem, Reown AppKit
+- Vercel
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app expects project-specific environment variables for Supabase, wallet integrations, Telegram, email, and deployment cron routes. Production values are managed outside the repository.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Zexus is in active development. The current public repository is a clean application snapshot intended for project demos, product review, and ongoing iteration.
