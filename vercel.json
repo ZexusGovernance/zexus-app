@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/finalize-votes",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/epoch-maintenance",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

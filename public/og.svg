@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b0a09"/>
+  <!-- subtle grid -->
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.04"/>
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#ffffff" stroke-width="0.5"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a55a" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0b0a09" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <!-- border -->
+  <rect x="1" y="1" width="1198" height="628" rx="0" fill="none" stroke="#c9a55a" stroke-width="1" stroke-opacity="0.2"/>
+  <!-- wordmark -->
+  <text x="600" y="260" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="800" font-size="96" fill="#c9a55a" letter-spacing="16">ZEXUS</text>
+  <!-- tagline -->
+  <text x="600" y="330" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="400" font-size="22" fill="#888888" letter-spacing="2">DeFi Trust Layer on Base</text>
+  <!-- divider -->
+  <line x1="480" y1="368" x2="720" y2="368" stroke="#c9a55a" stroke-width="1" stroke-opacity="0.35"/>
+  <!-- features -->
+  <text x="600" y="410" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="16" fill="#666666" letter-spacing="1">Trust Scores · Governance · ZXP Staking · Emergency Calls</text>
+  <!-- base badge -->
+  <rect x="524" y="448" width="152" height="36" rx="18" fill="#c9a55a" fill-opacity="0.1" stroke="#c9a55a" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="600" y="471" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-weight="600" font-size="14" fill="#c9a55a">Built on Base</text>
+</svg>
