@@ -42,6 +42,8 @@ next-env.d.ts
 
 # local dev / secrets
 .mcp.json
+.claude/
 
 # internal docs (not for public repo)
+CLAUDE.md
 ZEXUS_OVERVIEW.md

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
-const WALLET_RE     = /^0x[0-9a-fA-F]{40}$/
 const MIN_STAKED    = 10   // raised from 5 — 7 ZXP onboarding rewards aren't enough to vote
 const MIN_AGE_HOURS = 48
 
@@ -22,15 +22,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
+
+  const walletLower = requireAuth(req)
+  if (!walletLower) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
-  const { wallet, vote } = body
-  if (!wallet || typeof wallet !== 'string') return NextResponse.json({ error: 'wallet required' }, { status: 400 })
-  if (!WALLET_RE.test(wallet.toLowerCase())) return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
+  const { vote } = body
   if (vote !== 'confirm' && vote !== 'dispute') return NextResponse.json({ error: 'vote must be confirm or dispute' }, { status: 400 })
-
-  const walletLower = wallet.toLowerCase()
 
   const [{ data: profile }, { data: positions }, { data: epochCfg }, { data: existingVote }] = await Promise.all([
     supabaseAdmin

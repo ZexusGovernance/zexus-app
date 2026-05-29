@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
+  const walletLower = requireAuth(req)
+  if (!walletLower) return unauthorized()
+
   let body: Record<string, string>
   try {
     body = await req.json()
@@ -9,13 +13,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { wallet, post_id, reaction } = body
+  const { post_id, reaction } = body
 
-  if (!wallet || !post_id || !['like', 'dislike'].includes(reaction)) {
-    return NextResponse.json({ error: 'wallet, post_id and reaction (like|dislike) are required' }, { status: 400 })
+  if (!post_id || !['like', 'dislike'].includes(reaction)) {
+    return NextResponse.json({ error: 'post_id and reaction (like|dislike) are required' }, { status: 400 })
   }
-
-  const walletLower = wallet.toLowerCase()
 
   const { data: existing } = await supabaseAdmin
     .from('post_reactions')

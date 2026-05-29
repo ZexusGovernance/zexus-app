@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { notifyWallet } from '@/lib/telegram'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
@@ -28,15 +29,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  let body: Record<string, unknown>
-  try { body = await req.json() } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  const wallet = (body.wallet as string)?.toLowerCase().trim()
-  if (!wallet || !WALLET_RE.test(wallet)) {
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
-  }
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
 
   const today = new Date().toISOString().slice(0, 10)
 

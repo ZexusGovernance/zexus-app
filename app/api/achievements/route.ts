@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { ACHIEVEMENTS, type AchievementStats } from '@/lib/achievements'
 import { notifyWallet } from '@/lib/telegram'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
@@ -100,16 +101,16 @@ export async function GET(req: NextRequest) {
 // POST /api/achievements  { wallet, achievement_id }
 // Marks the badge as claimed — no ZXP is awarded, the badge itself is the reward.
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet         = (body.wallet as string)?.toLowerCase().trim()
   const achievement_id = body.achievement_id as string
 
-  if (!wallet || !WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
   if (!achievement_id)
     return NextResponse.json({ error: 'achievement_id required' }, { status: 400 })
 

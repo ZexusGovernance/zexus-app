@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
-const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-
-// GET /api/admin/check?wallet=0x...
-// Returns {isAdmin: true/false} without exposing which wallet is admin
+// GET /api/admin/check — reports whether the signed-in wallet is super-admin.
 export async function GET(req: NextRequest) {
-  const wallet = req.nextUrl.searchParams.get('wallet')?.toLowerCase().trim() ?? ''
-  const isAdmin = wallet !== '' && ADMIN_WALLET !== '' && wallet === ADMIN_WALLET
-  return NextResponse.json({ isAdmin })
+  return NextResponse.json({ isAdmin: isSuperAdmin(requireAuth(req)) })
 }

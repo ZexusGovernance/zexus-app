@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const ADMIN = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
-  const wallet   = (req.nextUrl.searchParams.get('wallet') ?? '').toLowerCase()
   const github   = req.nextUrl.searchParams.get('github') ?? ''
   const contract = req.nextUrl.searchParams.get('contract') ?? ''
 
-  if (!wallet || wallet !== ADMIN) {
+  if (!isSuperAdmin(requireAuth(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

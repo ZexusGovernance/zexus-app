@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
-const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 const MIN_STAKE = 1
 
 // Model: zxp_balance = FREE balance only, zxp_staked = locked balance
 // Total ZXP = zxp_balance + zxp_staked
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet = (body.wallet as string)?.toLowerCase().trim()
   const amount = Number(body.amount)
 
-  if (!wallet || !WALLET_RE.test(wallet)) {
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
-  }
   if (!amount || amount < MIN_STAKE || !Number.isInteger(amount)) {
     return NextResponse.json({ error: `Minimum stake is ${MIN_STAKE} ZXP` }, { status: 400 })
   }

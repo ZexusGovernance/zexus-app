@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setWebhook } from '@/lib/telegram'
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
-const ADMIN = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-
-// GET /api/telegram/setup-webhook?wallet=0x...
-// Run once after deploy to register the webhook URL with Telegram
+// GET /api/telegram/setup-webhook
+// Run once after deploy to register the webhook URL with Telegram (super-admin).
 export async function GET(req: NextRequest) {
-  const wallet = (req.nextUrl.searchParams.get('wallet') ?? '').toLowerCase()
-  if (!wallet || wallet !== ADMIN)
+  if (!isSuperAdmin(requireAuth(req)))
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://app.zexus.xyz'

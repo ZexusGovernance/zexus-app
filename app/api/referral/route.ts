@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { notifyWallet } from '@/lib/telegram'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 const REFERRER_REWARD_ZXP = 5
@@ -25,16 +26,16 @@ export async function GET(req: NextRequest) {
 // POST /api/referral  { referred_wallet, referrer_wallet }
 // Called once when a new user first connects with a ref= code.
 export async function POST(req: NextRequest) {
+  const referred = requireAuth(req)
+  if (!referred) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const referred  = (body.referred_wallet  as string)?.toLowerCase().trim()
-  const referrer  = (body.referrer_wallet  as string)?.toLowerCase().trim()
+  const referrer = (body.referrer_wallet as string)?.toLowerCase().trim()
 
-  if (!referred  || !WALLET_RE.test(referred))
-    return NextResponse.json({ error: 'Invalid referred_wallet' }, { status: 400 })
   if (!referrer  || !WALLET_RE.test(referrer))
     return NextResponse.json({ error: 'Invalid referrer_wallet' }, { status: 400 })
   if (referred === referrer)

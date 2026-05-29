@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-
-const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params
-  const wallet = req.nextUrl.searchParams.get('wallet')?.toLowerCase().trim() ?? ''
-
-  if (!WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'wallet required' }, { status: 400 })
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
 
   // Verify requester is the project admin
   const { data: project } = await supabaseAdmin

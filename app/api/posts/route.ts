@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { sendTelegramMessage } from '@/lib/telegram'
+import { requireAuth, unauthorized, isSuperAdmin } from '@/lib/auth'
 
 const VALID_TYPES = ['update', 'verdict', 'alert', 'voting'] as const
 type PostType = (typeof VALID_TYPES)[number]
@@ -97,6 +98,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const walletLower = requireAuth(req)
+  if (!walletLower) return unauthorized()
+
   let body: Record<string, unknown>
   try {
     body = await req.json()
@@ -104,11 +108,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { wallet, post_type, title, content, image_url } = body
+  const { post_type, title, content, image_url } = body
 
-  if (!wallet || typeof wallet !== 'string') {
-    return NextResponse.json({ error: 'wallet is required' }, { status: 400 })
-  }
   if (!content || typeof content !== 'string' || !content.trim()) {
     return NextResponse.json({ error: 'content is required' }, { status: 400 })
   }
@@ -118,8 +119,6 @@ export async function POST(req: NextRequest) {
   if (!VALID_TYPES.includes(post_type as PostType)) {
     return NextResponse.json({ error: 'post_type must be update, verdict, alert, or voting' }, { status: 400 })
   }
-
-  const walletLower = wallet.toLowerCase()
 
   // Verify the connecting wallet is registered as a project admin
   const { data: project, error: projErr } = await supabaseAdmin
@@ -219,14 +218,11 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ post }, { status: 201 })
 }
 
-const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-
-// DELETE /api/posts?id=UUID&wallet=ADMIN  — admin hard-delete
+// DELETE /api/posts?id=UUID  — super-admin hard-delete (session-verified)
 export async function DELETE(req: NextRequest) {
-  const id     = req.nextUrl.searchParams.get('id') ?? ''
-  const wallet = (req.nextUrl.searchParams.get('wallet') ?? '').toLowerCase()
+  const id = req.nextUrl.searchParams.get('id') ?? ''
 
-  if (!wallet || wallet !== ADMIN_WALLET || !ADMIN_WALLET) {
+  if (!isSuperAdmin(requireAuth(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })

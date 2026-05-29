@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { notifyWallet } from '@/lib/telegram'
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
 const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
 const FEE = 0.02  // 2% platform fee → burned
@@ -11,16 +12,16 @@ export async function POST(
 ) {
   const { id: marketId } = await params
 
+  if (!isSuperAdmin(requireAuth(req)))
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet  = (body.wallet as string)?.toLowerCase().trim()
   const outcome = body.outcome as string
 
-  if (!wallet || wallet !== ADMIN_WALLET)
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (!['a', 'b'].includes(outcome))
     return NextResponse.json({ error: 'outcome must be "a" or "b"' }, { status: 400 })
 

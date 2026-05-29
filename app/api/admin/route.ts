@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { sendListingEmail } from '@/lib/email'
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
-const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-
-function isAdmin(wallet: unknown): boolean {
-  return typeof wallet === 'string' && wallet.toLowerCase() === ADMIN_WALLET && ADMIN_WALLET !== ''
-}
-
-// GET /api/admin?wallet=X  — list all projects
+// GET /api/admin  — list all projects (super-admin only)
 export async function GET(req: NextRequest) {
-  const wallet = req.nextUrl.searchParams.get('wallet') ?? ''
-  if (!isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isSuperAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data, error } = await supabaseAdmin
     .from('projects')
@@ -24,10 +18,10 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin  — create project
 export async function POST(req: NextRequest) {
+  if (!isSuperAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
-
-  if (!isAdmin(body.wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { name, slug, category, description, admin_wallet, website_url, trust_score, is_verified, contact_email } = body
 
@@ -72,10 +66,10 @@ export async function POST(req: NextRequest) {
 
 // PATCH /api/admin  — update any field
 export async function PATCH(req: NextRequest) {
+  if (!isSuperAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
-
-  if (!isAdmin(body.wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id, ...rest } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
@@ -96,9 +90,8 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE /api/admin?id=X&wallet=Y
 export async function DELETE(req: NextRequest) {
-  const wallet = req.nextUrl.searchParams.get('wallet') ?? ''
-  const id     = req.nextUrl.searchParams.get('id') ?? ''
-  if (!isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const id = req.nextUrl.searchParams.get('id') ?? ''
+  if (!isSuperAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const { error } = await supabaseAdmin.from('projects').delete().eq('id', id)

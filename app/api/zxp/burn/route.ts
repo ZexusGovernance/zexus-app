@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-
-const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 // Burn permanently destroys ZXP from free balance.
 // Influence boost = burned_amount * 2 (computed client-side for session display).
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet = (body.wallet as string)?.toLowerCase().trim()
   const amount = Number(body.amount)
 
-  if (!wallet || !WALLET_RE.test(wallet)) {
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
-  }
   if (!amount || amount < 1 || !Number.isInteger(amount)) {
     return NextResponse.json({ error: 'amount must be a positive integer' }, { status: 400 })
   }

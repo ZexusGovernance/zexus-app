@@ -1,15 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth } from '@/lib/auth'
 
 const ADMIN_WALLETS = (process.env.ADMIN_WALLETS ?? '').toLowerCase().split(',').filter(Boolean)
 
-function isAdmin(wallet: string) {
-  return ADMIN_WALLETS.includes(wallet.toLowerCase())
+// Invite codes may be managed by any wallet in ADMIN_WALLETS — verified via
+// the SIWE session, never from a client-supplied address.
+function isInviteAdmin(wallet: string | null): boolean {
+  return !!wallet && ADMIN_WALLETS.includes(wallet.toLowerCase())
 }
 
-export async function GET(req: Request) {
-  const wallet = new URL(req.url).searchParams.get('wallet') ?? ''
-  if (!isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function GET(req: NextRequest) {
+  if (!isInviteAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data } = await supabaseAdmin
     .from('invite_codes')
@@ -19,11 +21,12 @@ export async function GET(req: Request) {
   return NextResponse.json({ codes: data ?? [] })
 }
 
-export async function POST(req: Request) {
-  const { wallet, code, project_name, note } = await req.json() as {
-    wallet?: string; code?: string; project_name?: string; note?: string
+export async function POST(req: NextRequest) {
+  if (!isInviteAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { code, project_name, note } = await req.json() as {
+    code?: string; project_name?: string; note?: string
   }
-  if (!wallet || !isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (!code?.trim()) return NextResponse.json({ error: 'Code required' }, { status: 400 })
 
   const { data, error } = await supabaseAdmin
@@ -36,9 +39,10 @@ export async function POST(req: Request) {
   return NextResponse.json({ code: data })
 }
 
-export async function DELETE(req: Request) {
-  const { wallet, code } = await req.json() as { wallet?: string; code?: string }
-  if (!wallet || !isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function DELETE(req: NextRequest) {
+  if (!isInviteAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { code } = await req.json() as { code?: string }
   if (!code) return NextResponse.json({ error: 'Code required' }, { status: 400 })
 
   await supabaseAdmin.from('invite_codes').delete().eq('code', code)

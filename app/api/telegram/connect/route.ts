@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-
-const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 function randomCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase()
@@ -10,14 +9,8 @@ function randomCode() {
 // POST /api/telegram/connect
 // body: { wallet } — generates a 6-char code valid 10 minutes
 export async function POST(req: NextRequest) {
-  let body: Record<string, string>
-  try { body = await req.json() } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  const wallet = body.wallet?.toLowerCase().trim()
-  if (!wallet || !WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'wallet required' }, { status: 400 })
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
 
   const code    = randomCode()
   const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString()
@@ -36,14 +29,8 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/telegram/connect — disconnect telegram
 export async function DELETE(req: NextRequest) {
-  let body: Record<string, string>
-  try { body = await req.json() } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  const wallet = body.wallet?.toLowerCase().trim()
-  if (!wallet || !WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'wallet required' }, { status: 400 })
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
 
   await supabaseAdmin
     .from('profiles')

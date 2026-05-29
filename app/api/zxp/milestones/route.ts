@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { STAKING_MILESTONES } from '@/lib/staking-milestones'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
@@ -52,19 +53,19 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ milestones: result })
 }
 
-// POST /api/zxp/milestones  { wallet, position_id, milestone_days }
+// POST /api/zxp/milestones  { position_id, milestone_days }
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet        = (body.wallet as string)?.toLowerCase().trim()
   const positionId    = body.position_id as string
   const milestoneDays = Number(body.milestone_days)
 
-  if (!wallet || !WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
   if (!positionId)
     return NextResponse.json({ error: 'position_id required' }, { status: 400 })
 

@@ -2,25 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { notifyProjectWatchers } from '@/lib/telegram'
 import { effectiveEmergencyConfig } from '@/lib/emergency-config'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
-const WALLET_RE              = /^0x[0-9a-fA-F]{40}$/
 const COLLECT_HOURS          = 48
 const PROJECT_COOLDOWN_DAYS  = 60
 const INITIATOR_COOLDOWN_DAYS = 14
 
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet     = (body.wallet as string)?.toLowerCase().trim()
   const project_id = body.project_id as string
   const reason     = (body.reason as string)?.trim()
   const amount     = Number(body.amount)
 
-  if (!wallet || !WALLET_RE.test(wallet))
-    return NextResponse.json({ error: 'Invalid wallet' }, { status: 400 })
   if (!project_id)
     return NextResponse.json({ error: 'project_id required' }, { status: 400 })
   if (!reason || reason.length < 10)

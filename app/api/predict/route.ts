@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-
-const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-function isAdmin(w: unknown) {
-  return typeof w === 'string' && w.toLowerCase() === ADMIN_WALLET && ADMIN_WALLET !== ''
-}
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
 // GET /api/predict?status=open|resolved&wallet=0x...
 export async function GET(req: NextRequest) {
@@ -64,12 +60,13 @@ export async function GET(req: NextRequest) {
 
 // POST /api/predict — create market (admin only)
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!isSuperAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   let body: Record<string, unknown>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
-
-  if (!isAdmin(body.wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { title, description, category, option_a, option_b, closes_at, project_name } = body
   if (!title || typeof title !== 'string' || title.trim().length < 5) {
@@ -88,7 +85,7 @@ export async function POST(req: NextRequest) {
     option_b:     option_b    ? String(option_b).trim()    : 'No',
     closes_at,
     project_name: project_name ? String(project_name).trim() : null,
-    created_by:   (body.wallet as string).toLowerCase(),
+    created_by:   wallet,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const BUCKET       = 'avatars'
 const MAX_BYTES    = 2 * 1024 * 1024 // 2 MB
@@ -8,13 +9,15 @@ const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gi
 
 export async function POST(req: NextRequest) {
   try {
+    const wallet = requireAuth(req)
+    if (!wallet) return unauthorized()
+
     const form   = await req.formData()
     const file   = form.get('file')   as File   | null
-    const wallet = (form.get('wallet') as string | null)?.toLowerCase() ?? ''
     const slug   = form.get('slug')   as string | null
 
-    if (!file || !wallet || !slug) {
-      return NextResponse.json({ error: 'file, wallet and slug are required' }, { status: 400 })
+    if (!file || !slug) {
+      return NextResponse.json({ error: 'file and slug are required' }, { status: 400 })
     }
     if (!ALLOWED_MIME.has(file.type)) {
       return NextResponse.json({ error: 'Only JPEG, PNG, WebP or GIF allowed' }, { status: 400 })

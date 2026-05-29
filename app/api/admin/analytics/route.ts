@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-
-const ADMIN_WALLET = (process.env.SUPER_ADMIN_WALLET ?? '').toLowerCase()
-
-function isAdmin(wallet: unknown): boolean {
-  return typeof wallet === 'string' && wallet.toLowerCase() === ADMIN_WALLET && ADMIN_WALLET !== ''
-}
+import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
-  const wallet = req.nextUrl.searchParams.get('wallet') ?? ''
-  if (!isAdmin(wallet)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isSuperAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const today = new Date().toISOString().slice(0, 10)
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()

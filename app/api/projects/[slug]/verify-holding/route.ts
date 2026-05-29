@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
-const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 const BASE_RPC  = process.env.BASE_RPC_URL ?? ''
 
 // ERC-20 function selectors
@@ -35,17 +35,8 @@ export async function POST(
 ) {
   const { slug } = await params
 
-  let wallet: string
-  try {
-    const body = await req.json()
-    wallet = (body.wallet as string)?.toLowerCase().trim() ?? ''
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  if (!WALLET_RE.test(wallet)) {
-    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
-  }
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
 
   const { data: project } = await supabaseAdmin
     .from('projects')

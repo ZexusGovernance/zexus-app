@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { grantOnboardingReward } from '@/lib/onboarding'
+import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 
@@ -43,16 +44,18 @@ export async function GET(req: NextRequest) {
 
 // POST /api/watchlist — add project to watchlist
 export async function POST(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, string>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet = body.wallet?.toLowerCase().trim()
   const project_id = body.project_id?.trim()
 
-  if (!wallet || !WALLET_RE.test(wallet) || !project_id) {
-    return NextResponse.json({ error: 'wallet and project_id required' }, { status: 400 })
+  if (!project_id) {
+    return NextResponse.json({ error: 'project_id required' }, { status: 400 })
   }
 
   const { error } = await supabaseAdmin
@@ -68,16 +71,18 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/watchlist — remove project from watchlist
 export async function DELETE(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
   let body: Record<string, string>
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const wallet = body.wallet?.toLowerCase().trim()
   const project_id = body.project_id?.trim()
 
-  if (!wallet || !WALLET_RE.test(wallet) || !project_id) {
-    return NextResponse.json({ error: 'wallet and project_id required' }, { status: 400 })
+  if (!project_id) {
+    return NextResponse.json({ error: 'project_id required' }, { status: 400 })
   }
 
   await supabaseAdmin
