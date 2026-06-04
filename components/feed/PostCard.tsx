@@ -60,7 +60,7 @@ function relativeTime(iso?: string): string {
 }
 
 async function doShare(post: FeedPost, setCopied: (v: boolean) => void) {
-  const url = `${window.location.origin}/post/${post.shortId ?? post.id}`
+  const url = `${window.location.origin}/feed?post=${post.shortId ?? post.id}`
   if (typeof navigator.share === 'function') {
     try {
       await navigator.share({ title: `${post.project}: ${post.title || post.type}`, text: post.text.slice(0, 120), url })

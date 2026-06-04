@@ -124,9 +124,14 @@ export default function FeedPage({
   // closing returns to /feed (so the address bar reflects the post and Back closes it)
   const openPost  = (post: FeedPost, comments = false) => {
     setScrollToComments(comments)
+    setSelectedPost(post)
     router.push(`/feed?post=${post.shortId ?? post.id}`, { scroll: false })
   }
-  const closePost = () => router.push('/feed', { scroll: false })
+  const closePost = () => {
+    setSelectedPost(null)
+    setScrollToComments(false)
+    router.push('/feed', { scroll: false })
+  }
 
   useEffect(() => { modalOpenRef.current = !!selectedPost }, [selectedPost])
 
