@@ -9,10 +9,19 @@ import ApyChart from './ApyChart'
 
 type StakingTab = 'My stake' | 'History' | 'Epoch'
 type HistoryFilter = 'all' | 'stake' | 'unstake' | 'burn' | 'reward'
+type HistoryRange = 'all' | 'week' | 'month' | 'halfyear'
 
 // URL slug <-> tab. 'My stake' is the default and keeps the URL clean (/staking).
 const TAB_TO_SLUG: Record<StakingTab, string> = { 'My stake': '', History: 'history', Epoch: 'epoch' }
 const SLUG_TO_TAB: Record<string, StakingTab> = { history: 'History', epoch: 'Epoch' }
+
+// Date-range presets for the History tab calendar filter
+const HISTORY_RANGES: { id: HistoryRange; label: string; days: number | null }[] = [
+  { id: 'all',      label: 'All time',      days: null },
+  { id: 'week',     label: 'Last week',     days: 7   },
+  { id: 'month',    label: 'Last month',    days: 30  },
+  { id: 'halfyear', label: 'Last 6 months', days: 182 },
+]
 
 interface Position {
   id: string
@@ -169,6 +178,8 @@ export default function StakingPage() {
   const [claimingMs,  setClaimingMs]  = useState<string | null>(null)
   const [history, setHistory]         = useState<TxRow[]>([])
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all')
+  const [historyRange,  setHistoryRange]  = useState<HistoryRange>('all')
+  const [rangeMenuOpen, setRangeMenuOpen] = useState(false)
   const [stakeAmount, setStakeAmount] = useState('')
   const [loading, setLoading]         = useState(false)
   const [actionMsg, setActionMsg]     = useState<string | null>(null)
@@ -613,8 +624,8 @@ export default function StakingPage() {
           {/* ── History ── */}
           {activeTab === 'History' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {/* Filter pills */}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {/* Filter pills + date-range calendar */}
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                 {(['all', 'stake', 'unstake', 'burn', 'reward'] as HistoryFilter[]).map(f => (
                   <button
                     key={f}
@@ -628,15 +639,71 @@ export default function StakingPage() {
                     }}
                   >{f}</button>
                 ))}
+
+                <div style={{ marginLeft: 'auto', position: 'relative' }}>
+                  <button
+                    onClick={() => setRangeMenuOpen(o => !o)}
+                    title="Filter by date"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      padding: '4px 10px', fontSize: 11, fontWeight: 500, borderRadius: 20,
+                      background: historyRange !== 'all' ? 'rgba(111,155,229,0.15)' : 'transparent',
+                      border: 'none', outline: 'none', cursor: 'pointer',
+                      color: historyRange !== 'all' ? '#7a9fd9' : 'var(--muted)',
+                    }}
+                  >
+                    <i className="ph-bold ph-calendar-blank" style={{ fontSize: 14 }} />
+                    {historyRange !== 'all' && (
+                      <span>{HISTORY_RANGES.find(r => r.id === historyRange)?.label}</span>
+                    )}
+                  </button>
+
+                  {rangeMenuOpen && (
+                    <>
+                      <div
+                        onClick={() => setRangeMenuOpen(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+                      />
+                      <div style={{
+                        position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 11,
+                        minWidth: 150, padding: 4,
+                        background: 'var(--surface2)', border: '0.5px solid var(--border2)',
+                        borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                      }}>
+                        {HISTORY_RANGES.map(r => (
+                          <button
+                            key={r.id}
+                            onClick={() => { setHistoryRange(r.id); setRangeMenuOpen(false) }}
+                            style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                              width: '100%', padding: '8px 10px', fontSize: 12, fontWeight: 500,
+                              background: 'none', border: 'none', borderRadius: 7, cursor: 'pointer',
+                              textAlign: 'left',
+                              color: historyRange === r.id ? '#7a9fd9' : 'var(--text)',
+                            }}
+                          >
+                            {r.label}
+                            {historyRange === r.id && <i className="ph-bold ph-check" style={{ fontSize: 12 }} />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               {(() => {
-                const filtered = historyFilter === 'all'
+                const rangeDays = HISTORY_RANGES.find(r => r.id === historyRange)?.days ?? null
+                const cutoff = rangeDays ? Date.now() - rangeDays * 86_400_000 : 0
+                const byType = historyFilter === 'all'
                   ? history
                   : history.filter(tx => {
                       if (historyFilter === 'reward') return tx.type === 'reward' || tx.type === 'checkin' || tx.type === 'verdict' || tx.type === 'onboarding'
                       return tx.type === historyFilter
                     })
+                const filtered = cutoff
+                  ? byType.filter(tx => new Date(tx.created_at).getTime() >= cutoff)
+                  : byType
                 if (filtered.length === 0) return (
                   <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)', fontSize: 12 }}>
                     No transactions yet
