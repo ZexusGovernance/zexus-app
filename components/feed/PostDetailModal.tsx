@@ -606,9 +606,10 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
           {/* Trust Score Change */}
           {post.trustScoreChange !== undefined && post.trustScoreChange !== 0 && (
             <div style={{ marginBottom: 18 }}>
-              <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`}>
-                <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 11 }} />
-                &nbsp;{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange} pts Trust Score
+              <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`} style={{ alignItems: 'baseline' }}>
+                <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 12, alignSelf: 'center' }} />
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange}</span>
+                <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.8 }}>pts Trust Score</span>
               </span>
             </div>
           )}
