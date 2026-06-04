@@ -673,7 +673,7 @@ export default function ProfilePage() {
 
                 {filteredWatch.length === 0 ? (
                   <div style={{ padding: '20px 14px', color: 'var(--muted)', fontSize: 12, textAlign: 'center' }}>
-                    No projects in watchlist yet — click <i className="ph-bold ph-bookmark" /> on any post to add
+                    No projects in watchlist yet — click <i className="ph-bold ph-star" /> on any post to add
                   </div>
                 ) : (
                   filteredWatch.map(w => {

@@ -163,7 +163,7 @@ export default function ProjectDetail({ onBack }: ProjectDetailProps) {
         <div className="panel">
           <div className="panel-title">Actions</div>
           <button className="action-btn primary"><i className="ph-bold ph-shield-check"></i> Verify holding</button>
-          <button className="action-btn"><i className="ph-bold ph-bookmark"></i> Add to watchlist</button>
+          <button className="action-btn"><i className="ph-bold ph-star"></i> Add to watchlist</button>
           <button className="emergency-btn"><i className="ph-bold ph-warning"></i> Emergency Call</button>
         </div>
         <div className="panel">

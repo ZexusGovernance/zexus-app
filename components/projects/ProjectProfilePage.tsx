@@ -1911,9 +1911,9 @@ export default function ProjectProfilePage() {
                 className="proj-mob-action"
                 onClick={toggleWatchlist}
                 disabled={watchlistLoading || !address}
-                style={watchlisted ? { color: '#6f9be5' } : {}}
+                style={watchlisted ? { color: 'var(--gold)' } : {}}
               >
-                <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />
+                <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-star`} />
                 {watchlisted ? ' Saved' : ' Watch'}
               </button>
               <button
@@ -2378,10 +2378,10 @@ export default function ProjectProfilePage() {
             onClick={toggleWatchlist}
             disabled={watchlistLoading || !address}
             style={watchlisted
-              ? { color: '#6f9be5', borderColor: 'rgba(111,155,229,0.35)', background: 'rgba(111,155,229,0.06)' }
+              ? { color: 'var(--gold)', borderColor: 'rgba(201,165,90,0.35)', background: 'rgba(201,165,90,0.06)' }
               : {}}
           >
-            <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />
+            <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-star`} />
             {watchlistLoading ? ' …' : watchlisted ? ' Watchlisted' : ' Add to watchlist'}
           </button>
         </div>

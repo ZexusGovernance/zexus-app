@@ -321,25 +321,27 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {post.projectSlug ? (
-              <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link">
-                {post.project}
-              </a>
-            ) : (
-              <div className="card-proj-name">{post.project}</div>
-            )}
+            <div style={{ minWidth: 0 }}>
+              {post.projectSlug ? (
+                <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()} className="card-proj-link" style={{ lineHeight: 1.2 }}>
+                  {post.project}
+                </a>
+              ) : (
+                <div className="card-proj-name" style={{ lineHeight: 1.2 }}>{post.project}</div>
+              )}
+              <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, marginTop: 1 }}>
+                {post.sub}
+              </div>
+            </div>
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
               <button className="card-watch-mini" onClick={toggleWatch}
                 title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
                 style={{ padding: 0, lineHeight: 1, flexShrink: 0 }}>
                 {watchLoading
                   ? <i className="ph-bold ph-circle-notch spin" />
-                  : <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-bookmark-simple`} />}
+                  : <i className={`${watchlisted ? 'ph-fill' : 'ph-bold'} ph-star`} style={watchlisted ? { color: 'var(--gold)' } : undefined} />}
               </button>
             )}
-          </div>
-          <div style={{ fontSize: 10, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3, marginTop: 2 }}>
-            {post.sub}
           </div>
         </div>
         <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>

@@ -3112,7 +3112,7 @@ body::after {
   transform: translateY(-1px) !important;
 }
 .feed-card .card-head {
-  margin-bottom: 5px !important;
+  margin-bottom: 8px !important;
 }
 .feed-card .card-footer {
   margin-top: 2px !important;

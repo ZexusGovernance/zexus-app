@@ -83,7 +83,7 @@ export default function AlertsPage() {
               </span>
               <div className="card-footer">
                 <div className="foot-btn"><i className="ph-bold ph-arrow-square-out"></i> View update</div>
-                <div className="foot-btn"><i className="ph-bold ph-bookmark"></i> Add to watchlist</div>
+                <div className="foot-btn"><i className="ph-bold ph-star"></i> Add to watchlist</div>
               </div>
             </div>
           )}
