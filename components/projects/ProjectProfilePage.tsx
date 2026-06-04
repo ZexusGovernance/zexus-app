@@ -1760,7 +1760,7 @@ export default function ProjectProfilePage() {
   if (dbLoading) {
     return (
       <div className="shell">
-        <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} />
+        <Nav />
         <div className="center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>Loading…</div>
         </div>
@@ -1772,7 +1772,7 @@ export default function ProjectProfilePage() {
   if (!effectiveProject) {
     return (
       <div className="shell">
-        <Nav currentPage="projects" onNavigate={(p) => router.push(p === 'projects' ? '/projects' : `/?page=${p}`)} onSearchOpen={() => {}} />
+        <Nav />
         <div className="center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', color: 'var(--muted)' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>404</div>
@@ -1785,14 +1785,6 @@ export default function ProjectProfilePage() {
         <div className="right" />
       </div>
     )
-  }
-
-  const handleNavigate = (page: string) => {
-    if (page === 'projects') {
-      router.push('/?page=projects')
-    } else {
-      router.push(`/?page=${page}`)
-    }
   }
 
   const TABS: { id: Tab; label: string }[] = [
@@ -1826,7 +1818,7 @@ export default function ProjectProfilePage() {
         <div style={{ width: 36 }} />
       </header>
 
-      <Nav currentPage="projects" onNavigate={handleNavigate} onSearchOpen={() => {}} />
+      <Nav />
 
       <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         <div className="proj-detail-header">

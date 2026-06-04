@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 import { useNotifs } from '@/lib/useNotifs'
 
 interface NavProps {
-  currentPage: string
-  onNavigate: (page: string) => void
-  onSearchOpen: () => void
-  onOpenPost?: (postId: string) => void
   isOpen?: boolean
+}
+
+function openSearch() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('zx:open-search'))
 }
 
 function timeAgo(iso: string) {
@@ -27,7 +28,11 @@ const TYPE_ICON: Record<string, { icon: string; color: string }> = {
   update:  { icon: 'ph-megaphone',    color: '#6f9be5'      },
 }
 
-export default function Nav({ currentPage, onNavigate, onSearchOpen, onOpenPost, isOpen }: NavProps) {
+export default function Nav({ isOpen }: NavProps) {
+  const pathname = usePathname()
+  const router   = useRouter()
+  const isActive = (seg: string) => pathname === `/${seg}` || pathname.startsWith(`/${seg}/`)
+
   const { open } = useAppKit()
   const { address, isConnected } = useAppKitAccount()
   const { profile, refreshProfile } = useProfile()
@@ -95,8 +100,8 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onOpenPost,
 
   function handleNotifClick(n: ReturnType<typeof useNotifs>['notifs'][number]) {
     if (!n.is_read) markOne(n.id)
-    if (n.post_id && onOpenPost) {
-      onOpenPost(n.post_id)
+    if (n.post_id) {
+      router.push(`/feed?post=${n.post_id}`)
       setNotifOpen(false)
     }
   }
@@ -111,24 +116,24 @@ export default function Nav({ currentPage, onNavigate, onSearchOpen, onOpenPost,
       </div>
 
       <div className="nav-section">Main</div>
-      <div className={`nav-item${currentPage === 'feed'     ? ' active' : ''}`} onClick={() => onNavigate('feed')}>
+      <div className={`nav-item${isActive('feed')     ? ' active' : ''}`} onClick={() => router.push('/feed')}>
         <i className="ph-bold ph-squares-four nav-icon" /> Feed
       </div>
-      <div className="nav-item" onClick={onSearchOpen}>
+      <div className="nav-item" onClick={openSearch}>
         <i className="ph-bold ph-magnifying-glass nav-icon" /> Search
       </div>
-      <div className={`nav-item${currentPage === 'projects' ? ' active' : ''}`} onClick={() => onNavigate('projects')}>
+      <div className={`nav-item${isActive('projects') ? ' active' : ''}`} onClick={() => router.push('/projects')}>
         <i className="ph-bold ph-buildings nav-icon" /> Projects
       </div>
-      <div className={`nav-item${currentPage === 'staking'  ? ' active' : ''}`} onClick={() => onNavigate('staking')}>
+      <div className={`nav-item${isActive('staking')  ? ' active' : ''}`} onClick={() => router.push('/staking')}>
         <i className="ph-bold ph-coin nav-icon" /> Staking ZXP
       </div>
-      <div className={`nav-item${currentPage === 'profile'  ? ' active' : ''}`} onClick={() => onNavigate('profile')}>
+      <div className={`nav-item${isActive('profile')  ? ' active' : ''}`} onClick={() => router.push('/profile')}>
         <i className="ph-bold ph-user-circle nav-icon" /> Profile
       </div>
 
       <div style={{ padding: '10px 0 4px' }}>
-        <div onClick={() => onNavigate('predict')} className={`nav-item${currentPage === 'predict' ? ' active' : ''}`}>
+        <div onClick={() => router.push('/predict')} className={`nav-item${isActive('predict') ? ' active' : ''}`}>
           <i className="ph-bold ph-trend-up nav-icon" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--gold)' }}>Predict</div>
