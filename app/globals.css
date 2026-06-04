@@ -2929,13 +2929,19 @@ button {
   background: rgba(111, 155, 229, 0.16) !important;
   border-color: rgba(111, 155, 229, 0.36) !important;
 }
-.score-pill,
 .type-badge,
 .holder-tag,
 .my-stake-tag,
 .rpill {
   border-radius: 999px !important;
   font-weight: 800;
+}
+/* Modern, borderless Trust Score chip */
+.score-pill {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.1px;
+  border: none !important;
 }
 .foot-btn.danger {
   background: rgba(238, 121, 121, 0.15) !important;
@@ -2969,7 +2975,6 @@ button {
 }
 
 /* Zexus pill actions */
-.score-pill,
 .my-stake-tag,
 .resolved-tag,
 .holder-tag {
@@ -2978,6 +2983,13 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+.score-pill {
+  min-height: 0;
+  padding: 4px 9px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .burn-pill,
 [data-action="burn"] {

@@ -210,6 +210,44 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const [revealedIds,     setRevealedIds]      = useState<Set<string>>(new Set())
   const [commentLikes,    setCommentLikes]     = useState<Record<string, CommentLikeState>>({})
 
+  // ── Live voting (real DB voting posts) ──────────────────────────────────────
+  const isRealVoting = !!post && isDbPost && post.type === 'voting'
+  const [voteData,    setVoteData]    = useState(post?.voteData ?? null)
+  const [voteCasting, setVoteCasting] = useState(false)
+  const [voteHint,    setVoteHint]    = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isRealVoting || !post) return
+    const walletParam = address ? `&wallet=${encodeURIComponent(address.toLowerCase())}` : ''
+    fetch(`/api/posts/${post.id}/votes?${walletParam}`)
+      .then(r => r.json())
+      .then(d => setVoteData(d))
+      .catch(() => {})
+  }, [isRealVoting, post?.id, address])
+
+  const castVote = async (vote: 'confirm' | 'dispute') => {
+    if (!post) return
+    if (!address) { setVoteHint('Connect wallet to vote'); setTimeout(() => setVoteHint(null), 2500); return }
+    if (voteCasting) return
+    setVoteCasting(true)
+    try {
+      const res = await fetch(`/api/posts/${post.id}/vote`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ wallet: address, vote }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setVoteHint(d.error ?? 'Vote failed'); setTimeout(() => setVoteHint(null), 2500); return }
+      setVoteData(prev => prev
+        ? { ...prev, confirmCount: d.confirmCount, disputeCount: d.disputeCount, total: d.total, userVote: d.userVote }
+        : prev)
+    } catch {
+      setVoteHint('Vote failed'); setTimeout(() => setVoteHint(null), 2500)
+    } finally {
+      setVoteCasting(false)
+    }
+  }
+
   // Realtime like count + liked status sync
   useEffect(() => {
     if (!post || !isDbPost) return
@@ -498,8 +536,60 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
             </div>
           )}
 
-          {/* Vote bar */}
-          {post.vote && (
+          {/* Vote bar — live voting on real DB voting posts */}
+          {isRealVoting && voteData ? (
+            <div style={{ marginBottom: 18 }}>
+              {(() => {
+                const cW = voteData.confirmWeight ?? voteData.confirmCount ?? 0
+                const dW = voteData.disputeWeight ?? voteData.disputeCount ?? 0
+                const totalW = cW + dW
+                const yesPct = totalW > 0 ? Math.round((cW / totalW) * 100) : 50
+                return (
+                  <div className="verdict-bar">
+                    <span className="vb-yes">{yesPct}%</span>
+                    <div className="vb-track">
+                      <div className="vb-fill-y" style={{ width: `${yesPct}%` }} />
+                      <div className="vb-fill-n" style={{ width: `${100 - yesPct}%` }} />
+                    </div>
+                    <span className="vb-no">{100 - yesPct}%</span>
+                    <span className="vb-count">{voteData.total} voters</span>
+                  </div>
+                )
+              })()}
+              {voteData.isOpen ? (
+                <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
+                  <button
+                    className="bet-btn bb-yes"
+                    onClick={() => castVote('confirm')}
+                    disabled={voteCasting}
+                    style={{ opacity: voteData.userVote && voteData.userVote !== 'confirm' ? 0.45 : 1 }}
+                  >
+                    <i className="ph-bold ph-thumbs-up" /> {voteData.userVote === 'confirm' ? 'Confirmed' : 'Confirm'}
+                  </button>
+                  <button
+                    className="bet-btn bb-no"
+                    onClick={() => castVote('dispute')}
+                    disabled={voteCasting}
+                    style={{ opacity: voteData.userVote && voteData.userVote !== 'dispute' ? 0.45 : 1 }}
+                  >
+                    <i className="ph-bold ph-thumbs-down" /> {voteData.userVote === 'dispute' ? 'Disputed' : 'Dispute'}
+                  </button>
+                  {voteData.timeLeft && (
+                    <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--gold-dim)' }}>
+                      <i className="ph-bold ph-clock" /> {voteData.timeLeft}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: voteData.passed ? 'var(--green)' : 'var(--muted)' }}>
+                  {voteData.passed ? '✓ Passed' : '✗ Voting closed'}
+                </div>
+              )}
+              {voteHint && (
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--muted)' }}>{voteHint}</div>
+              )}
+            </div>
+          ) : post.vote ? (
             <div style={{ marginBottom: 18 }}>
               <div className="verdict-bar">
                 <span className="vb-yes">{post.vote.yes}%</span>
@@ -510,19 +600,8 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
                 <span className="vb-no">{100 - post.vote.yes}%</span>
                 <span className="vb-count">{post.vote.count}</span>
               </div>
-              {post.vote.open && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
-                  <button className="bet-btn bb-yes"><i className="ph-bold ph-thumbs-up" /> Confirm</button>
-                  <button className="bet-btn bb-no"><i className="ph-bold ph-thumbs-down" /> Dispute</button>
-                  {post.vote.timeLeft && (
-                    <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--gold-dim)' }}>
-                      <i className="ph-bold ph-clock" /> {post.vote.timeLeft} · +{post.vote.zxp} ZXP
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
-          )}
+          ) : null}
 
           {/* Trust Score Change */}
           {post.trustScoreChange !== undefined && post.trustScoreChange !== 0 && (
