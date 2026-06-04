@@ -53,10 +53,10 @@ function fmtSeconds(s: number): string {
 }
 
 const EPOCHS = [
-  { label: 'Epoch I',   goal: 500,  perk: '+5% Influence bonus' },
-  { label: 'Epoch II',  goal: 1500, perk: '+1.1x multiplier' },
-  { label: 'Epoch III', goal: 4500, perk: 'Genesis Badge' },
-  { label: 'Epoch IV',  goal: 8500, perk: 'Legacy Status' },
+  { label: 'Tier I',   goal: 500,  perk: '+5% Influence bonus' },
+  { label: 'Tier II',  goal: 1500, perk: '+1.1x multiplier' },
+  { label: 'Tier III', goal: 4500, perk: 'Genesis Badge' },
+  { label: 'Tier IV',  goal: 8500, perk: 'Legacy Status' },
 ]
 
 function EpochProgress({ totalBurned }: { totalBurned: number }) {
@@ -77,7 +77,7 @@ function EpochProgress({ totalBurned }: { totalBurned: number }) {
               background: 'rgba(111,155,229,0.1)', color: '#7a9fd9',
               border: '0.5px solid rgba(111,155,229,0.2)',
             }}>
-              {EPOCHS[curIdx]?.label ?? 'Epoch IV'}
+              {EPOCHS[curIdx]?.label ?? 'Tier IV'}
             </span>
             <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>
               {nextIdx === -1 ? 'Max reached' : `${totalBurned} / ${next.goal} ZXP`}
@@ -102,7 +102,7 @@ function EpochProgress({ totalBurned }: { totalBurned: number }) {
         }} />
       </div>
 
-      {/* Epoch steps */}
+      {/* Tier steps */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
         {EPOCHS.map((e, i) => {
           const done = totalBurned >= e.goal
@@ -118,6 +118,82 @@ function EpochProgress({ totalBurned }: { totalBurned: number }) {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+interface EpochInfo {
+  epoch_number:        number
+  epoch_start:         string
+  epoch_end:           string
+  days_until_end:      number
+  apy_percent:         string
+  emergency_call_cost: number
+  median_balance:      number
+  voting_post_cost:    number
+}
+
+function EpochStat({ k, v, color }: { k: string; v: string; color?: string }) {
+  return (
+    <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '8px 10px' }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: 3 }}>{k}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: color ?? 'var(--text)' }}>{v}</div>
+    </div>
+  )
+}
+
+function EpochCard() {
+  const [e, setE] = useState<EpochInfo | null>(null)
+  useEffect(() => {
+    fetch('/api/epoch')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d && !d.error) setE(d) })
+      .catch(() => {})
+  }, [])
+  if (!e) return null
+
+  const start   = new Date(e.epoch_start).getTime()
+  const end     = new Date(e.epoch_end).getTime()
+  const pct     = end > start ? Math.min(100, Math.max(0, ((Date.now() - start) / (end - start)) * 100)) : 0
+  const ending  = e.days_until_end <= 14
+
+  return (
+    <div className="panel" style={{ padding: '14px 16px', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <span style={{
+            fontSize: 10, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase',
+            padding: '3px 9px', borderRadius: 5,
+            background: 'rgba(201,165,90,0.12)', color: 'var(--gold)',
+            border: '0.5px solid rgba(201,165,90,0.3)',
+          }}>
+            Epoch {e.epoch_number}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>Governance cycle · 6 months</span>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 600, color: ending ? 'var(--gold)' : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <i className="ph-bold ph-clock" /> {e.days_until_end}d left
+        </span>
+      </div>
+
+      <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{
+          height: '100%', width: `${pct}%`, borderRadius: 3,
+          background: 'linear-gradient(to right, rgba(201,165,90,0.55), rgba(201,165,90,0.95))',
+          transition: 'width 0.4s ease',
+        }} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <EpochStat k="Staking APY"    v={`${e.apy_percent}%`}            color="var(--green)" />
+        <EpochStat k="Emergency Call" v={`${e.emergency_call_cost} ZXP`} />
+        <EpochStat k="Median wallet"  v={`${e.median_balance} ZXP`} />
+        <EpochStat k="Voting post"    v={`${e.voting_post_cost} ZXP`} />
+      </div>
+
+      <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 10, lineHeight: 1.5 }}>
+        At epoch end, idle ZXP decays — stake or cast 3+ votes to keep 100%. Attack costs re-peg to the median wallet.
       </div>
     </div>
   )
@@ -753,6 +829,10 @@ export default function StakingPage() {
           {/* ── Epoch ── */}
           {activeTab === 'Epoch' && (
             <>
+              <EpochCard />
+              <div style={{ fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--muted2)', margin: '4px 0 8px' }}>
+                Burn Tiers
+              </div>
               <EpochProgress totalBurned={totalBurned} />
               <ZxpLoopCard />
             </>
