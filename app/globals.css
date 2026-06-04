@@ -4273,6 +4273,11 @@ input[data-burn-slider]::-moz-range-thumb {
 .feed-page-header {
   padding-top: 22px;
 }
+/* Mobile: the page title is shown in the top bar, so drop the empty space
+   above the filter tabs and pull the tabs + feed up */
+@media (max-width: 768px) {
+  .feed-page-header { padding-top: 6px; }
+}
 .feed-header-top {
   display: flex;
   align-items: center;
