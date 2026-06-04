@@ -159,7 +159,7 @@ export default function SearchOverlay({
       <div
         style={{
           width: 500, maxWidth: 'calc(100vw - 24px)',
-          background: 'var(--surface)',
+          background: 'var(--bg)',
           border: '0.5px solid var(--border2)',
           borderRadius: 14,
           overflow: 'hidden',
