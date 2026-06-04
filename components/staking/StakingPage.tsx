@@ -52,69 +52,84 @@ function fmtSeconds(s: number): string {
   return `${m}m ${sec}s`
 }
 
-const EPOCHS = [
-  { label: 'Tier I',   goal: 500,  perk: '+5% Influence bonus' },
-  { label: 'Tier II',  goal: 1500, perk: '+1.1x multiplier' },
-  { label: 'Tier III', goal: 4500, perk: 'Genesis Badge' },
-  { label: 'Tier IV',  goal: 8500, perk: 'Legacy Status' },
-]
+interface BurnPoolData {
+  total:    number
+  tierIdx:  number
+  bonus:    number
+  tiers:    { label: string; goal: number; bonus: number }[]
+  daysLeft: number
+}
 
-function EpochProgress({ totalBurned }: { totalBurned: number }) {
-  const nextIdx  = EPOCHS.findIndex(e => totalBurned < e.goal)
-  const curIdx   = nextIdx === -1 ? EPOCHS.length - 1 : Math.max(0, nextIdx - 1)
-  const next     = EPOCHS[nextIdx === -1 ? EPOCHS.length - 1 : nextIdx]
-  const prevGoal = curIdx > 0 ? EPOCHS[curIdx - 1].goal : 0
-  const pct      = nextIdx === -1 ? 100 : Math.min(100, ((totalBurned - prevGoal) / (next.goal - prevGoal)) * 100)
+function EpochProgress() {
+  const [pool, setPool] = useState<BurnPoolData | null>(null)
+  useEffect(() => {
+    fetch('/api/zxp/burn-pool')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d && Array.isArray(d.tiers)) setPool(d) })
+      .catch(() => {})
+  }, [])
+  if (!pool) return null
+
+  const { tiers, tierIdx, total, bonus, daysLeft } = pool
+  const nextIdx  = tierIdx + 1 < tiers.length ? tierIdx + 1 : -1
+  const next     = nextIdx === -1 ? null : tiers[nextIdx]
+  const prevGoal = tierIdx >= 0 ? tiers[tierIdx].goal : 0
+  const pct      = next ? Math.min(100, Math.max(0, ((total - prevGoal) / (next.goal - prevGoal)) * 100)) : 100
 
   return (
     <div className="panel" style={{ padding: '13px 15px', marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <i className="ph-bold ph-flame" style={{ color: 'rgba(255,180,100,0.9)' }} /> Community Burn Pool
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--muted)' }}>resets in {daysLeft}d</span>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
             <span style={{
               fontSize: 9, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase',
               padding: '2px 8px', borderRadius: 4,
-              background: 'rgba(111,155,229,0.1)', color: '#7a9fd9',
-              border: '0.5px solid rgba(111,155,229,0.2)',
+              background: bonus > 0 ? 'rgba(83,201,146,0.1)' : 'rgba(255,255,255,0.05)',
+              color: bonus > 0 ? 'var(--green)' : 'var(--muted2)',
+              border: `0.5px solid ${bonus > 0 ? 'rgba(83,201,146,0.25)' : 'var(--border)'}`,
             }}>
-              {EPOCHS[curIdx]?.label ?? 'Tier IV'}
+              {tierIdx >= 0 ? tiers[tierIdx].label : 'No tier yet'}
             </span>
             <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>
-              {nextIdx === -1 ? 'Max reached' : `${totalBurned} / ${next.goal} ZXP`}
+              {next ? `${total} / ${next.goal} ZXP` : `${total} ZXP · max`}
             </span>
           </div>
-          <div style={{ fontSize: 10, color: 'var(--muted)' }}>
-            {nextIdx === -1 ? 'Legacy Status unlocked' : `Next: ${next.perk}`}
+          <div style={{ fontSize: 10, color: bonus > 0 ? 'var(--green)' : 'var(--muted)' }}>
+            {bonus > 0
+              ? `+${Math.round(bonus * 100)}% vote power active for everyone`
+              : next ? `Burn ${next.goal} ZXP together → +${Math.round(next.bonus * 100)}% vote power` : ''}
           </div>
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)' }}>
-          {Math.round(pct)}%
-        </div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)' }}>{Math.round(pct)}%</div>
       </div>
 
-      {/* Main bar */}
       <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', marginBottom: 10 }}>
         <div style={{
-          height: '100%', borderRadius: 3,
-          width: `${pct}%`,
-          background: 'linear-gradient(to right, rgba(111,155,229,0.6), rgba(83,201,146,0.8))',
+          height: '100%', borderRadius: 3, width: `${pct}%`,
+          background: 'linear-gradient(to right, rgba(255,180,100,0.6), rgba(83,201,146,0.8))',
           transition: 'width 0.4s ease',
         }} />
       </div>
 
-      {/* Tier steps */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-        {EPOCHS.map((e, i) => {
-          const done = totalBurned >= e.goal
-          const active = i === curIdx
+        {tiers.map((t, i) => {
+          const done   = i <= tierIdx
+          const target = i === nextIdx
           return (
-            <div key={e.label} style={{
+            <div key={t.label} style={{
               padding: '7px 8px', borderRadius: 7,
               background: done ? 'rgba(83,201,146,0.08)' : 'var(--bg)',
-              border: `0.5px solid ${active ? 'rgba(111,155,229,0.3)' : done ? 'rgba(83,201,146,0.2)' : 'var(--border)'}`,
+              border: `0.5px solid ${target ? 'rgba(111,155,229,0.3)' : done ? 'rgba(83,201,146,0.2)' : 'var(--border)'}`,
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: done ? 'var(--green)' : active ? '#7a9fd9' : 'var(--muted2)', marginBottom: 2 }}>{e.label}</div>
-              <div style={{ fontSize: 9, color: 'var(--muted2)' }}>{e.goal} ZXP</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: done ? 'var(--green)' : target ? '#7a9fd9' : 'var(--muted2)', marginBottom: 2 }}>{t.label}</div>
+              <div style={{ fontSize: 9, color: 'var(--muted2)' }}>{t.goal} · +{Math.round(t.bonus * 100)}%</div>
             </div>
           )
         })}
@@ -427,7 +442,6 @@ export default function StakingPage() {
     : 1.0
   // vote weight = sqrt(staked) × voteMultiplier  (matches vote/route.ts)
   const voteWeight     = Math.round(Math.sqrt(totalStaked) * maxVoteMult * 100) / 100
-  const totalBurned    = profile?.zxp_burned ?? 0
 
   return (
     <div className="page active" id="page-staking">
@@ -831,10 +845,7 @@ export default function StakingPage() {
           {activeTab === 'Epoch' && (
             <>
               <EpochCard />
-              <div style={{ fontSize: 11, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--muted2)', margin: '4px 0 8px' }}>
-                Burn Tiers
-              </div>
-              <EpochProgress totalBurned={totalBurned} />
+              <EpochProgress />
               <ZxpLoopCard />
             </>
           )}
