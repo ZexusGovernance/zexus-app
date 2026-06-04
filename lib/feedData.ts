@@ -10,6 +10,7 @@ export interface FeedComment {
 
 export interface FeedPost {
   id: string
+  shortId?: string
   type: PostType
   project: string
   projectSlug?: string

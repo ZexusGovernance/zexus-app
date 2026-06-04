@@ -113,7 +113,7 @@ function TextWithLinks({ text }: { text: string }) {
 }
 
 async function doShare(post: FeedPost, setCopied: (v: boolean) => void) {
-  const url = `${window.location.origin}/post/${post.id}`
+  const url = `${window.location.origin}/post/${post.shortId ?? post.id}`
   if (typeof navigator.share === 'function') {
     try {
       await navigator.share({

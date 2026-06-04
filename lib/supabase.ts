@@ -7,6 +7,7 @@ export const supabase = createClient(url, key)
 
 export interface DbPost {
   id: string
+  short_id?: string | null
   project_id: string
   author_wallet: string
   post_type: string

@@ -67,6 +67,22 @@ const AUTO_TRUST_DELTA: Record<PostType, number> = {
   voting:  0,
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// short_id lives on the posts table, not the posts_feed view — merge it in.
+// Degrades gracefully if the column doesn't exist yet (pre-migration).
+async function attachShortIds<T extends { id: string }>(
+  rows: T[],
+): Promise<(T & { short_id?: string | null })[]> {
+  if (!rows.length) return rows
+  const { data } = await supabaseAdmin
+    .from('posts')
+    .select('id, short_id')
+    .in('id', rows.map(r => r.id))
+  const map = new Map((data ?? []).map(d => [d.id as string, d.short_id as string]))
+  return rows.map(r => ({ ...r, short_id: map.get(r.id) ?? null }))
+}
+
 export async function GET(req: NextRequest) {
   const id           = req.nextUrl.searchParams.get('id')
   const limit        = Math.min(50, Number(req.nextUrl.searchParams.get('limit')) || 20)
@@ -74,11 +90,18 @@ export async function GET(req: NextRequest) {
   const project_slug = req.nextUrl.searchParams.get('project_slug')
   const since        = req.nextUrl.searchParams.get('created_at')
 
-  // Single-post fetch for deep links
+  // Single-post fetch for deep links — accepts a UUID or a short_id
   if (id) {
-    const { data, error } = await supabaseAdmin.from('posts_feed').select('*').eq('id', id).maybeSingle()
+    let lookupId = id
+    if (!UUID_RE.test(id)) {
+      const { data: byShort } = await supabaseAdmin
+        .from('posts').select('id').eq('short_id', id).maybeSingle()
+      if (!byShort) return NextResponse.json({ posts: [] })
+      lookupId = byShort.id as string
+    }
+    const { data, error } = await supabaseAdmin.from('posts_feed').select('*').eq('id', lookupId).maybeSingle()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ posts: data ? [data] : [] })
+    return NextResponse.json({ posts: data ? await attachShortIds([data]) : [] })
   }
 
   let query = supabaseAdmin
@@ -94,7 +117,7 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ posts: posts ?? [] })
+  return NextResponse.json({ posts: await attachShortIds(posts ?? []) })
 }
 
 export async function POST(req: NextRequest) {

@@ -7,11 +7,20 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 async function getPost(id: string) {
+  let lookupId = id
+  if (!UUID_RE.test(id)) {
+    const { data: byShort } = await supabaseAdmin
+      .from('posts').select('id').eq('short_id', id).maybeSingle()
+    if (!byShort) return null
+    lookupId = byShort.id as string
+  }
   const { data } = await supabaseAdmin
     .from('posts_feed')
     .select('*')
-    .eq('id', id)
+    .eq('id', lookupId)
     .maybeSingle()
   return data
 }
@@ -130,7 +139,7 @@ export default async function PostPage({ params }: PageProps) {
         {/* CTA */}
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <Link
-            href={`/?post=${id}`}
+            href={`/feed?post=${id}`}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px',
               borderRadius: 10, background: '#c9a55a', color: '#0b0a09',

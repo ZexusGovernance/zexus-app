@@ -56,6 +56,7 @@ function projectAv(name: string): string {
 function dbToFeed(row: DbPost): FeedPost {
   return {
     id:          row.id,
+    shortId:     row.short_id ?? undefined,
     type:        row.post_type as PostType,
     project:     row.project_name,
     projectSlug: row.project_slug,

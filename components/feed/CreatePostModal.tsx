@@ -93,7 +93,7 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
         throw new Error(err.error ?? 'Publish failed')
       }
       const { post: newPost } = await res.json() as {
-        post: { id: string; projects: { id: string; slug: string; name: string; category: string | null } }
+        post: { id: string; short_id?: string | null; projects: { id: string; slug: string; name: string; category: string | null } }
       }
       setUploadPct(100)
 
@@ -101,6 +101,7 @@ export default function CreatePostModal({ onClose, onPublish, walletAddress, pro
       const proj  = PROJECTS_FULL.find(p => p.name === pName)
       const feedPost: FeedPost = {
         id:          newPost.id,
+        shortId:     newPost.short_id ?? undefined,
         type,
         project:     pName,
         projectSlug: newPost.projects?.slug ?? undefined,
