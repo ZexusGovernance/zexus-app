@@ -128,6 +128,9 @@ export default function Nav({ isOpen }: NavProps) {
       <div className={`nav-item${isActive('staking')  ? ' active' : ''}`} onClick={() => router.push('/staking')}>
         <i className="ph-bold ph-coin nav-icon" /> Staking ZXP
       </div>
+      <div className={`nav-item${isActive('leaderboard') ? ' active' : ''}`} onClick={() => router.push('/leaderboard')}>
+        <i className="ph-bold ph-trophy nav-icon" /> Leaderboard
+      </div>
       <div className={`nav-item${isActive('profile')  ? ' active' : ''}`} onClick={() => router.push('/profile')}>
         <i className="ph-bold ph-user-circle nav-icon" /> Profile
       </div>

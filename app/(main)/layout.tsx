@@ -14,14 +14,16 @@ import { AppShellContext } from '@/lib/appShell'
 const PAGE_LABELS: Record<string, string> = {
   feed: 'Feed', projects: 'Projects', alerts: 'Alerts',
   staking: 'Staking', profile: 'Profile', predict: 'Predict',
+  leaderboard: 'Leaderboard',
 }
 
 const BASE_NAV = [
-  { page: 'staking',  icon: 'ph-coin',        label: 'Staking'  },
-  { page: 'projects', icon: 'ph-buildings',   label: 'Projects' },
-  { page: 'feed',     icon: 'ph-squares-four', label: 'Feed'    },
-  { page: 'predict',  icon: 'ph-trend-up',    label: 'Predict'  },
-  { page: 'profile',  icon: 'ph-user-circle', label: 'Profile'  },
+  { page: 'staking',     icon: 'ph-coin',         label: 'Staking'  },
+  { page: 'projects',    icon: 'ph-buildings',    label: 'Projects' },
+  { page: 'feed',        icon: 'ph-squares-four', label: 'Feed'     },
+  { page: 'predict',     icon: 'ph-trend-up',     label: 'Predict'  },
+  { page: 'leaderboard', icon: 'ph-trophy',       label: 'Ranks'    },
+  { page: 'profile',     icon: 'ph-user-circle',  label: 'Profile'  },
 ]
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
