@@ -174,6 +174,18 @@ export default function FeedDashboard({ posts, onNavigate, onOpenPost }: Props) 
         </div>
       )}
 
+      {/* ── No active proposals (placeholder) ──────── */}
+      {!latestProposal && (
+        <div className="fd-section">
+          <div className="fd-section-header">
+            <span className="fd-section-title" style={{ marginBottom: 0 }}>Latest Proposal</span>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic', padding: '6px 0 2px' }}>
+            No active proposals
+          </div>
+        </div>
+      )}
+
       {/* ── Trust Score Movers ───────────────────── */}
       <div className="fd-section">
         <div className="fd-section-title">Trust Score Movers</div>
