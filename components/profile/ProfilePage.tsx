@@ -449,19 +449,25 @@ export default function ProfilePage() {
           </div>
 
           <div className="tabs" id="profile-tabs">
-            {(['Activity', 'Watchlist', 'Settings', ...(adminProject ? ['Project'] : [])] as ProfileTab[]).map(t => (
+            {(['Activity', 'Leaderboard', 'Watchlist', 'Settings', ...(adminProject ? ['Project'] : [])] as (ProfileTab | 'Leaderboard')[]).map(t => (
               <div
                 key={t}
                 className={`tab${activeTab === t ? ' active' : ''}`}
                 onClick={() => {
-                  if (t === 'Project' && adminProject?.slug) {
+                  if (t === 'Leaderboard') {
+                    window.location.href = '/leaderboard'
+                  } else if (t === 'Project' && adminProject?.slug) {
                     window.location.href = `/projects/${adminProject.slug}`
                   } else {
-                    setActiveTab(t)
+                    setActiveTab(t as ProfileTab)
                   }
                 }}
               >
-                {t === 'Project' ? <><i className="ph-bold ph-arrow-square-out" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</> : t}
+                {t === 'Project'
+                  ? <><i className="ph-bold ph-arrow-square-out" style={{ fontSize: 11, marginRight: 4 }} />{adminProject?.name}</>
+                  : t === 'Leaderboard'
+                    ? <><i className="ph-bold ph-trophy" style={{ fontSize: 11, marginRight: 4 }} />Ranks</>
+                    : t}
               </div>
             ))}
           </div>

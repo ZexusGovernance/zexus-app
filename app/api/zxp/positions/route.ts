@@ -27,7 +27,8 @@ function voteMultiplier(stakedAt: string): number {
 
 function accrued(amount: number, stakedAt: string, apy: number): number {
   const hours = (Date.now() - new Date(stakedAt).getTime()) / 3_600_000
-  return Math.floor(amount * (apy / (365 * 24)) * hours)
+  // keep 4 decimals so small rewards drip visibly instead of flooring to 0
+  return Math.round(amount * (apy / (365 * 24)) * hours * 10_000) / 10_000
 }
 
 function daysStaked(stakedAt: string): number {

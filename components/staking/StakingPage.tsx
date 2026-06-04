@@ -246,6 +246,13 @@ interface MilestoneState {
   position_amount: number
 }
 
+// Show ZXP with decimals for small drips (so 0.01 doesn't read as 0)
+function fmtZxp(n: number): string {
+  if (!n) return '0'
+  if (n >= 100) return Math.round(n).toLocaleString()
+  return parseFloat(n.toFixed(4)).toString()
+}
+
 export default function StakingPage() {
   const router    = useRouter()
   const pathname  = usePathname()
@@ -483,7 +490,7 @@ export default function StakingPage() {
             {[
               { label: 'Staked',  value: String(profile?.zxp_staked ?? '—'), sub: 'ZXP locked',    dot: '#6f9be5',       color: 'var(--text)' },
               { label: 'APY',     value: `${apyPct}%`,                         sub: 'pool rate',     dot: 'var(--green)',  color: 'var(--green)' },
-              { label: 'Rewards', value: `+${totalAccrued}`,                   sub: 'accrued · /hr', dot: 'var(--green)',  color: totalAccrued > 0 ? 'var(--green)' : 'var(--muted)' },
+              { label: 'Rewards', value: `+${fmtZxp(totalAccrued)}`,           sub: 'accrued · /hr', dot: 'var(--green)',  color: totalAccrued > 0 ? 'var(--green)' : 'var(--muted)' },
             ].map(({ label, value, sub, dot, color }) => (
               <div key={label} className="panel" style={{ padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -543,7 +550,7 @@ export default function StakingPage() {
                           { label: 'Staked',       value: `${p.amount} ZXP`,                        color: 'var(--text)' },
                           { label: 'Days',         value: `${p.days_staked}d`,                      color: 'var(--text)' },
                           { label: 'Vote mult',    value: `${(p.vote_multiplier ?? 1).toFixed(1)}x`, color: 'var(--green)' },
-                          { label: 'Rewards',      value: `+${p.accrued_rewards}`,                  color: 'var(--green)' },
+                          { label: 'Rewards',      value: `+${fmtZxp(p.accrued_rewards)}`,           color: 'var(--green)' },
                         ].map(({ label, value, color }) => (
                           <div key={label}>
                             <div style={{ fontSize: 9, color: 'var(--muted2)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</div>
@@ -650,7 +657,7 @@ export default function StakingPage() {
                             cursor: ready ? 'pointer' : 'not-allowed',
                           }}
                         >
-                          {ready ? `Claim ${p.amount + p.accrued_rewards} ZXP` : 'Waiting…'}
+                          {ready ? `Claim ${fmtZxp(p.amount + p.accrued_rewards)} ZXP` : 'Waiting…'}
                         </button>
                       </div>
                     )
