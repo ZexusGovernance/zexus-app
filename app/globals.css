@@ -4575,14 +4575,15 @@ input[data-burn-slider]::-moz-range-thumb {
 /* Mobile modal adjustments */
 @media (max-width: 768px) {
   .post-modal {
-    max-height: 92vh;
-    border-radius: 14px;
+    max-height: 92vh;            /* fallback for browsers without dvh */
+    max-height: 92dvh;           /* dynamic viewport — accounts for the address bar */
     max-width: 100%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 14px 14px 0 0;
+    /* keep content clear of the home indicator / bottom browser chrome */
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .post-modal-overlay {
-    padding: 8px;
+    padding: 0;
     align-items: flex-end;
   }
 }
