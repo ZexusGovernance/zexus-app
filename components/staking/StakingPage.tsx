@@ -110,7 +110,7 @@ function EpochProgress({ totalBurned }: { totalBurned: number }) {
           return (
             <div key={e.label} style={{
               padding: '7px 8px', borderRadius: 7,
-              background: done ? 'rgba(83,201,146,0.06)' : 'rgba(255,255,255,0.03)',
+              background: done ? 'rgba(83,201,146,0.08)' : 'var(--bg)',
               border: `0.5px solid ${active ? 'rgba(111,155,229,0.3)' : done ? 'rgba(83,201,146,0.2)' : 'var(--border)'}`,
             }}>
               <div style={{ fontSize: 9, fontWeight: 700, color: done ? 'var(--green)' : active ? '#7a9fd9' : 'var(--muted2)', marginBottom: 2 }}>{e.label}</div>
@@ -132,6 +132,7 @@ interface EpochInfo {
   emergency_call_cost: number
   median_balance:      number
   voting_post_cost:    number
+  staking_budget:      number
 }
 
 function EpochStat({ k, v, color }: { k: string; v: string; color?: string }) {
@@ -189,7 +190,7 @@ function EpochCard() {
         <EpochStat k="Staking APY"    v={`${e.apy_percent}%`}            color="var(--green)" />
         <EpochStat k="Emergency Call" v={`${e.emergency_call_cost} ZXP`} />
         <EpochStat k="Median wallet"  v={`${e.median_balance} ZXP`} />
-        <EpochStat k="Voting post"    v={e.voting_post_cost > 0 ? `${e.voting_post_cost} ZXP` : 'Free'} color={e.voting_post_cost > 0 ? undefined : 'var(--green)'} />
+        <EpochStat k="Reward pool"    v={`${e.staking_budget} ZXP`} color="var(--gold)" />
       </div>
 
       <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 10, lineHeight: 1.5 }}>
