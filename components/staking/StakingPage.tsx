@@ -667,8 +667,8 @@ export default function StakingPage() {
                       <div style={{
                         position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 11,
                         minWidth: 150, padding: 4,
-                        background: 'var(--surface2)', border: '0.5px solid var(--border2)',
-                        borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                        background: 'var(--bg)', border: '0.5px solid var(--border2)',
+                        borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
                       }}>
                         {HISTORY_RANGES.map(r => (
                           <button
