@@ -136,7 +136,7 @@ interface EpochInfo {
 
 function EpochStat({ k, v, color }: { k: string; v: string; color?: string }) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '8px 10px' }}>
+    <div style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '8px 10px' }}>
       <div style={{ fontSize: 9, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: 3 }}>{k}</div>
       <div style={{ fontSize: 15, fontWeight: 700, color: color ?? 'var(--text)' }}>{v}</div>
     </div>
@@ -189,7 +189,7 @@ function EpochCard() {
         <EpochStat k="Staking APY"    v={`${e.apy_percent}%`}            color="var(--green)" />
         <EpochStat k="Emergency Call" v={`${e.emergency_call_cost} ZXP`} />
         <EpochStat k="Median wallet"  v={`${e.median_balance} ZXP`} />
-        <EpochStat k="Voting post"    v={`${e.voting_post_cost} ZXP`} />
+        <EpochStat k="Voting post"    v={e.voting_post_cost > 0 ? `${e.voting_post_cost} ZXP` : 'Free'} color={e.voting_post_cost > 0 ? undefined : 'var(--green)'} />
       </div>
 
       <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 10, lineHeight: 1.5 }}>
