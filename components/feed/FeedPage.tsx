@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import PostCard from './PostCard'
 import PostDetailModal from './PostDetailModal'
 import CreatePostModal from './CreatePostModal'
@@ -117,6 +118,15 @@ export default function FeedPage({
   const [loading,           setLoading]           = useState(true)
   const scrollRef    = useRef<HTMLDivElement>(null)
   const modalOpenRef = useRef(false)
+  const router = useRouter()
+
+  // URL is the source of truth for the open post: opening pushes ?post=<short>,
+  // closing returns to /feed (so the address bar reflects the post and Back closes it)
+  const openPost  = (post: FeedPost, comments = false) => {
+    setScrollToComments(comments)
+    router.push(`/feed?post=${post.shortId ?? post.id}`, { scroll: false })
+  }
+  const closePost = () => router.push('/feed', { scroll: false })
 
   useEffect(() => { modalOpenRef.current = !!selectedPost }, [selectedPost])
 
@@ -150,8 +160,8 @@ export default function FeedPage({
 
   // Open a specific post from a deep link (?post=ID)
   useEffect(() => {
-    if (!initialPostId) return
-    const found = dbPosts.find(p => p.id === initialPostId)
+    if (!initialPostId) { setSelectedPost(null); setScrollToComments(false); return }
+    const found = dbPosts.find(p => p.id === initialPostId || p.shortId === initialPostId)
     if (found) { setSelectedPost(found); return }
     fetch(`/api/posts?id=${encodeURIComponent(initialPostId)}`)
       .then(r => r.json())
@@ -203,8 +213,8 @@ export default function FeedPage({
                   <PostCard
                     key={post.id}
                     post={post}
-                    onClick={() => { setScrollToComments(false); setSelectedPost(post) }}
-                    onCommentClick={() => { setScrollToComments(true); setSelectedPost(post) }}
+                    onClick={() => openPost(post)}
+                    onCommentClick={() => openPost(post, true)}
                     index={i}
                   />
                 ))
@@ -222,14 +232,14 @@ export default function FeedPage({
         <FeedDashboard
           posts={dbPosts}
           onNavigate={onNavigate}
-          onOpenPost={post => { setScrollToComments(false); setSelectedPost(post) }}
+          onOpenPost={post => openPost(post)}
         />
       </div>
 
       {selectedPost && (
         <PostDetailModal
           post={selectedPost}
-          onClose={() => { setSelectedPost(null); setScrollToComments(false) }}
+          onClose={closePost}
           scrollToComments={scrollToComments}
         />
       )}
