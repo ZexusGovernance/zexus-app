@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { notifyWallet } from '@/lib/telegram'
 import { requireAuth, unauthorized } from '@/lib/auth'
+import { getBurnPool } from '@/lib/burnPool'
 
 // Test mode: 5 min. Production: set UNSTAKE_COOLDOWN_MINUTES=10080 (7 days)
 const COOLDOWN_MINUTES = parseInt(process.env.UNSTAKE_COOLDOWN_MINUTES ?? '5')
 
 async function getApy(): Promise<number> {
-  const { data } = await supabaseAdmin.from('epoch_config').select('current_apy_bps').eq('id', 1).single()
-  return Math.min(0.08, ((data?.current_apy_bps as number) ?? 800) / 10000)
+  const [{ data }, pool] = await Promise.all([
+    supabaseAdmin.from('epoch_config').select('current_apy_bps').eq('id', 1).single(),
+    getBurnPool(),
+  ])
+  const base = Math.min(0.08, ((data?.current_apy_bps as number) ?? 800) / 10000)
+  return base + pool.bonus  // + Community Burn Pool bonus
 }
 
 function calcAccrued(amount: number, stakedAt: string, apy: number): number {
@@ -96,7 +101,7 @@ export async function POST(req: NextRequest) {
       { wallet_address: wallet, type: 'unstake', amount: pos.amount, note: `Unstaked position`, balance_after: newBalance },
     ]
     if (rewards > 0) {
-      txs.push({ wallet_address: wallet, type: 'reward', amount: rewards, note: `Staking rewards (8% APY)`, balance_after: newBalance })
+      txs.push({ wallet_address: wallet, type: 'reward', amount: rewards, note: `Staking rewards (${Math.round(apy * 100)}% APY)`, balance_after: newBalance })
     }
     try { await supabaseAdmin.from('zxp_transactions').insert(txs) } catch { /* audit log is best-effort */ }
 

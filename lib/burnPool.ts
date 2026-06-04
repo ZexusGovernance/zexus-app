@@ -2,20 +2,20 @@ import { supabaseAdmin } from './supabase-server'
 
 // Community Burn Pool — a shared, monthly co-op goal. Everyone's activity burns
 // (votes, emergency calls, etc.) add to one pool. When the community crosses a
-// tier, EVERYONE gets a vote-power bonus for the rest of the month. Resets each
+// tier, EVERYONE gets a staking-APY bonus for the rest of the month. Resets each
 // calendar month automatically (we just sum burns since the 1st).
 
 export interface BurnTier {
   label: string
   goal:  number
-  bonus: number // vote-power multiplier bonus, e.g. 0.10 = +10%
+  bonus: number // extra staking APY (fraction), e.g. 0.02 = +2% APY for everyone
 }
 
 export const BURN_TIERS: BurnTier[] = [
-  { label: 'Tier I',   goal: 500,  bonus: 0.05 },
-  { label: 'Tier II',  goal: 1500, bonus: 0.10 },
-  { label: 'Tier III', goal: 4500, bonus: 0.15 },
-  { label: 'Tier IV',  goal: 9000, bonus: 0.25 },
+  { label: 'Tier I',   goal: 500,  bonus: 0.01 },
+  { label: 'Tier II',  goal: 1500, bonus: 0.02 },
+  { label: 'Tier III', goal: 4500, bonus: 0.03 },
+  { label: 'Tier IV',  goal: 9000, bonus: 0.05 },
 ]
 
 export function monthStartISO(d = new Date()): string {

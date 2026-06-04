@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { getBurnPool } from '@/lib/burnPool'
 
 const WALLET_RE  = /^0x[0-9a-fA-F]{40}$/
 const MAX_APY    = 0.08
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
   const wallet = req.nextUrl.searchParams.get('wallet')?.toLowerCase().trim() ?? ''
   if (!WALLET_RE.test(wallet)) return NextResponse.json({ positions: [], apy_bps: 800 })
 
-  const [{ data }, { data: epochCfg }] = await Promise.all([
+  const [{ data }, { data: epochCfg }, pool] = await Promise.all([
     supabaseAdmin
       .from('staking_positions')
       .select('*')
@@ -50,10 +51,12 @@ export async function GET(req: NextRequest) {
       .select('current_apy_bps')
       .eq('id', 1)
       .single(),
+    getBurnPool(),
   ])
 
-  const apyBps = Math.min(800, (epochCfg?.current_apy_bps as number) ?? 800)
-  const apy    = Math.min(MAX_APY, apyBps / 10000)
+  const baseApy = Math.min(MAX_APY, Math.min(800, (epochCfg?.current_apy_bps as number) ?? 800) / 10000)
+  const apy     = baseApy + pool.bonus           // + Community Burn Pool bonus
+  const apyBps  = Math.round(apy * 10000)        // effective rate (base + community bonus)
 
   const positions = (data ?? []).map(p => ({
     ...p,

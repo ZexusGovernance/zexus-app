@@ -103,8 +103,8 @@ function EpochProgress() {
           </div>
           <div style={{ fontSize: 10, color: bonus > 0 ? 'var(--green)' : 'var(--muted)' }}>
             {bonus > 0
-              ? `+${Math.round(bonus * 100)}% vote power active for everyone`
-              : next ? `Burn ${next.goal} ZXP together → +${Math.round(next.bonus * 100)}% vote power` : ''}
+              ? `+${Math.round(bonus * 100)}% staking APY active for everyone`
+              : next ? `Burn ${next.goal} ZXP together → +${Math.round(next.bonus * 100)}% APY` : ''}
           </div>
         </div>
         <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)' }}>{Math.round(pct)}%</div>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAuth, unauthorized } from '@/lib/auth'
-import { getBurnPool } from '@/lib/burnPool'
 
 const MIN_STAKED    = 10   // raised from 5 — 7 ZXP onboarding rewards aren't enough to vote
 const MIN_AGE_HOURS = 48
@@ -93,9 +92,7 @@ export async function POST(
       }, 0) / totalPositionAmount
     : 0
 
-  // Community Burn Pool: everyone's vote weight gets the active monthly bonus
-  const { bonus: communityBonus } = await getBurnPool()
-  const voteWeight = Math.round(calcWeight(staked, weightedAvgDays) * (1 + communityBonus) * 100) / 100
+  const voteWeight = calcWeight(staked, weightedAvgDays)
 
   const { data: post } = await supabaseAdmin
     .from('posts')
