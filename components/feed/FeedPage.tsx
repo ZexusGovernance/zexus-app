@@ -218,7 +218,11 @@ export default function FeedPage({
       </div>
 
       <div className="right">
-        <FeedDashboard posts={dbPosts} onNavigate={onNavigate} />
+        <FeedDashboard
+          posts={dbPosts}
+          onNavigate={onNavigate}
+          onOpenPost={post => { setScrollToComments(false); setSelectedPost(post) }}
+        />
       </div>
 
       {selectedPost && (

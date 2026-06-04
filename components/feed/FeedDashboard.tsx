@@ -6,7 +6,11 @@ import type { FeedPost } from '@/lib/feedData'
 import OnboardingWidget from './OnboardingWidget'
 import CheckInModal from './CheckInModal'
 
-interface Props { posts: FeedPost[]; onNavigate?: (page: string) => void }
+interface Props {
+  posts: FeedPost[]
+  onNavigate?: (page: string) => void
+  onOpenPost?: (post: FeedPost) => void
+}
 
 interface PopularProject { name: string; slug: string; avatar_url?: string | null; likes: number }
 interface WatchProject   { name: string; slug: string; avatar_url?: string | null; trust_score: number | null }
@@ -40,7 +44,7 @@ function SkelRows({ count = 3 }: { count?: number }) {
   )
 }
 
-export default function FeedDashboard({ posts, onNavigate }: Props) {
+export default function FeedDashboard({ posts, onNavigate, onOpenPost }: Props) {
   const { address } = useAppKitAccount()
   const [popular,        setPopular]        = useState<PopularProject[]>([])
   const [watchlist,      setWatchlist]      = useState<WatchProject[]>([])
@@ -100,8 +104,12 @@ export default function FeedDashboard({ posts, onNavigate }: Props) {
     if (address) fetchCheckin(address)
   }
 
-  // Latest proposal (voting or verdict type)
-  const latestProposal = posts.find(p => p.type === 'voting' || p.type === 'verdict')
+  // Latest proposal — prefer an open vote so it's actionable, else newest voting/verdict
+  const latestProposal =
+    posts.find(p => p.type === 'voting' && p.vote?.open) ||
+    posts.find(p => p.type === 'voting') ||
+    posts.find(p => p.type === 'verdict')
+  const proposalVotable = latestProposal?.type === 'voting'
 
   // Real trust score movers from loaded posts
   const movers = Object.values(
@@ -119,16 +127,26 @@ export default function FeedDashboard({ posts, onNavigate }: Props) {
   return (
     <div className="feed-dashboard">
 
-      {/* ── Latest Proposal (read-only) ──────────── */}
+      {/* ── Latest Proposal (tap to open & vote) ──────────── */}
       {latestProposal && (
-        <div className="fd-section">
+        <div
+          className="fd-section"
+          role="button"
+          tabIndex={0}
+          onClick={() => onOpenPost?.(latestProposal)}
+          onKeyDown={e => { if (e.key === 'Enter') onOpenPost?.(latestProposal) }}
+          title={proposalVotable ? 'Open proposal to vote' : 'Open proposal'}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="fd-section-header">
             <span className="fd-section-title" style={{ marginBottom: 0 }}>Latest Proposal</span>
             <span style={{
-              fontSize: 9, letterSpacing: '1px', color: 'var(--muted2)',
+              fontSize: 9, letterSpacing: '0.5px',
+              color: proposalVotable ? 'var(--gold)' : 'var(--muted2)',
               textTransform: 'uppercase', fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 3,
             }}>
-              read only
+              {proposalVotable ? <>Vote <i className="ph-bold ph-arrow-right" /></> : <>View <i className="ph-bold ph-arrow-right" /></>}
             </span>
           </div>
           <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', margin: '6px 0 8px',
