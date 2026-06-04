@@ -734,33 +734,32 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
               </button>
             )}
 
-            {/* Add comment */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'flex-end' }}>
-              <CommentAvatar wallet={address ?? ''} letter={myLetter} av={myAv} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <input
-                  className="comment-input"
-                  placeholder={address ? 'Add a comment…' : 'Connect wallet to comment'}
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment() } }}
-                  disabled={!address}
-                  style={{ flex: 1 }}
-                />
-              </div>
-              <button
-                onClick={submitComment}
-                disabled={!commentText.trim() || submitting || !address}
-                style={{ width: 34, height: 34, borderRadius: 9,
-                  border: `0.5px solid ${commentText.trim() && address ? 'rgba(201,165,90,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                  background: commentText.trim() && address ? 'rgba(201,165,90,0.12)' : 'rgba(255,255,255,0.03)',
-                  color: commentText.trim() && address ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
-                  cursor: commentText.trim() && address ? 'pointer' : 'not-allowed', fontSize: 14,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
-                <i className="ph-bold ph-paper-plane-tilt" />
-              </button>
-            </div>
           </div>
+        </div>
+
+        {/* Composer — pinned to the bottom of the modal */}
+        <div className="post-modal-foot">
+          <CommentAvatar wallet={address ?? ''} letter={myLetter} av={myAv} />
+          <input
+            className="comment-input"
+            placeholder={address ? 'Add a comment…' : 'Connect wallet to comment'}
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment() } }}
+            disabled={!address}
+            style={{ flex: 1 }}
+          />
+          <button
+            onClick={submitComment}
+            disabled={!commentText.trim() || submitting || !address}
+            style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+              border: `0.5px solid ${commentText.trim() && address ? 'rgba(201,165,90,0.4)' : 'rgba(255,255,255,0.07)'}`,
+              background: commentText.trim() && address ? 'rgba(201,165,90,0.12)' : 'rgba(255,255,255,0.03)',
+              color: commentText.trim() && address ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
+              cursor: commentText.trim() && address ? 'pointer' : 'not-allowed', fontSize: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+            <i className="ph-bold ph-paper-plane-tilt" />
+          </button>
         </div>
       </div>
     </div>

@@ -4386,6 +4386,15 @@ input[data-burn-slider]::-moz-range-thumb {
   padding: 20px;
   flex: 1;
 }
+.post-modal-foot {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 12px 16px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.06);
+  background: #0d0c0a;
+}
 /* Comment animation */
 @keyframes comment-enter {
   from { opacity: 0; transform: translateY(8px); }
@@ -4572,20 +4581,28 @@ input[data-burn-slider]::-moz-range-thumb {
 }
 .create-back-btn:hover { color: var(--text); border-color: var(--border2); }
 
-/* Mobile modal adjustments */
+/* Mobile: full-screen post (X-style) with the site nav still visible */
 @media (max-width: 768px) {
-  .post-modal {
-    max-height: 92vh;            /* fallback for browsers without dvh */
-    max-height: 92dvh;           /* dynamic viewport — accounts for the address bar */
-    max-width: 100%;
-    border-radius: 14px 14px 0 0;
-    /* keep content clear of the home indicator / bottom browser chrome */
-    padding-bottom: env(safe-area-inset-bottom);
-  }
   .post-modal-overlay {
     padding: 0;
-    align-items: flex-end;
+    align-items: stretch;
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
+  .post-modal {
+    max-height: none;
+    height: 100%;
+    max-width: 100%;
+    border: none;
+    border-radius: 0;
+  }
+  /* keep the composer above the floating bottom nav */
+  .post-modal-foot {
+    padding-bottom: calc(12px + 70px + env(safe-area-inset-bottom, 0px));
+  }
+  /* float the site nav above the full-screen post so it stays usable */
+  .mobile-bottom-nav { z-index: 410; }
 }
 
 /* ── Mobile nav: hide brand logo/name ── */
