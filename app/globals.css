@@ -477,18 +477,9 @@ body::after {
   border-radius: 10px;
   margin-top: 8px;
 }
-.sp-up {
-  background: rgba(76, 175, 61, 0.1);
-  color: var(--green);
-}
-.sp-down {
-  background: rgba(224, 112, 112, 0.1);
-  color: var(--red);
-}
-.sp-new {
-  background: rgba(138, 111, 201, 0.1);
-  color: var(--purple);
-}
+.sp-up   { color: var(--green); }
+.sp-down { color: var(--red); }
+.sp-new  { color: var(--purple); }
 
 /* Trust score mini */
 .trust-mini {
@@ -2936,12 +2927,15 @@ button {
   border-radius: 999px !important;
   font-weight: 800;
 }
-/* Modern, borderless Trust Score chip */
+/* Trust Score — plain coloured text, no background/border */
 .score-pill {
-  border-radius: 8px !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  border-radius: 0 !important;
   font-weight: 600 !important;
   letter-spacing: -0.1px;
-  border: none !important;
 }
 .foot-btn.danger {
   background: rgba(238, 121, 121, 0.15) !important;
@@ -2986,7 +2980,7 @@ button {
 }
 .score-pill {
   min-height: 0;
-  padding: 4px 9px !important;
+  padding: 0 !important;
   display: inline-flex;
   align-items: center;
   gap: 5px;
