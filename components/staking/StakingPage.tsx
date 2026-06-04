@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 import ZxpLoopCard from './ZxpLoopCard'
@@ -8,6 +9,10 @@ import ApyChart from './ApyChart'
 
 type StakingTab = 'My stake' | 'History' | 'Epoch'
 type HistoryFilter = 'all' | 'stake' | 'unstake' | 'burn' | 'reward'
+
+// URL slug <-> tab. 'My stake' is the default and keeps the URL clean (/staking).
+const TAB_TO_SLUG: Record<StakingTab, string> = { 'My stake': '', History: 'history', Epoch: 'epoch' }
+const SLUG_TO_TAB: Record<string, StakingTab> = { history: 'History', epoch: 'Epoch' }
 
 interface Position {
   id: string
@@ -141,7 +146,21 @@ interface MilestoneState {
 }
 
 export default function StakingPage() {
-  const [activeTab, setActiveTab] = useState<StakingTab>('My stake')
+  const router    = useRouter()
+  const pathname  = usePathname()
+  const params    = useSearchParams()
+  const urlTab    = SLUG_TO_TAB[params.get('tab') ?? ''] ?? 'My stake'
+
+  const [activeTab, setActiveTab] = useState<StakingTab>(urlTab)
+  // Keep the active tab in sync with the URL (deep links, back/forward, F5)
+  useEffect(() => { setActiveTab(urlTab) }, [urlTab])
+
+  const selectTab = (t: StakingTab) => {
+    setActiveTab(t)
+    const slug = TAB_TO_SLUG[t]
+    router.replace(slug ? `${pathname}?tab=${slug}` : pathname, { scroll: false })
+  }
+
   const { address, isConnected } = useAppKitAccount()
   const { profile, refreshProfile } = useProfile()
 
@@ -342,7 +361,7 @@ export default function StakingPage() {
             {(['My stake', 'History', 'Epoch'] as StakingTab[]).map(t => (
               <button
                 key={t}
-                onClick={() => setActiveTab(t)}
+                onClick={() => selectTab(t)}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 500, padding: '6px 14px',
