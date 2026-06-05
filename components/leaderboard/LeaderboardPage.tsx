@@ -94,7 +94,7 @@ export default function LeaderboardPage() {
             <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '48px 0', fontSize: 13 }}>Loading…</div>
           ) : !board || board.top.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '48px 0', fontSize: 13, lineHeight: 1.6 }}>
-              No activity this season yet.<br />Earn ZXP — vote, check in, win Predict — to climb the board.
+              No activity this season yet.<br />Earn ZXP by voting, checking in or winning Predict to climb the board.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 620 }}>
