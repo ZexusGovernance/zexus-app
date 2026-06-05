@@ -227,6 +227,9 @@ body::after {
   flex-direction: column;
   gap: 12px;
   flex: 1;
+  /* allow the flex child to shrink below content height so overflow-y actually scrolls
+     (without this, tall content is clipped by .center's overflow:hidden — notably on mobile) */
+  min-height: 0;
 }
 
 /* RIGHT */
