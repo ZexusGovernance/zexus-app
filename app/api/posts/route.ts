@@ -28,12 +28,30 @@ async function fanOutNotifications(
 
   if (!watchers?.length) return
 
-  const wallets = watchers.map(w => w.wallet_address)
+  const allWallets = watchers.map(w => w.wallet_address)
+
+  // verdict/voting posts honor the "New verdicts" preference;
+  // updates & alerts honor "Watchlist alerts".
+  const prefKey = postType === 'verdict' || postType === 'voting' ? 'notifVerdicts' : 'notifWatchlist'
+
+  // Pull settings + telegram for these watchers in one query
+  const { data: profiles } = await supabaseAdmin
+    .from('profiles')
+    .select('wallet_address, telegram_chat_id, settings')
+    .in('wallet_address', allWallets)
+  const profMap = new Map((profiles ?? []).map(p => [p.wallet_address as string, p]))
+
+  // A watcher is notified unless they explicitly turned this preference off
+  const wallets = allWallets.filter(
+    w => (profMap.get(w)?.settings as Record<string, boolean> | null)?.[prefKey] !== false,
+  )
+  if (!wallets.length) return
+
   const label   = POST_TYPE_LABEL[postType]
   const notifTitle = `${label} · ${projectName}`
   const notifBody  = title || content.slice(0, 80) + (content.length > 80 ? '…' : '')
 
-  // Insert notifications in one batch
+  // Insert in-app notifications in one batch
   await supabaseAdmin.from('notifications').insert(
     wallets.map(wallet_address => ({
       wallet_address,
@@ -45,18 +63,16 @@ async function fanOutNotifications(
     })),
   )
 
-  // Send Telegram to those who connected it
-  const { data: tgProfiles } = await supabaseAdmin
-    .from('profiles')
-    .select('telegram_chat_id')
-    .in('wallet_address', wallets)
-    .not('telegram_chat_id', 'is', null)
+  // Send Telegram to opted-in watchers who connected it
+  const tgChatIds = wallets
+    .map(w => profMap.get(w)?.telegram_chat_id as number | null | undefined)
+    .filter((id): id is number => id != null)
 
-  if (!tgProfiles?.length) return
+  if (!tgChatIds.length) return
 
   const tgText = `🔔 <b>${notifTitle}</b>\n${notifBody}\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`
   await Promise.allSettled(
-    tgProfiles.map(p => sendTelegramMessage(p.telegram_chat_id, tgText)),
+    tgChatIds.map(id => sendTelegramMessage(id, tgText)),
   )
 }
 

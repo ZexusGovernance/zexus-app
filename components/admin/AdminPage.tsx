@@ -485,11 +485,11 @@ export default function AdminPage() {
 
   interface InviteCode {
     code: string; project_name: string | null; note: string | null
-    created_at: string; used_at: string | null
+    created_at: string; used_at: string | null; expires_at: string | null
   }
   const [invites,     setInvites]     = useState<InviteCode[]>([])
   const [invLoading,  setInvLoading]  = useState(false)
-  const [invForm,     setInvForm]     = useState({ code: '', project_name: '', note: '' })
+  const [invForm,     setInvForm]     = useState({ code: '', project_name: '', note: '', expires_at: '' })
   const [invSaving,   setInvSaving]   = useState(false)
   const [invErr,      setInvErr]      = useState<string | null>(null)
   const [invShowForm, setInvShowForm] = useState(false)
@@ -1936,6 +1936,20 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, maxWidth: 220 }}>
+                <label style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.8px' }}>
+                  EXPIRES <span style={{ textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={invForm.expires_at}
+                  onChange={e => setInvForm(v => ({ ...v, expires_at: e.target.value }))}
+                  style={{ padding: '8px 11px', background: 'rgba(255,255,255,0.03)',
+                    border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: 8,
+                    color: 'var(--text)', fontSize: 13, fontFamily: 'inherit', outline: 'none',
+                    colorScheme: 'dark' }}
+                />
+              </div>
               {invErr && <div style={{ fontSize: 12, color: 'var(--red)' }}>{invErr}</div>}
               <button
                 disabled={invSaving || !invForm.code.trim()}
@@ -1949,7 +1963,7 @@ export default function AdminPage() {
                     })
                     const d = await r.json() as { error?: string }
                     if (!r.ok) { setInvErr(d.error ?? 'Failed'); return }
-                    setInvForm({ code: '', project_name: '', note: '' })
+                    setInvForm({ code: '', project_name: '', note: '', expires_at: '' })
                     setInvShowForm(false)
                     await loadInvites()
                   } finally { setInvSaving(false) }
@@ -1983,12 +1997,25 @@ export default function AdminPage() {
                     {c.project_name ?? '—'}
                     {c.note && <span style={{ color: 'var(--muted2)', marginLeft: 8 }}>· {c.note}</span>}
                   </span>
-                  <span style={{ fontSize: 11, flexShrink: 0,
-                    color: c.used_at ? 'var(--green)' : 'var(--muted2)' }}>
-                    {c.used_at
-                      ? `Used ${new Date(c.used_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                      : 'Unused'}
-                  </span>
+                  {(() => {
+                    const expired = c.expires_at && new Date(c.expires_at).getTime() < Date.now()
+                    const expLabel = c.expires_at
+                      ? new Date(c.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      : null
+                    return (
+                      <span style={{ fontSize: 11, flexShrink: 0, textAlign: 'right',
+                        color: expired ? 'var(--red)' : c.used_at ? 'var(--green)' : 'var(--muted2)' }}>
+                        {expired
+                          ? 'Expired'
+                          : c.used_at
+                            ? `Used ${new Date(c.used_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                            : 'Unused'}
+                        {expLabel && !expired && (
+                          <span style={{ color: 'var(--muted2)', marginLeft: 6 }}>· exp {expLabel}</span>
+                        )}
+                      </span>
+                    )
+                  })()}
                   {invDelCode === c.code ? (
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                       <button onClick={async () => {

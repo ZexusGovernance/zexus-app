@@ -60,15 +60,44 @@ interface BurnPoolData {
   daysLeft: number
 }
 
+function EpochProgressSkeleton() {
+  return (
+    <div className="panel skeleton-card" style={{ padding: '13px 15px', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div className="skel" style={{ width: 150, height: 12 }} />
+        <div className="skel" style={{ width: 60, height: 10 }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div className="skel" style={{ width: 180, height: 14, marginBottom: 6 }} />
+          <div className="skel" style={{ width: 220, height: 10 }} />
+        </div>
+        <div className="skel" style={{ width: 44, height: 22 }} />
+      </div>
+      <div className="skel" style={{ height: 5, borderRadius: 3, marginBottom: 10 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ padding: '7px 8px', borderRadius: 7, border: '0.5px solid var(--border)' }}>
+            <div className="skel" style={{ width: '70%', height: 9, marginBottom: 4 }} />
+            <div className="skel" style={{ width: '90%', height: 9 }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function EpochProgress() {
   const [pool, setPool] = useState<BurnPoolData | null>(null)
+  const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     fetch('/api/zxp/burn-pool')
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (d && Array.isArray(d.tiers)) setPool(d) })
       .catch(() => {})
+      .finally(() => setLoaded(true))
   }, [])
-  if (!pool) return null
+  if (!pool) return loaded ? null : <EpochProgressSkeleton />
 
   const { tiers, tierIdx, total, bonus, daysLeft } = pool
   const nextIdx  = tierIdx + 1 < tiers.length ? tierIdx + 1 : -1
@@ -159,15 +188,41 @@ function EpochStat({ k, v, color }: { k: string; v: string; color?: string }) {
   )
 }
 
+function EpochCardSkeleton() {
+  return (
+    <div className="panel skeleton-card" style={{ padding: '14px 16px', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div className="skel" style={{ width: 64, height: 20, borderRadius: 5 }} />
+          <div className="skel" style={{ width: 140, height: 11 }} />
+        </div>
+        <div className="skel" style={{ width: 50, height: 14 }} />
+      </div>
+      <div className="skel" style={{ height: 5, borderRadius: 3, marginBottom: 12 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 8, padding: '8px 10px' }}>
+            <div className="skel" style={{ width: '65%', height: 9, marginBottom: 6 }} />
+            <div className="skel" style={{ width: '45%', height: 15 }} />
+          </div>
+        ))}
+      </div>
+      <div className="skel" style={{ height: 10, marginTop: 12, width: '92%' }} />
+    </div>
+  )
+}
+
 function EpochCard() {
   const [e, setE] = useState<EpochInfo | null>(null)
+  const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     fetch('/api/epoch')
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (d && !d.error) setE(d) })
       .catch(() => {})
+      .finally(() => setLoaded(true))
   }, [])
-  if (!e) return null
+  if (!e) return loaded ? null : <EpochCardSkeleton />
 
   const start   = new Date(e.epoch_start).getTime()
   const end     = new Date(e.epoch_end).getTime()
@@ -422,6 +477,21 @@ export default function StakingPage() {
     await loadPositions(address)
   }
 
+  async function handleUnstakeCancel(posId: string) {
+    if (!address) return
+    setLoading(true)
+    const res = await fetch('/api/zxp/unstake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: address, position_id: posId, action: 'cancel' }),
+    })
+    const d = await res.json()
+    setLoading(false)
+    if (!res.ok) { toast(d.error ?? 'Cancel failed'); return }
+    toast('Unstake cancelled — back to staking')
+    await loadPositions(address)
+  }
+
   async function handleUnstakeComplete(posId: string) {
     if (!address) return
     setLoading(true)
@@ -490,7 +560,7 @@ export default function StakingPage() {
             {[
               { label: 'Staked',  value: String(profile?.zxp_staked ?? '—'), sub: 'ZXP locked',    dot: '#6f9be5',       color: 'var(--text)' },
               { label: 'APY',     value: `${apyPct}%`,                         sub: 'pool rate',     dot: 'var(--green)',  color: 'var(--green)' },
-              { label: 'Rewards', value: `+${fmtZxp(totalAccrued)}`,           sub: 'accrued · /hr', dot: 'var(--green)',  color: totalAccrued > 0 ? 'var(--green)' : 'var(--muted)' },
+              { label: 'Rewards', value: `+${fmtZxp(totalAccrued)}`,           sub: 'total accrued', dot: 'var(--green)',  color: totalAccrued > 0 ? 'var(--green)' : 'var(--muted)' },
             ].map(({ label, value, sub, dot, color }) => (
               <div key={label} className="panel" style={{ padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -542,7 +612,7 @@ export default function StakingPage() {
                   {positions.filter(p => p.status === 'active').map(p => (
                     <div key={p.id} style={{
                       marginBottom: 8, padding: '10px 12px',
-                      background: 'rgba(255,255,255,0.03)', borderRadius: 8,
+                      background: 'transparent', borderRadius: 8,
                       border: '0.5px solid var(--border)',
                     }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 8 }}>
@@ -617,7 +687,7 @@ export default function StakingPage() {
                         disabled={loading}
                         style={{
                           width: '100%', padding: '7px', fontSize: 11, fontWeight: 600,
-                          background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border)',
+                          background: 'transparent', border: '0.5px solid var(--border)',
                           borderRadius: 6, color: 'var(--muted)', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                         }}
@@ -636,7 +706,7 @@ export default function StakingPage() {
                     return (
                       <div key={p.id} style={{
                         marginBottom: 8, padding: '10px 12px', borderRadius: 8,
-                        background: ready ? 'rgba(83,201,146,0.04)' : 'rgba(255,255,255,0.03)',
+                        background: ready ? 'rgba(83,201,146,0.04)' : 'transparent',
                         border: `0.5px solid ${ready ? 'rgba(83,201,146,0.2)' : 'var(--border)'}`,
                       }}>
                         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>
@@ -646,19 +716,33 @@ export default function StakingPage() {
                             ? <span style={{ color: 'var(--green)' }}>Ready to claim!</span>
                             : `Available in ${fmtSeconds(secsLeft)}`}
                         </div>
-                        <button
-                          onClick={() => handleUnstakeComplete(p.id)}
-                          disabled={!ready || loading}
-                          style={{
-                            width: '100%', padding: '7px', fontSize: 11, fontWeight: 600,
-                            background: ready ? 'var(--green)' : 'rgba(255,255,255,0.04)',
-                            border: `0.5px solid ${ready ? 'var(--green)' : 'var(--border)'}`,
-                            borderRadius: 6, color: ready ? '#000' : 'var(--muted)',
-                            cursor: ready ? 'pointer' : 'not-allowed',
-                          }}
-                        >
-                          {ready ? `Claim ${fmtZxp(p.amount + p.accrued_rewards)} ZXP` : 'Waiting…'}
-                        </button>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {ready && (
+                            <button
+                              onClick={() => handleUnstakeComplete(p.id)}
+                              disabled={loading}
+                              style={{
+                                flex: 1, padding: '7px', fontSize: 11, fontWeight: 600,
+                                background: 'var(--green)', border: '0.5px solid var(--green)',
+                                borderRadius: 6, color: '#000', cursor: 'pointer',
+                              }}
+                            >
+                              Claim {fmtZxp(p.amount + p.accrued_rewards)} ZXP
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleUnstakeCancel(p.id)}
+                            disabled={loading}
+                            style={{
+                              flex: ready ? '0 0 auto' : 1, padding: '7px 12px', fontSize: 11, fontWeight: 600,
+                              background: 'transparent', border: '0.5px solid var(--border)',
+                              borderRadius: 6, color: 'var(--muted)', cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                            }}
+                          >
+                            <i className="ph-bold ph-arrow-counter-clockwise" /> Cancel
+                          </button>
+                        </div>
                       </div>
                     )
                   })}

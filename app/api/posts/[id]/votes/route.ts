@@ -135,7 +135,7 @@ export async function GET(
 
   const { data: voteRows } = await supabaseAdmin
     .from('voting_votes')
-    .select('vote, vote_weight, wallet_address')
+    .select('vote, vote_weight, wallet_address, created_at')
     .eq('post_id', id)
 
   const allVotes     = voteRows ?? []
@@ -152,6 +152,30 @@ export async function GET(
   const userWeight = wallet ? ((allVotes.find(v => v.wallet_address === wallet)?.vote_weight as number) ?? null) : null
 
   const votesNeeded = await calcVotesNeeded()
+
+  // Voter list — each voter who enabled "Anonymous voting" is shown as Anonymous.
+  const voterWallets = [...new Set(allVotes.map(v => v.wallet_address as string))]
+  const { data: voterProfiles } = voterWallets.length
+    ? await supabaseAdmin
+        .from('profiles')
+        .select('wallet_address, display_name, settings')
+        .in('wallet_address', voterWallets)
+    : { data: [] }
+  const vpmap = new Map((voterProfiles ?? []).map(p => [p.wallet_address as string, p]))
+
+  const voters = [...allVotes]
+    .sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime())
+    .slice(0, 30)
+    .map(v => {
+      const prof = vpmap.get(v.wallet_address as string)
+      const anon = (prof?.settings as Record<string, boolean> | null)?.anonVoting === true
+      return {
+        vote:   v.vote as 'confirm' | 'dispute',
+        anon,
+        wallet: anon ? null : (v.wallet_address as string),
+        name:   anon ? null : ((prof?.display_name as string) ?? null),
+      }
+    })
 
   let passed: boolean | undefined
   let voidResult = false
@@ -191,5 +215,6 @@ export async function GET(
     userWeight,
     passed,
     void: voidResult,
+    voters,
   })
 }

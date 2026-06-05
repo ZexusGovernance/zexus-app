@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAuth } from '@/lib/auth'
 
-const ADMIN_WALLETS = (process.env.ADMIN_WALLETS ?? '').toLowerCase().split(',').filter(Boolean)
+// Admins = the super admin wallet plus any optional extras in ADMIN_WALLETS.
+// Verified via the SIWE session, never from a client-supplied address.
+const ADMIN_WALLETS = [
+  process.env.SUPER_ADMIN_WALLET ?? '',
+  ...(process.env.ADMIN_WALLETS ?? '').split(','),
+]
+  .map(w => w.trim().toLowerCase())
+  .filter(Boolean)
 
-// Invite codes may be managed by any wallet in ADMIN_WALLETS — verified via
-// the SIWE session, never from a client-supplied address.
 function isInviteAdmin(wallet: string | null): boolean {
   return !!wallet && ADMIN_WALLETS.includes(wallet.toLowerCase())
 }
@@ -24,14 +29,31 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!isInviteAdmin(requireAuth(req))) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { code, project_name, note } = await req.json() as {
-    code?: string; project_name?: string; note?: string
+  const { code, project_name, note, expires_at } = await req.json() as {
+    code?: string; project_name?: string; note?: string; expires_at?: string
   }
   if (!code?.trim()) return NextResponse.json({ error: 'Code required' }, { status: 400 })
 
+  // expires_at is optional. Accept an ISO/date string; blank means never expires.
+  // A bare YYYY-MM-DD is treated as the end of that day (valid through that date).
+  let expiresISO: string | null = null
+  if (expires_at?.trim()) {
+    const raw = /^\d{4}-\d{2}-\d{2}$/.test(expires_at.trim())
+      ? `${expires_at.trim()}T23:59:59`
+      : expires_at.trim()
+    const d = new Date(raw)
+    if (isNaN(d.getTime())) return NextResponse.json({ error: 'Invalid expiry date' }, { status: 400 })
+    expiresISO = d.toISOString()
+  }
+
   const { data, error } = await supabaseAdmin
     .from('invite_codes')
-    .insert({ code: code.trim().toUpperCase(), project_name: project_name || null, note: note || null })
+    .insert({
+      code: code.trim().toUpperCase(),
+      project_name: project_name || null,
+      note: note || null,
+      expires_at: expiresISO,
+    })
     .select()
     .single()
 

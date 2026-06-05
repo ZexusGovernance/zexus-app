@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { sendListingEmail } from '@/lib/email'
+import { notifyNewProject } from '@/lib/notify'
 import { requireAuth, isSuperAdmin } from '@/lib/auth'
 
 // GET /api/admin  — list all projects (super-admin only)
@@ -49,6 +50,9 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Fan out "new project" notifications to opted-in users (fire-and-forget)
+  if (data) void notifyNewProject(data.id, data.name)
 
   // Send welcome email if contact_email provided
   if (data && typeof contact_email === 'string' && contact_email.trim() && process.env.RESEND_API_KEY) {

@@ -24,12 +24,12 @@ export default function InviteGate({ children }: { children: React.ReactNode }) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       })
-      const d = await r.json() as { valid: boolean }
+      const d = await r.json() as { valid: boolean; expired?: boolean }
       if (d.valid) {
         localStorage.setItem(STORAGE_KEY, '1')
         setVerified(true)
       } else {
-        setError('Invalid code')
+        setError(d.expired ? 'Code expired' : 'Invalid code')
       }
     } catch {
       setError('Something went wrong')

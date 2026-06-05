@@ -51,6 +51,7 @@ export interface FeedPost {
     userWeight?:    number | null
     passed?:        boolean
     void?:          boolean
+    voters?:        { vote: 'confirm' | 'dispute'; anon: boolean; wallet: string | null; name: string | null }[]
   }
 }
 

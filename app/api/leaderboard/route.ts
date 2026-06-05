@@ -25,20 +25,23 @@ export async function GET(req: NextRequest) {
     totals.set(w, (totals.get(w) ?? 0) + (t.amount as number))
   }
 
+  // Fetch profile + settings for all earners — used for opt-out filtering and enrichment
+  const earnerWallets = [...totals.keys()]
+  const { data: profs } = earnerWallets.length
+    ? await supabaseAdmin
+        .from('profiles')
+        .select('wallet_address, display_name, avatar_url, settings')
+        .in('wallet_address', earnerWallets)
+    : { data: [] }
+  const pmap = new Map((profs ?? []).map(p => [p.wallet_address as string, p]))
+
+  // Respect the "Show in leaderboard" privacy toggle (opt-out — hidden only if explicitly off)
   const ranked = [...totals.entries()]
+    .filter(([w]) => (pmap.get(w)?.settings as Record<string, boolean> | null)?.showLeaderboard !== false)
     .map(([w, xp]) => ({ wallet: w, xp }))
     .sort((a, b) => b.xp - a.xp)
 
   const top = ranked.slice(0, TOP_N)
-
-  // Enrich the visible top with display name / avatar
-  const { data: profs } = top.length
-    ? await supabaseAdmin
-        .from('profiles')
-        .select('wallet_address, display_name, avatar_url')
-        .in('wallet_address', top.map(t => t.wallet))
-    : { data: [] }
-  const pmap = new Map((profs ?? []).map(p => [p.wallet_address as string, p]))
 
   const topRows = top.map((t, i) => ({
     rank:   i + 1,

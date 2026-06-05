@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAppKitAccount } from '@reown/appkit/react'
 
 interface Row {
@@ -30,31 +31,16 @@ function rankColor(rank: number): string {
 }
 
 function Medal({ rank }: { rank: number }) {
-  const top3 = rank <= 3
   return (
     <div style={{
       width: 26, height: 26, borderRadius: 8, flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 12, fontWeight: 800,
-      color: top3 ? 'var(--bg)' : 'var(--muted)',
-      background: top3 ? rankColor(rank) : 'rgba(255,255,255,0.04)',
+      color: 'var(--muted)',
+      background: 'transparent',
+      border: '0.5px solid var(--border)',
     }}>
       {rank}
-    </div>
-  )
-}
-
-function Avatar({ row }: { row: Row }) {
-  if (row.avatar) {
-    return <img src={row.avatar} alt="" style={{ width: 30, height: 30, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
-  }
-  return (
-    <div style={{
-      width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--surface2)', color: 'var(--muted)', fontSize: 12, fontWeight: 700,
-    }}>
-      {(row.name ?? row.wallet).slice(row.name ? 0 : 2, row.name ? 1 : 3).toUpperCase()}
     </div>
   )
 }
@@ -107,17 +93,16 @@ export default function LeaderboardPage() {
                   <div key={row.wallet} style={{
                     display: 'flex', alignItems: 'center', gap: 11,
                     padding: '9px 12px', borderRadius: 10,
-                    background: isMe ? 'rgba(201,165,90,0.07)' : 'var(--surface)',
+                    background: isMe ? 'rgba(201,165,90,0.07)' : 'transparent',
                     border: `0.5px solid ${isMe ? 'rgba(201,165,90,0.3)' : 'var(--border)'}`,
                   }}>
                     <Medal rank={row.rank} />
-                    <Avatar row={row} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <Link href={`/u/${row.wallet}`} style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {row.name ?? shortAddr(row.wallet)}{isMe ? ' · you' : ''}
                       </div>
                       {row.name && <div style={{ fontSize: 10, color: 'var(--muted2)' }}>{shortAddr(row.wallet)}</div>}
-                    </div>
+                    </Link>
                     <div style={{ fontSize: 14, fontWeight: 700, color: rankColor(row.rank) }}>
                       {row.xp.toLocaleString()} <span style={{ fontSize: 10, color: 'var(--muted2)', fontWeight: 500 }}>XP</span>
                     </div>

@@ -626,8 +626,7 @@ export default function ProfilePage() {
                 </div>
                 <div style={{ padding: '0 14px 14px' }}>
                   <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 12 }}>
-                    Invite friends to Zexus — earn <strong style={{ color: 'var(--gold)' }}>+5 ZXP</strong> for each person who joins via your link.
-                    Reach 5 referrals to unlock the <strong style={{ color: '#22d3ee' }}>Recruiter</strong> badge.
+                    Invite friends to Zexus — earn <strong style={{ color: 'var(--gold)' }}>+5 ZXP</strong> for each of your first <strong style={{ color: 'var(--gold)' }}>3</strong> invites who join via your link. Extra invites still count toward the <strong style={{ color: '#22d3ee' }}>Recruiter</strong> badge (5 referrals) but earn no ZXP.
                   </div>
                   <button
                     onClick={copyRefLink}
@@ -646,7 +645,7 @@ export default function ProfilePage() {
                   </button>
                   {refCount > 0 && (
                     <div style={{ marginTop: 8, fontSize: 11, color: 'var(--muted2)', textAlign: 'center' }}>
-                      You've invited {refCount} person{refCount !== 1 ? 's' : ''} · earned {refCount * 5} ZXP in referral rewards
+                      You've invited {refCount} person{refCount !== 1 ? 's' : ''} · earned {Math.min(refCount, 3) * 5} ZXP in referral rewards{refCount > 3 ? ' (reward cap reached)' : ''}
                     </div>
                   )}
                 </div>

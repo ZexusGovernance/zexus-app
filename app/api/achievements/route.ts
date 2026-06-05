@@ -91,6 +91,7 @@ export async function GET(req: NextRequest) {
         `${names}\n\n` +
         `Go to your profile → Activity to claim your badge.\n` +
         `<a href="https://app.zexus.xyz">Open Zexus</a>`,
+        'notifZxp',
       )
     })()
   }

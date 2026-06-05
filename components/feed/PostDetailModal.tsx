@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import type { FeedPost } from '@/lib/feedData'
 import { supabase } from '@/lib/supabase'
 import Avatar from 'boring-avatars'
@@ -419,6 +420,23 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const investBadge = post.type === 'investment'
     ? { background: 'rgba(138,111,201,0.12)', color: '#8a6fc9', border: '0.5px solid rgba(138,111,201,0.3)' } : {}
 
+  // Closed voting posts show their outcome in the badge (matches the feed card):
+  // passed → green "Verdict", rejected → red, no quorum → muted "Closed".
+  const votingOutcome: 'verdict' | 'rejected' | 'closed' | null =
+    post.type === 'voting' && voteData && !voteData.isOpen
+      ? voteData.passed ? 'verdict' : voteData.void ? 'closed' : 'rejected'
+      : null
+
+  const OUTCOME_BADGE = {
+    verdict:  { label: 'Verdict',  icon: 'ph-bold ph-shield-check', style: { background: 'rgba(76,175,125,0.12)', color: 'var(--green)', border: '0.5px solid rgba(76,175,125,0.3)' } },
+    rejected: { label: 'Rejected', icon: 'ph-bold ph-x-circle',     style: { background: 'rgba(224,112,112,0.1)', color: 'var(--red)',   border: '0.5px solid rgba(224,112,112,0.3)' } },
+    closed:   { label: 'Closed',   icon: 'ph-bold ph-minus-circle', style: { background: 'var(--surface2)',       color: 'var(--muted)', border: '0.5px solid var(--border2)' } },
+  } as const
+
+  const badgeLabel = votingOutcome ? OUTCOME_BADGE[votingOutcome].label : TYPE_LABEL[post.type]
+  const badgeIcon  = votingOutcome ? OUTCOME_BADGE[votingOutcome].icon  : TYPE_ICON[post.type]
+  const badgeStyle = votingOutcome ? OUTCOME_BADGE[votingOutcome].style : { ...votingBadge, ...investBadge }
+
   const staticComments: Comment[] = post.comments.map((c, i) => ({
     id: String(i), author: c.author, letter: c.letter, av: c.av, text: c.text, time: c.time, wallet: '',
   }))
@@ -487,8 +505,8 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{post.project}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)' }}>{post.sub}</div>
             </div>
-            <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
-              <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
+            <span className={`type-badge ${votingOutcome ? '' : TYPE_BADGE[post.type]}`} style={badgeStyle}>
+              <i className={badgeIcon} style={{ fontSize: 9 }} /> {badgeLabel}
             </span>
             <div className="card-time" title={post.time}>{timeDisplay}</div>
           </div>
@@ -588,6 +606,36 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
               {voteHint && (
                 <div style={{ marginTop: 8, fontSize: 11, color: 'var(--muted)' }}>{voteHint}</div>
               )}
+
+              {/* Voter list — anonymous voters are hidden by their own setting */}
+              {voteData.voters && voteData.voters.length > 0 && (
+                <div style={{ marginTop: 14, borderTop: '0.5px solid var(--border)', paddingTop: 12 }}>
+                  <div style={{ fontSize: 10, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: 8 }}>
+                    Voters
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                    {voteData.voters.map((v, i) => {
+                      const isConfirm = v.vote === 'confirm'
+                      const label = v.anon ? 'Anonymous' : (v.name ?? (v.wallet ? `${v.wallet.slice(0, 6)}…${v.wallet.slice(-4)}` : 'Anonymous'))
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                          <i
+                            className={`ph-bold ${isConfirm ? 'ph-thumbs-up' : 'ph-thumbs-down'}`}
+                            style={{ fontSize: 12, color: isConfirm ? 'var(--green)' : 'var(--red)', flexShrink: 0 }}
+                          />
+                          {v.anon || !v.wallet ? (
+                            <span style={{ color: 'var(--muted)', fontStyle: 'italic' }}>{label}</span>
+                          ) : (
+                            <Link href={`/u/${v.wallet}`} style={{ color: 'var(--text)', textDecoration: 'none' }}>
+                              {label}
+                            </Link>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : post.vote ? (
             <div style={{ marginBottom: 18 }}>
@@ -606,10 +654,10 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
           {/* Trust Score Change */}
           {post.trustScoreChange !== undefined && post.trustScoreChange !== 0 && (
             <div style={{ marginBottom: 18 }}>
-              <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`} style={{ alignItems: 'baseline' }}>
-                <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 13, alignSelf: 'center' }} />
-                <span style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange}</span>
-                <span style={{ fontSize: 10.5, fontWeight: 500, opacity: 0.7 }}>pts Trust Score</span>
+              <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`} style={{ alignItems: 'center' }}>
+                <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 12, alignSelf: 'center' }} />
+                <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange}</span>
+                <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.65 }}>pts Trust Score</span>
               </span>
             </div>
           )}

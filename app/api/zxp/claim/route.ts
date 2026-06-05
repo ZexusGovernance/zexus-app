@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
     `🪙 <b>+${earned} ZXP</b> — Daily check-in\n` +
     `Day ${newStreak} streak · Balance: ${newBalance} ZXP\n\n` +
     `<a href="https://app.zexus.xyz">Open Zexus</a>`,
+    'notifZxp',
   )
 
   return NextResponse.json({ ok: true, zxp_earned: earned, new_streak: newStreak, balance: newBalance })

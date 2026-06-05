@@ -295,6 +295,23 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
   const emergencyCard = (isEmergency && post.isEmergency) ? { borderColor: 'rgba(224,112,112,0.5)', borderWidth: 1.5 } : {}
   const timeLabel = post.createdAt ? relativeTime(post.createdAt) : post.time
 
+  // Once a voting post closes, its badge reflects the outcome:
+  // passed → green "Verdict", rejected → red, no quorum → muted "Closed".
+  const votingOutcome: 'verdict' | 'rejected' | 'closed' | null =
+    post.type === 'voting' && voteData && !isVotingOpen
+      ? voteData.passed ? 'verdict' : voteData.void ? 'closed' : 'rejected'
+      : null
+
+  const OUTCOME_BADGE = {
+    verdict:  { label: 'Verdict',  icon: 'ph-bold ph-shield-check', style: { background: 'rgba(76,175,125,0.12)', color: 'var(--green)', border: '0.5px solid rgba(76,175,125,0.3)' } },
+    rejected: { label: 'Rejected', icon: 'ph-bold ph-x-circle',     style: { background: 'rgba(224,112,112,0.1)', color: 'var(--red)',   border: '0.5px solid rgba(224,112,112,0.3)' } },
+    closed:   { label: 'Closed',   icon: 'ph-bold ph-minus-circle', style: { background: 'var(--surface2)',       color: 'var(--muted)', border: '0.5px solid var(--border2)' } },
+  } as const
+
+  const badgeLabel = votingOutcome ? OUTCOME_BADGE[votingOutcome].label : TYPE_LABEL[post.type]
+  const badgeIcon  = votingOutcome ? OUTCOME_BADGE[votingOutcome].icon  : TYPE_ICON[post.type]
+  const badgeStyle = votingOutcome ? OUTCOME_BADGE[votingOutcome].style : { ...votingBadge, ...investBadge }
+
   return (
     <div
       className={`card feed-card ${CARD_CLASS[post.type]} card-stagger`}
@@ -344,8 +361,8 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
             )}
           </div>
         </div>
-        <span className={`type-badge ${TYPE_BADGE[post.type]}`} style={{ ...votingBadge, ...investBadge }}>
-          <i className={TYPE_ICON[post.type]} style={{ fontSize: 9 }} /> {TYPE_LABEL[post.type]}
+        <span className={`type-badge ${votingOutcome ? '' : TYPE_BADGE[post.type]}`} style={badgeStyle}>
+          <i className={badgeIcon} style={{ fontSize: 9 }} /> {badgeLabel}
         </span>
         <div className="card-time">{timeLabel}</div>
       </div>
@@ -441,9 +458,9 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
 
         {post.trustScoreChange !== undefined && post.trustScoreChange !== 0 && (
           <span className={`score-pill ${post.trustScoreChange > 0 ? 'sp-up' : 'sp-down'}`} style={{ marginTop: 8, display: 'inline-flex', alignItems: 'baseline' }}>
-            <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 13, alignSelf: 'center' }} />
-            <span style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange}</span>
-            <span style={{ fontSize: 10.5, fontWeight: 500, opacity: 0.7 }}>pts Trust Score</span>
+            <i className={`ti ${post.trustScoreChange > 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ fontSize: 12, alignSelf: 'center' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>{post.trustScoreChange > 0 ? '+' : ''}{post.trustScoreChange}</span>
+            <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.65 }}>pts Trust Score</span>
           </span>
         )}
 

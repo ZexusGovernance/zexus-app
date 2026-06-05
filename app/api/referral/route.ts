@@ -5,6 +5,9 @@ import { requireAuth, unauthorized } from '@/lib/auth'
 
 const WALLET_RE = /^0x[0-9a-fA-F]{40}$/
 const REFERRER_REWARD_ZXP = 5
+// Only the first N referrals pay out ZXP. Further invites still count toward the
+// referral total, but earn nothing — stops influencers from farming ZXP at scale.
+const MAX_REWARDED_REFERRALS = 3
 
 // GET /api/referral?wallet=0x...  → referral count + list
 export async function GET(req: NextRequest) {
@@ -52,6 +55,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Reward cap: only the first MAX_REWARDED_REFERRALS invites pay out ZXP.
+  // The referral above is already recorded, so it still counts toward the total.
+  const { count: rewardedCount } = await supabaseAdmin
+    .from('referrals')
+    .select('*', { count: 'exact', head: true })
+    .eq('referrer_wallet', referrer)
+    .eq('rewarded', true)
+
+  if ((rewardedCount ?? 0) >= MAX_REWARDED_REFERRALS) {
+    return NextResponse.json({ ok: true, rewarded: false, capped: true })
+  }
+
   // Give referrer a reward immediately
   const { data: prof } = await supabaseAdmin
     .from('profiles')
@@ -72,13 +87,19 @@ export async function POST(req: NextRequest) {
         note:           `Referral reward — invited ${referred.slice(0, 6)}…${referred.slice(-4)}`,
         balance_after:  newBal,
       }),
+      // Mark this referral as the one that paid out, so it counts against the cap
+      supabaseAdmin.from('referrals')
+        .update({ rewarded: true })
+        .eq('referrer_wallet', referrer)
+        .eq('referred_wallet', referred),
     ])
     void notifyWallet(referrer,
       `👥 <b>+${REFERRER_REWARD_ZXP} ZXP</b> — Referral reward!\n` +
       `${referred.slice(0, 6)}…${referred.slice(-4)} joined Zexus via your link.\n\n` +
       `<a href="https://app.zexus.xyz">Open Zexus</a>`,
+      'notifZxp',
     )
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, rewarded: !!prof })
 }

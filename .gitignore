@@ -47,3 +47,9 @@ next-env.d.ts
 # internal docs (not for public repo)
 CLAUDE.md
 ZEXUS_OVERVIEW.md
+
+# internal launch material — invite codes, drafts, marketing assets
+marketing/
+
+# scratch scripts
+scripts_tmp_*

@@ -21,7 +21,7 @@ function calcAccrued(amount: number, stakedAt: string, apy: number): number {
   return Math.floor(amount * (apy / (365 * 24)) * hours)
 }
 
-// POST /api/zxp/unstake { wallet, position_id, action: 'request' | 'complete' }
+// POST /api/zxp/unstake { wallet, position_id, action: 'request' | 'cancel' | 'complete' }
 export async function POST(req: NextRequest) {
   const wallet = requireAuth(req)
   if (!wallet) return unauthorized()
@@ -59,6 +59,19 @@ export async function POST(req: NextRequest) {
       .eq('id', position_id)
 
     return NextResponse.json({ ok: true, available_at: available, cooldown_minutes: COOLDOWN_MINUTES })
+  }
+
+  // ── Cancel unstake (re-activate before cooldown completes) ────
+  if (action === 'cancel') {
+    if (pos.status !== 'unstaking') {
+      return NextResponse.json({ error: 'Position is not unstaking' }, { status: 400 })
+    }
+    await supabaseAdmin
+      .from('staking_positions')
+      .update({ status: 'active', unstake_requested_at: null, unstake_available_at: null })
+      .eq('id', position_id)
+
+    return NextResponse.json({ ok: true, status: 'active' })
   }
 
   // ── Complete unstake ─────────────────────────────────────────
@@ -110,11 +123,12 @@ export async function POST(req: NextRequest) {
         `💰 <b>+${rewards} ZXP</b> — Staking rewards\n` +
         `Unstaked ${pos.amount} ZXP + ${rewards} ZXP rewards · Balance: ${newBalance} ZXP\n\n` +
         `<a href="https://app.zexus.xyz">Open Zexus</a>`,
+        'notifZxp',
       )
     }
 
     return NextResponse.json({ ok: true, returned: pos.amount, rewards, balance: newBalance, staked: newStaked })
   }
 
-  return NextResponse.json({ error: 'Invalid action (use request or complete)' }, { status: 400 })
+  return NextResponse.json({ error: 'Invalid action (use request, cancel, or complete)' }, { status: 400 })
 }

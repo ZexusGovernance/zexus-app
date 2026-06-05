@@ -93,6 +93,7 @@ export async function POST(
       `"${(market.title as string).slice(0, 60)}"\n` +
       `Balance: ${newBal} ZXP\n\n` +
       `<a href="https://app.zexus.xyz">Open Zexus</a>`,
+      'notifZxp',
     )
     totalPaid += payout
   }

@@ -420,7 +420,7 @@ function RoadmapTab({ milestones, loading }: { milestones: Milestone[]; loading:
     in_progress:          'In progress',
     upcoming:             'Planned',
     pending_confirmation: 'Awaiting vote',
-    disputed:             'Disputed',
+    disputed:             'Rejected',
     missed:               'Missed',
   }
   const STATUS_COLOR: Record<string, string> = {
@@ -2204,7 +2204,7 @@ export default function ProjectProfilePage() {
                           m.status === 'completed'            ? '✓ Done'        :
                           m.status === 'in_progress'          ? '◉ Active'      :
                           m.status === 'pending_confirmation' ? '⏳ Voting…'    :
-                          m.status === 'disputed'             ? '✕ Disputed'    :
+                          m.status === 'disputed'             ? '✕ Rejected'    :
                           m.status === 'missed'               ? '✕ Missed'      : '○ Planned'
                         return (
                           <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(255,255,255,0.02)', border: `0.5px solid ${m.status === 'pending_confirmation' ? 'rgba(201,165,90,0.25)' : m.status === 'disputed' ? 'rgba(224,112,112,0.2)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 8 }}>
@@ -2221,13 +2221,14 @@ export default function ProjectProfilePage() {
                             ) : (
                               <span style={{ fontSize: 10, fontWeight: 600, color: statusColor, padding: '2px 6px' }}>{statusLabel}</span>
                             )}
-                            {/* Submit for community confirmation — only for in_progress */}
-                            {m.status === 'in_progress' && (
+                            {/* Submit for community confirmation — in_progress, or resubmit after a rejected/missed vote */}
+                            {(m.status === 'in_progress' || m.status === 'disputed' || m.status === 'missed') && (
                               <button
                                 onClick={() => submitForConfirmation(m)}
-                                title="Submit for community confirmation"
+                                title={m.status === 'in_progress' ? 'Submit for community confirmation' : 'Resubmit for community confirmation'}
                                 style={{ background: 'rgba(201,165,90,0.1)', border: '0.5px solid rgba(201,165,90,0.35)', borderRadius: 6, cursor: 'pointer', padding: '3px 8px', fontSize: 10, fontWeight: 600, color: '#c9a55a', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                                <i className="ph-bold ph-users" style={{ marginRight: 4 }} />Confirm
+                                <i className={`ph-bold ${m.status === 'in_progress' ? 'ph-users' : 'ph-arrow-counter-clockwise'}`} style={{ marginRight: 4 }} />
+                                {m.status === 'in_progress' ? 'Confirm' : 'Resubmit'}
                               </button>
                             )}
                             {/* Delete — not allowed when pending or completed */}

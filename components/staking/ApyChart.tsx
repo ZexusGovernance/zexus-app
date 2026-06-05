@@ -31,7 +31,7 @@ export default function ApyChart({ currentApy = 8 }: { currentApy?: number }) {
       {/* Tier bonuses */}
       <div style={{
         marginTop: 10, display: 'flex', justifyContent: 'space-between',
-        padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 6,
+        padding: '7px 10px', background: 'transparent', borderRadius: 6,
         fontSize: 10, color: 'var(--muted)',
       }}>
         <span>30d → 1.05x</span>

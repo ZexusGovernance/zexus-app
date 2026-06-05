@@ -14,18 +14,20 @@ export async function sendTelegramMessage(chatId: number | bigint, text: string)
   } catch { /* silent — notifications are non-critical */ }
 }
 
-// Send to a single wallet if they have Telegram connected
-export async function notifyWallet(wallet: string, text: string) {
+// Send to a single wallet if they have Telegram connected.
+// prefKey (optional) gates delivery by the recipient's notification settings —
+// the message is skipped only if the user explicitly turned that preference off.
+export async function notifyWallet(wallet: string, text: string, prefKey?: string) {
   if (!TOKEN) return
   try {
     const { data } = await supabaseAdmin
       .from('profiles')
-      .select('telegram_chat_id')
+      .select('telegram_chat_id, settings')
       .eq('wallet_address', wallet.toLowerCase())
       .maybeSingle()
-    if (data?.telegram_chat_id) {
-      await sendTelegramMessage(data.telegram_chat_id as number, text)
-    }
+    if (!data?.telegram_chat_id) return
+    if (prefKey && (data.settings as Record<string, boolean> | null)?.[prefKey] === false) return
+    await sendTelegramMessage(data.telegram_chat_id as number, text)
   } catch { /* silent */ }
 }
 
