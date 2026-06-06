@@ -78,7 +78,7 @@ export default function PublicProfilePage({ wallet }: { wallet: string }) {
                 <div style={{ width: 56, height: 56, borderRadius: 14, overflow: 'hidden', flexShrink: 0 }}>
                   {data.avatar_url
                     ? <img src={data.avatar_url} alt="" style={{ width: 56, height: 56, objectFit: 'cover' }} />
-                    : <Avatar size={56} name={wallet} variant="marble" colors={AVATAR_COLORS} square />}
+                    : <Avatar size={56} name={wallet.toLowerCase()} variant="marble" colors={AVATAR_COLORS} square />}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -37,12 +37,18 @@ function walletAv(wallet: string): string {
   return AV_CLASSES[hash % AV_CLASSES.length]
 }
 
-function CommentAvatar({ wallet, letter, av, size = 28 }: { wallet: string; letter: string; av: string; size?: number }) {
-  return wallet ? (
-    <div style={{ width: size, height: size, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-      <Avatar size={size} name={wallet} variant="marble" colors={AVATAR_COLORS} square />
-    </div>
-  ) : (
+function CommentAvatar({ wallet, letter, av, size = 28, avatarUrl }: { wallet: string; letter: string; av: string; size?: number; avatarUrl?: string | null }) {
+  if (wallet) {
+    return (
+      <div style={{ width: size, height: size, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
+        {avatarUrl
+          ? <img src={avatarUrl} alt="" style={{ width: size, height: size, objectFit: 'cover' }} />
+          // Seed is lowercased so it matches the wallet's profile avatar exactly
+          : <Avatar size={size} name={wallet.toLowerCase()} variant="marble" colors={AVATAR_COLORS} square />}
+      </div>
+    )
+  }
+  return (
     <div className={`proj-av ${av}`} style={{ width: size, height: size, fontSize: Math.round(size * 0.4), borderRadius: 8, flexShrink: 0 }}>
       {letter}
     </div>
@@ -132,7 +138,7 @@ async function doShare(post: FeedPost, setCopied: (v: boolean) => void) {
 
 interface Comment {
   id: string; author: string; letter: string; av: string; text: string; time: string; wallet: string
-  parentId: string | null
+  parentId: string | null; avatarUrl: string | null
 }
 
 interface CommentLikeState {
@@ -161,10 +167,23 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onRe
       className={`comment-item${animClass}`}
       style={shouldAnimate ? { animationDelay: `${idx * 60}ms` } : undefined}
     >
-      <CommentAvatar wallet={c.wallet} letter={c.letter} av={c.av} size={isReply ? 24 : 28} />
+      {c.wallet ? (
+        <Link href={`/u/${c.wallet}`} title="View profile" style={{ display: 'flex', flexShrink: 0, textDecoration: 'none' }}>
+          <CommentAvatar wallet={c.wallet} letter={c.letter} av={c.av} size={isReply ? 24 : 28} avatarUrl={c.avatarUrl} />
+        </Link>
+      ) : (
+        <CommentAvatar wallet={c.wallet} letter={c.letter} av={c.av} size={isReply ? 24 : 28} avatarUrl={c.avatarUrl} />
+      )}
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
-          <span style={{ color: 'var(--text)', fontWeight: 500 }}>{c.author}</span>&nbsp;·&nbsp;{c.time}
+          {c.wallet ? (
+            <Link href={`/u/${c.wallet}`} style={{ color: 'var(--text)', fontWeight: 500, textDecoration: 'none' }}>
+              {c.author}
+            </Link>
+          ) : (
+            <span style={{ color: 'var(--text)', fontWeight: 500 }}>{c.author}</span>
+          )}
+          &nbsp;·&nbsp;{c.time}
         </div>
         <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.55, overflowWrap: 'break-word' }}>
           <TextWithLinks text={c.text} />
@@ -319,17 +338,18 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
       fetch(`/api/comments?post_id=${post.id}`)
         .then(r => r.json())
-        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string }[] }) => {
+        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string; avatar_url: string | null }[] }) => {
           if (!comments) return
           const mapped = comments.map(c => ({
-            id:       c.id,
-            author:   `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
-            letter:   c.author_wallet.slice(2, 3).toUpperCase(),
-            av:       walletAv(c.author_wallet),
-            text:     c.content,
-            time:     relativeTime(c.created_at),
-            wallet:   c.author_wallet,
-            parentId: c.parent_id ?? null,
+            id:        c.id,
+            author:    `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
+            letter:    c.author_wallet.slice(2, 3).toUpperCase(),
+            av:        walletAv(c.author_wallet),
+            text:      c.content,
+            time:      relativeTime(c.created_at),
+            wallet:    c.author_wallet,
+            parentId:  c.parent_id ?? null,
+            avatarUrl: c.avatar_url ?? null,
           }))
           setDbComments(mapped)
           mapped.forEach(c => {
@@ -367,14 +387,15 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
       if (res?.ok) {
         const { comment } = await res.json() as { comment: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string } }
         const newC: Comment = {
-          id:       comment.id,
-          author:   `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
-          letter:   comment.author_wallet.slice(2, 3).toUpperCase(),
-          av:       walletAv(comment.author_wallet),
-          text:     comment.content,
-          time:     'just now',
-          wallet:   comment.author_wallet,
-          parentId: comment.parent_id ?? null,
+          id:        comment.id,
+          author:    `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
+          letter:    comment.author_wallet.slice(2, 3).toUpperCase(),
+          av:        walletAv(comment.author_wallet),
+          text:      comment.content,
+          time:      'just now',
+          wallet:    comment.author_wallet,
+          parentId:  comment.parent_id ?? null,
+          avatarUrl: profile?.avatar_url ?? null,
         }
         setDbComments(prev => [...prev, newC])
         setNewCommentIds(prev => new Set([...prev, newC.id]))
@@ -467,7 +488,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const badgeStyle = votingOutcome ? OUTCOME_BADGE[votingOutcome].style : { ...votingBadge, ...investBadge }
 
   const staticComments: Comment[] = post.comments.map((c, i) => ({
-    id: String(i), author: c.author, letter: c.letter, av: c.av, text: c.text, time: c.time, wallet: '', parentId: null,
+    id: String(i), author: c.author, letter: c.letter, av: c.av, text: c.text, time: c.time, wallet: '', parentId: null, avatarUrl: null,
   }))
   const allComments = isDbPost ? dbComments : staticComments
 
@@ -860,7 +881,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
         {/* Composer — pinned to the bottom of the modal */}
         <div className="post-modal-foot">
-          <CommentAvatar wallet={address ?? ''} letter={myLetter} av={myAv} />
+          <CommentAvatar wallet={address ?? ''} letter={myLetter} av={myAv} avatarUrl={profile?.avatar_url ?? null} />
           <input
             ref={inputRef}
             className="comment-input"

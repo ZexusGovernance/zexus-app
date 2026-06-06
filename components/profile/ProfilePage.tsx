@@ -293,7 +293,7 @@ export default function ProfilePage() {
               <img src={customAvatar} alt={avatarLetter} className="avatar ui-fade-in" style={{ objectFit: 'cover' }} />
             ) : address ? (
               <div className="avatar ui-fade-in" style={{ overflow: 'hidden', display: 'flex' }}>
-                <Avatar size={56} name={address} variant="marble" colors={AVATAR_COLORS} square />
+                <Avatar size={56} name={address.toLowerCase()} variant="marble" colors={AVATAR_COLORS} square />
               </div>
             ) : (
               <div className="avatar">{avatarLetter}</div>
@@ -753,7 +753,7 @@ export default function ProfilePage() {
                   <div style={{ padding: '10px 14px 14px', display: 'flex', alignItems: 'center', gap: 14 }}>
                     {address && (
                       <div style={{ width: 56, height: 56, borderRadius: 14, overflow: 'hidden', flexShrink: 0 }}>
-                        <Avatar size={56} name={address} variant="marble" colors={AVATAR_COLORS} square />
+                        <Avatar size={56} name={address.toLowerCase()} variant="marble" colors={AVATAR_COLORS} square />
                       </div>
                     )}
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.65 }}>
