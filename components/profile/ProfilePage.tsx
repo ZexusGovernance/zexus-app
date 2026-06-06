@@ -91,6 +91,7 @@ export default function ProfilePage() {
   const [notifVerdicts, setNotifVerdicts] = useState(s.notifVerdicts ?? true)
   const [notifProjects, setNotifProjects] = useState(s.notifProjects ?? false)
   const [notifZxp, setNotifZxp] = useState(s.notifZxp ?? true)
+  const [notifReplies, setNotifReplies] = useState(s.notifReplies ?? true)
   const [publicProfile, setPublicProfile] = useState(s.publicProfile ?? true)
   const [showLeaderboard, setShowLeaderboard] = useState(s.showLeaderboard ?? true)
   const [anonVoting, setAnonVoting] = useState(s.anonVoting ?? false)
@@ -182,6 +183,7 @@ export default function ProfilePage() {
     if (s.notifVerdicts !== undefined) setNotifVerdicts(s.notifVerdicts)
     if (s.notifProjects !== undefined) setNotifProjects(s.notifProjects)
     if (s.notifZxp !== undefined) setNotifZxp(s.notifZxp)
+    if (s.notifReplies !== undefined) setNotifReplies(s.notifReplies)
     if (s.publicProfile !== undefined) setPublicProfile(s.publicProfile)
     if (s.showLeaderboard !== undefined) setShowLeaderboard(s.showLeaderboard)
     if (s.anonVoting !== undefined) setAnonVoting(s.anonVoting)
@@ -794,6 +796,14 @@ export default function ProfilePage() {
                     </div>
                     <div className={`settings-toggle${notifZxp ? ' on' : ''}`}
                       onClick={() => toggle('notifZxp', notifZxp, setNotifZxp)}></div>
+                  </div>
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <div className="settings-row-name">Comment replies</div>
+                      <div className="settings-row-desc">Notify (in-app & Telegram) when someone replies to your comment</div>
+                    </div>
+                    <div className={`settings-toggle${notifReplies ? ' on' : ''}`}
+                      onClick={() => toggle('notifReplies', notifReplies, setNotifReplies)}></div>
                   </div>
                 </div>
                 <div className="settings-group">

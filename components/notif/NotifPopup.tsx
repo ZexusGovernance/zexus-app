@@ -27,7 +27,7 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 86400)}d ago`
 }
 
-const TYPE_ICON: Record<string, string> = { verdict: '✅', alert: '⚠️', update: '📢' }
+const TYPE_ICON: Record<string, string> = { verdict: '✅', alert: '⚠️', update: '📢', reply: '💬' }
 
 export default function NotifPopup({
   address, notifs, unread, loaded,

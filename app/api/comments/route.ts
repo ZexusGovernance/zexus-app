@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { grantOnboardingReward } from '@/lib/onboarding'
+import { notifyCommentReply } from '@/lib/notify'
 import { requireAuth, unauthorized } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
@@ -54,17 +55,19 @@ export async function POST(req: NextRequest) {
 
   // Replies are single-level: resolve the target to its root comment so a
   // reply-to-a-reply attaches to the same top-level thread rather than nesting.
-  let rootParentId: string | null = null
+  let rootParentId:  string | null = null
+  let replyToAuthor: string | null = null
   if (parent_id) {
     const { data: parent } = await supabaseAdmin
       .from('post_comments')
-      .select('id, post_id, parent_id')
+      .select('id, post_id, parent_id, author_wallet')
       .eq('id', parent_id)
       .maybeSingle()
     if (!parent || parent.post_id !== post_id) {
       return NextResponse.json({ error: 'Invalid parent comment' }, { status: 400 })
     }
-    rootParentId = parent.parent_id ?? parent.id
+    rootParentId  = parent.parent_id ?? parent.id
+    replyToAuthor = parent.author_wallet  // notify whoever was actually replied to
   }
 
   const { data: comment, error } = await supabaseAdmin
@@ -76,6 +79,22 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   await grantOnboardingReward(wallet.toLowerCase(), 'comment')
+
+  // Notify the author of the comment that was replied to (in-app + Telegram).
+  if (replyToAuthor) {
+    const { data: post } = await supabaseAdmin
+      .from('posts')
+      .select('project_id')
+      .eq('id', post_id)
+      .maybeSingle()
+    await notifyCommentReply({
+      recipientWallet: replyToAuthor,
+      replierWallet:   wallet,
+      postId:          post_id,
+      projectId:       (post?.project_id as string | null) ?? null,
+      replyText:       content.trim(),
+    }).catch(() => { /* notifications are non-critical */ })
+  }
 
   return NextResponse.json({ comment }, { status: 201 })
 }
