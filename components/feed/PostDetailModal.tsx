@@ -37,13 +37,13 @@ function walletAv(wallet: string): string {
   return AV_CLASSES[hash % AV_CLASSES.length]
 }
 
-function CommentAvatar({ wallet, letter, av }: { wallet: string; letter: string; av: string }) {
+function CommentAvatar({ wallet, letter, av, size = 28 }: { wallet: string; letter: string; av: string; size?: number }) {
   return wallet ? (
-    <div style={{ width: 28, height: 28, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-      <Avatar size={28} name={wallet} variant="marble" colors={AVATAR_COLORS} square />
+    <div style={{ width: size, height: size, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
+      <Avatar size={size} name={wallet} variant="marble" colors={AVATAR_COLORS} square />
     </div>
   ) : (
-    <div className={`proj-av ${av}`} style={{ width: 28, height: 28, fontSize: 11, borderRadius: 8, flexShrink: 0 }}>
+    <div className={`proj-av ${av}`} style={{ width: size, height: size, fontSize: Math.round(size * 0.4), borderRadius: 8, flexShrink: 0 }}>
       {letter}
     </div>
   )
@@ -132,6 +132,7 @@ async function doShare(post: FeedPost, setCopied: (v: boolean) => void) {
 
 interface Comment {
   id: string; author: string; letter: string; av: string; text: string; time: string; wallet: string
+  parentId: string | null
 }
 
 interface CommentLikeState {
@@ -148,9 +149,11 @@ interface CommentRowProps {
   isDbPost: boolean
   likeState: CommentLikeState
   onLike: () => void
+  onReply?: () => void
+  isReply?: boolean
 }
 
-function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike }: CommentRowProps) {
+function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onReply, isReply }: CommentRowProps) {
   const shouldAnimate = isNew || revealed
   const animClass = isNew ? ' comment-new' : revealed ? ' comment-enter-anim' : ''
   return (
@@ -158,7 +161,7 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike }: Co
       className={`comment-item${animClass}`}
       style={shouldAnimate ? { animationDelay: `${idx * 60}ms` } : undefined}
     >
-      <CommentAvatar wallet={c.wallet} letter={c.letter} av={c.av} />
+      <CommentAvatar wallet={c.wallet} letter={c.letter} av={c.av} size={isReply ? 24 : 28} />
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
           <span style={{ color: 'var(--text)', fontWeight: 500 }}>{c.author}</span>&nbsp;·&nbsp;{c.time}
@@ -166,22 +169,37 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike }: Co
         <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.55, overflowWrap: 'break-word' }}>
           <TextWithLinks text={c.text} />
         </div>
+        {isDbPost && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: -3, marginLeft: -12 }}>
+            <button
+              onClick={onLike}
+              title={likeState.liked ? 'Unlike' : 'Like'}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4, padding: 0,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: likeState.liked ? 'var(--red)' : 'var(--muted2)', fontSize: 11,
+                fontFamily: 'inherit', transition: 'color 0.15s',
+              }}
+            >
+              <i className={`${likeState.liked ? 'ph-fill' : 'ph-bold'} ph-heart`} style={{ fontSize: 13 }} />
+              {likeState.count > 0 && <span>{likeState.count}</span>}
+            </button>
+            {onReply && (
+              <button
+                onClick={onReply}
+                title="Reply"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', padding: 0,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--muted2)', fontSize: 13, transition: 'color 0.15s',
+                }}
+              >
+                <i className="ph-bold ph-arrow-bend-up-left" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
-      {isDbPost && (
-        <button
-          onClick={onLike}
-          title={likeState.liked ? 'Unlike' : 'Like'}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 3, padding: '3px 6px',
-            background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
-            color: likeState.liked ? 'var(--red)' : 'var(--muted2)', fontSize: 11,
-            transition: 'color 0.15s',
-          }}
-        >
-          <i className={`${likeState.liked ? 'ph-fill' : 'ph-bold'} ph-heart`} style={{ fontSize: 12 }} />
-          {likeState.count > 0 && <span>{likeState.count}</span>}
-        </button>
-      )}
     </div>
   )
 }
@@ -210,6 +228,13 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const [newCommentIds,   setNewCommentIds]    = useState<Set<string>>(new Set())
   const [revealedIds,     setRevealedIds]      = useState<Set<string>>(new Set())
   const [commentLikes,    setCommentLikes]     = useState<Record<string, CommentLikeState>>({})
+  const [replyTo,         setReplyTo]          = useState<{ parentId: string; author: string } | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const startReply = (parentId: string, author: string) => {
+    setReplyTo({ parentId, author })
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
 
   // ── Live voting (real DB voting posts) ──────────────────────────────────────
   const isRealVoting = !!post && isDbPost && post.type === 'voting'
@@ -277,6 +302,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
     setNewCommentIds(new Set())
     setRevealedIds(new Set())
     setCommentLikes({})
+    setReplyTo(null)
 
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
@@ -293,16 +319,17 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
       fetch(`/api/comments?post_id=${post.id}`)
         .then(r => r.json())
-        .then(({ comments }: { comments: { id: string; author_wallet: string; content: string; created_at: string }[] }) => {
+        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string }[] }) => {
           if (!comments) return
           const mapped = comments.map(c => ({
-            id:     c.id,
-            author: `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
-            letter: c.author_wallet.slice(2, 3).toUpperCase(),
-            av:     walletAv(c.author_wallet),
-            text:   c.content,
-            time:   relativeTime(c.created_at),
-            wallet: c.author_wallet,
+            id:       c.id,
+            author:   `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
+            letter:   c.author_wallet.slice(2, 3).toUpperCase(),
+            av:       walletAv(c.author_wallet),
+            text:     c.content,
+            time:     relativeTime(c.created_at),
+            wallet:   c.author_wallet,
+            parentId: c.parent_id ?? null,
           }))
           setDbComments(mapped)
           mapped.forEach(c => {
@@ -334,25 +361,27 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: identifier, post_id: post.id, content: commentText.trim() }),
+        body: JSON.stringify({ wallet: identifier, post_id: post.id, content: commentText.trim(), parent_id: replyTo?.parentId ?? null }),
       }).catch(() => null)
 
       if (res?.ok) {
-        const { comment } = await res.json() as { comment: { id: string; author_wallet: string; content: string; created_at: string } }
-        const newC = {
-          id:         comment.id,
-          author:     `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
-          letter:     comment.author_wallet.slice(2, 3).toUpperCase(),
-          av:     walletAv(comment.author_wallet),
-          text:   comment.content,
-          time:   'just now',
-          wallet: comment.author_wallet,
+        const { comment } = await res.json() as { comment: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string } }
+        const newC: Comment = {
+          id:       comment.id,
+          author:   `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
+          letter:   comment.author_wallet.slice(2, 3).toUpperCase(),
+          av:       walletAv(comment.author_wallet),
+          text:     comment.content,
+          time:     'just now',
+          wallet:   comment.author_wallet,
+          parentId: comment.parent_id ?? null,
         }
         setDbComments(prev => [...prev, newC])
         setNewCommentIds(prev => new Set([...prev, newC.id]))
         setRevealedIds(prev => new Set([...prev, newC.id]))
         setCommentLikes(prev => ({ ...prev, [newC.id]: { liked: false, count: 0, loading: false } }))
         setShowAllComments(true)
+        setReplyTo(null)
         window.dispatchEvent(new Event('zx:onboarding'))
       }
     }
@@ -438,14 +467,57 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const badgeStyle = votingOutcome ? OUTCOME_BADGE[votingOutcome].style : { ...votingBadge, ...investBadge }
 
   const staticComments: Comment[] = post.comments.map((c, i) => ({
-    id: String(i), author: c.author, letter: c.letter, av: c.av, text: c.text, time: c.time, wallet: '',
+    id: String(i), author: c.author, letter: c.letter, av: c.av, text: c.text, time: c.time, wallet: '', parentId: null,
   }))
   const allComments = isDbPost ? dbComments : staticComments
+
+  // Group into single-level threads: top-level comments + their replies.
+  const topLevel = allComments.filter(c => !c.parentId)
+  const repliesByParent: Record<string, Comment[]> = {}
+  for (const c of allComments) {
+    if (c.parentId) (repliesByParent[c.parentId] ??= []).push(c)
+  }
 
   const myLetter = address ? address.slice(2, 3).toUpperCase() : 'U'
   const myAv     = address ? walletAv(address) : 'av-gold'
 
   const EMPTY_LIKE: CommentLikeState = { liked: false, count: 0, loading: false }
+
+  const renderThread = (c: Comment, idx: number) => {
+    const replies = repliesByParent[c.id] ?? []
+    return (
+      <div key={c.id}>
+        <CommentRow
+          c={c}
+          idx={idx}
+          isNew={newCommentIds.has(c.id)}
+          revealed={revealedIds.has(c.id)}
+          isDbPost={isDbPost}
+          likeState={commentLikes[c.id] ?? EMPTY_LIKE}
+          onLike={() => toggleCommentLike(c.id)}
+          onReply={() => startReply(c.id, c.author)}
+        />
+        {replies.length > 0 && (
+          <div style={{ marginLeft: 20, paddingLeft: 14, borderLeft: '1.5px solid var(--border)' }}>
+            {replies.map((r, ri) => (
+              <CommentRow
+                key={r.id}
+                c={r}
+                idx={ri}
+                isReply
+                isNew={newCommentIds.has(r.id)}
+                revealed={revealedIds.has(r.id)}
+                isDbPost={isDbPost}
+                likeState={commentLikes[r.id] ?? EMPTY_LIKE}
+                onLike={() => toggleCommentLike(r.id)}
+                onReply={() => startReply(c.id, r.author)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const timeDisplay = post.createdAt ? exactTime(post.createdAt) : post.time
 
@@ -728,23 +800,16 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
               </div>
             )}
 
-            {allComments.slice(0, 3).map((c, idx) => (
-              <CommentRow
-                key={c.id}
-                c={c}
-                idx={idx}
-                isNew={newCommentIds.has(c.id)}
-                revealed={revealedIds.has(c.id)}
-                isDbPost={isDbPost}
-                likeState={commentLikes[c.id] ?? EMPTY_LIKE}
-                onLike={() => toggleCommentLike(c.id)}
-              />
-            ))}
+            {topLevel.slice(0, 3).map((c, idx) => renderThread(c, idx))}
 
-            {allComments.length > 3 && !showAllComments && (
+            {topLevel.length > 3 && !showAllComments && (
               <button
                 onClick={() => {
-                  const toReveal = new Set(allComments.slice(3).map(c => c.id))
+                  const toReveal = new Set<string>()
+                  topLevel.slice(3).forEach(c => {
+                    toReveal.add(c.id)
+                    ;(repliesByParent[c.id] ?? []).forEach(r => toReveal.add(r.id))
+                  })
                   setRevealedIds(prev => new Set([...prev, ...toReveal]))
                   setShowAllComments(true)
                 }}
@@ -753,24 +818,13 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
                   fontSize: 12, fontFamily: 'inherit', marginBottom: 8 }}
               >
                 <i className="ph-bold ph-caret-down" style={{ fontSize: 13 }} />
-                Show {allComments.length - 3} more {allComments.length - 3 === 1 ? 'comment' : 'comments'}
+                Show {topLevel.length - 3} more {topLevel.length - 3 === 1 ? 'comment' : 'comments'}
               </button>
             )}
 
-            {showAllComments && allComments.slice(3).map((c, idx) => (
-              <CommentRow
-                key={c.id}
-                c={c}
-                idx={idx}
-                isNew={newCommentIds.has(c.id)}
-                revealed={revealedIds.has(c.id)}
-                isDbPost={isDbPost}
-                likeState={commentLikes[c.id] ?? EMPTY_LIKE}
-                onLike={() => toggleCommentLike(c.id)}
-              />
-            ))}
+            {showAllComments && topLevel.slice(3).map((c, idx) => renderThread(c, idx + 3))}
 
-            {showAllComments && allComments.length > 3 && (
+            {showAllComments && topLevel.length > 3 && (
               <button
                 onClick={() => { setShowAllComments(false); setRevealedIds(new Set()) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0',
@@ -785,12 +839,32 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
           </div>
         </div>
 
+        {/* Reply context chip — sits just above the composer */}
+        {replyTo && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+            borderTop: '0.5px solid var(--border)', fontSize: 12, color: 'var(--muted)',
+          }}>
+            <i className="ph-bold ph-arrow-bend-up-left" style={{ color: 'var(--gold)', fontSize: 12 }} />
+            Replying to&nbsp;<span style={{ color: 'var(--text)', fontWeight: 500 }}>{replyTo.author}</span>
+            <button
+              onClick={() => setReplyTo(null)}
+              title="Cancel reply"
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--muted2)', fontSize: 13, padding: 2, display: 'flex' }}
+            >
+              <i className="ph-bold ph-x" />
+            </button>
+          </div>
+        )}
+
         {/* Composer — pinned to the bottom of the modal */}
         <div className="post-modal-foot">
           <CommentAvatar wallet={address ?? ''} letter={myLetter} av={myAv} />
           <input
+            ref={inputRef}
             className="comment-input"
-            placeholder={address ? 'Add a comment…' : 'Connect wallet to comment'}
+            placeholder={address ? (replyTo ? `Reply to ${replyTo.author}…` : 'Add a comment…') : 'Connect wallet to comment'}
             value={commentText}
             onChange={e => setCommentText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment() } }}

@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
 
   const { data: comments, error } = await supabaseAdmin
     .from('post_comments')
-    .select('id, author_wallet, content, created_at')
+    .select('id, parent_id, author_wallet, content, created_at')
     .eq('post_id', post_id)
     .order('created_at', { ascending: true })
-    .limit(50)
+    .limit(200)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { post_id, content } = body
+  const { post_id, content, parent_id } = body
 
   if (!post_id || !content?.trim()) {
     return NextResponse.json({ error: 'post_id and content are required' }, { status: 400 })
@@ -52,10 +52,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Comment exceeds 500 characters' }, { status: 400 })
   }
 
+  // Replies are single-level: resolve the target to its root comment so a
+  // reply-to-a-reply attaches to the same top-level thread rather than nesting.
+  let rootParentId: string | null = null
+  if (parent_id) {
+    const { data: parent } = await supabaseAdmin
+      .from('post_comments')
+      .select('id, post_id, parent_id')
+      .eq('id', parent_id)
+      .maybeSingle()
+    if (!parent || parent.post_id !== post_id) {
+      return NextResponse.json({ error: 'Invalid parent comment' }, { status: 400 })
+    }
+    rootParentId = parent.parent_id ?? parent.id
+  }
+
   const { data: comment, error } = await supabaseAdmin
     .from('post_comments')
-    .insert({ post_id, author_wallet: wallet.toLowerCase(), content: content.trim() })
-    .select('id, author_wallet, content, created_at')
+    .insert({ post_id, parent_id: rootParentId, author_wallet: wallet.toLowerCase(), content: content.trim() })
+    .select('id, parent_id, author_wallet, content, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

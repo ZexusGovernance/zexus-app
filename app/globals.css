@@ -3642,8 +3642,26 @@ body::after {
 .burn-pill     { font-size: 11px !important; padding: 4px 9px !important; min-height: 28px !important; border-radius: 999px !important; }
 /* ════════════ STAKING — compact tweaks ════════════ */
 
+/* Bound the staking column's height so a tall "My stake" list (multiple active
+   positions) overflows into the inner .scroll instead of growing past the
+   viewport and being clipped by .page/.center overflow:hidden — which left the
+   bottom of the Off-chain section unreachable on both desktop and mobile.
+   The grid row is pinned to minmax(0,1fr) and .center to a definite height so
+   the flex child (.scroll) reliably gets a bounded height to scroll within,
+   even on mobile engines where grid auto-stretch + overflow:hidden is flaky. */
+#page-staking.page.active { grid-template-rows: minmax(0, 1fr); }
+#page-staking > .center { height: 100%; min-height: 0; overflow: hidden; }
+
 /* ════ STAKING — flex rows via JS wrapper divs ════ */
-#page-staking .scroll { gap: 8px !important; padding-top: 8px !important; }
+#page-staking .scroll {
+  gap: 8px !important;
+  padding-top: 8px !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
 #page-staking .staking-row { display: flex; gap: 8px; align-items: flex-start; }
 #page-staking .staking-row > * { flex: 1; min-width: 0; }
 /* Summary strip */
@@ -4418,7 +4436,7 @@ input[data-burn-slider]::-moz-range-thumb {
 .comment-item {
   display: flex;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 .comment-item.comment-enter-anim {
   opacity: 0;

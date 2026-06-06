@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
     posts30dRes,
     checkins30dRes,
     supplyHistoryRes,
+    telegramRes,
+    predictRes,
   ] = await Promise.all([
     supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('projects').select('*', { count: 'exact', head: true }),
@@ -49,6 +51,8 @@ export async function GET(req: NextRequest) {
     supabaseAdmin.from('posts').select('created_at').gte('created_at', thirtyDaysAgo),
     supabaseAdmin.from('daily_checkins').select('checkin_date').gte('checkin_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)),
     supabaseAdmin.from('zxp_supply_snapshots').select('date, circulating, staked').order('date', { ascending: true }).limit(60),
+    supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }).not('telegram_chat_id', 'is', null),
+    supabaseAdmin.from('predict_markets').select('pool_a, pool_b').neq('status', 'resolved'),
   ])
 
   // ZXP totals — circulating includes staked (staked is still user-owned)
@@ -56,6 +60,10 @@ export async function GET(req: NextRequest) {
   const totalStaked      = profiles.reduce((s, p) => s + (p.zxp_staked  ?? 0), 0)
   const totalCirculating = profiles.reduce((s, p) => s + (p.zxp_balance ?? 0) + (p.zxp_staked ?? 0), 0)
   const totalEarnedToday = (zxpTodayRes.data ?? []).reduce((s, r) => s + (r.amount ?? 0), 0)
+
+  // ZXP currently locked in unresolved predict markets (pool_a + pool_b)
+  const predictMarkets = predictRes.data ?? []
+  const predictLocked  = predictMarkets.reduce((s, m) => s + (m.pool_a ?? 0) + (m.pool_b ?? 0), 0)
 
   // Upsert today's supply snapshot
   await supabaseAdmin.from('zxp_supply_snapshots').upsert(
@@ -127,11 +135,14 @@ export async function GET(req: NextRequest) {
       total_checkins:         checkinsRes.count    ?? 0,
       new_users_today:        newUsersRes.count    ?? 0,
       active_users_7d:        active7d,
+      telegram_connected:     telegramRes.count    ?? 0,
     },
     zxp: {
       total_circulating:  totalCirculating,
       total_staked:       totalStaked,
       earned_today:       totalEarnedToday,
+      predict_locked:     predictLocked,
+      predict_markets:    predictMarkets.length,
     },
     top_holders: (topHoldersRes.data ?? []).map((p, i) => ({
       rank:    i + 1,

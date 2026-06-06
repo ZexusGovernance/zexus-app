@@ -101,12 +101,14 @@ CREATE INDEX posts_project_id_idx ON posts(project_id);
 CREATE TABLE post_comments (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id        UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  parent_id      UUID REFERENCES post_comments(id) ON DELETE CASCADE,
   author_wallet  TEXT NOT NULL,
   content        TEXT NOT NULL CHECK (length(content) BETWEEN 1 AND 500),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX comments_post_id_idx ON post_comments(post_id);
+CREATE INDEX comments_post_id_idx   ON post_comments(post_id);
+CREATE INDEX comments_parent_id_idx ON post_comments(parent_id);
 
 
 -- ── STEP 7: post_reactions ─────────────────────────────────────

@@ -382,8 +382,12 @@ interface Analytics {
     total_users: number; total_projects: number; total_posts: number
     total_likes: number; total_comments: number; total_watchlist_entries: number
     total_checkins: number; new_users_today: number; active_users_7d: number
+    telegram_connected: number
   }
-  zxp: { total_circulating: number; total_staked: number; earned_today: number }
+  zxp: {
+    total_circulating: number; total_staked: number; earned_today: number
+    predict_locked: number; predict_markets: number
+  }
   top_holders: { rank: number; wallet: string; balance: number; streak: number }[]
   top_stakers: { rank: number; wallet: string; staked: number }[]
   posts_7d:     { date: string; count: number }[]
@@ -396,18 +400,47 @@ interface Analytics {
 
 // ── Mini spark bar ─────────────────────────────────────────────────────────────
 
-function SparkBars({ data, color }: { data: { date: string; count: number }[]; color: string }) {
+// 'YYYY-MM-DD' → 'Jun 6'
+function fmtDay(iso: string) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const [, m, d] = iso.split('-').map(Number)
+  return `${months[(m ?? 1) - 1]} ${d}`
+}
+
+function SparkBars({ data, color, unit }: { data: { date: string; count: number }[]; color: string; unit: string }) {
+  const [hover, setHover] = useState<number | null>(null)
   const max = Math.max(...data.map(d => d.count), 1)
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 40 }}>
-      {data.map(d => (
-        <div key={d.date} title={`${d.date}: ${d.count}`} style={{
-          flex: 1, background: color,
-          height: `${Math.max(4, (d.count / max) * 100)}%`,
-          borderRadius: '2px 2px 0 0', opacity: d.count === 0 ? 0.2 : 0.85,
-          transition: 'height 0.3s',
-        }} />
-      ))}
+    <div style={{ position: 'relative' }}>
+      {hover !== null && data[hover] && (
+        <div style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)',
+          left: `${((hover + 0.5) / data.length) * 100}%`, transform: 'translateX(-50%)',
+          background: 'rgba(18,18,22,0.97)', border: '0.5px solid rgba(255,255,255,0.12)',
+          borderRadius: 7, padding: '5px 9px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 5,
+          boxShadow: '0 4px 14px rgba(0,0,0,0.45)',
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+            {data[hover].count} <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--muted2)' }}>{unit}</span>
+          </div>
+          <div style={{ fontSize: 9.5, color: 'var(--muted2)', marginTop: 1 }}>{fmtDay(data[hover].date)}</div>
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 40 }}>
+        {data.map((d, i) => (
+          <div key={d.date}
+            onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+            style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'flex-end', cursor: 'default' }}>
+            <div style={{
+              width: '100%', background: color,
+              height: `${Math.max(4, (d.count / max) * 100)}%`,
+              borderRadius: '2px 2px 0 0',
+              opacity: hover === i ? 1 : d.count === 0 ? 0.2 : 0.85,
+              transition: 'opacity 0.15s, height 0.3s',
+            }} />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -415,6 +448,7 @@ function SparkBars({ data, color }: { data: { date: string; count: number }[]; c
 // ── Supply line chart ──────────────────────────────────────────────────────────
 
 function SparkLine({ data }: { data: { date: string; circulating: number; staked: number }[] }) {
+  const [hover, setHover] = useState<number | null>(null)
   const W = 480, H = 72, PAD = 4
   if (data.length < 2) {
     return (
@@ -424,9 +458,11 @@ function SparkLine({ data }: { data: { date: string; circulating: number; staked
       </div>
     )
   }
-  const maxVal = Math.max(...data.map(d => d.circulating), 1)
-  const minVal = Math.min(...data.map(d => d.circulating))
-  const range  = maxVal - minVal || 1
+  // Normalize across BOTH series so the staked line always stays inside the chart
+  const allVals = data.flatMap(d => [d.circulating, d.staked])
+  const maxVal  = Math.max(...allVals, 1)
+  const minVal  = Math.min(...allVals)
+  const range   = maxVal - minVal || 1
 
   const toX = (i: number) => PAD + (i / (data.length - 1)) * (W - PAD * 2)
   const toY = (v: number) => H - PAD - ((v - minVal) / range) * (H - PAD * 2)
@@ -442,35 +478,78 @@ function SparkLine({ data }: { data: { date: string; circulating: number; staked
     'Z',
   ].join(' ')
 
+  const h = hover !== null ? data[hover] : null
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, overflow: 'visible' }}>
-      <defs>
-        <linearGradient id="circGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="rgba(201,165,90,0.25)" />
-          <stop offset="100%" stopColor="rgba(201,165,90,0)" />
-        </linearGradient>
-      </defs>
-      {/* grid lines */}
-      {[0, 0.5, 1].map(t => (
-        <line key={t}
-          x1={PAD} y1={(H - PAD - t * (H - PAD * 2)).toFixed(1)}
-          x2={W - PAD} y2={(H - PAD - t * (H - PAD * 2)).toFixed(1)}
-          stroke="rgba(255,255,255,0.05)" strokeWidth="0.5"
-        />
-      ))}
-      {/* area fill */}
-      <path d={areaPath} fill="url(#circGrad)" />
-      {/* staked line */}
-      <polyline points={staked} fill="none" stroke="rgba(245,158,11,0.35)" strokeWidth="1.2" strokeDasharray="3 3" />
-      {/* circulating line */}
-      <polyline points={circ} fill="none" stroke="rgba(201,165,90,0.9)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      {/* last point dot */}
-      <circle
-        cx={toX(data.length - 1).toFixed(1)}
-        cy={toY(data[data.length - 1].circulating).toFixed(1)}
-        r="3" fill="var(--gold)"
-      />
-    </svg>
+    <div style={{ position: 'relative' }} onMouseLeave={() => setHover(null)}>
+      {h && (
+        <div style={{
+          position: 'absolute', top: 0, transform: 'translate(-50%, -100%)',
+          left: `${(toX(hover!) / W) * 100}%`, marginTop: -6,
+          background: 'rgba(18,18,22,0.97)', border: '0.5px solid rgba(255,255,255,0.12)',
+          borderRadius: 7, padding: '6px 10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 5,
+          boxShadow: '0 4px 14px rgba(0,0,0,0.45)',
+        }}>
+          <div style={{ fontSize: 9.5, color: 'var(--muted2)', marginBottom: 3 }}>{fmtDay(h.date)}</div>
+          <div style={{ fontSize: 11, display: 'flex', justifyContent: 'space-between', gap: 14 }}>
+            <span style={{ color: 'var(--gold)' }}>Circulating</span>
+            <b style={{ color: 'var(--text)' }}>{h.circulating.toLocaleString()}</b>
+          </div>
+          <div style={{ fontSize: 11, display: 'flex', justifyContent: 'space-between', gap: 14, marginTop: 2 }}>
+            <span style={{ color: '#f59e0b' }}>Staked</span>
+            <b style={{ color: 'var(--text)' }}>{h.staked.toLocaleString()}</b>
+          </div>
+        </div>
+      )}
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="circGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="rgba(201,165,90,0.25)" />
+            <stop offset="100%" stopColor="rgba(201,165,90,0)" />
+          </linearGradient>
+        </defs>
+        {/* grid lines */}
+        {[0, 0.5, 1].map(t => (
+          <line key={t}
+            x1={PAD} y1={(H - PAD - t * (H - PAD * 2)).toFixed(1)}
+            x2={W - PAD} y2={(H - PAD - t * (H - PAD * 2)).toFixed(1)}
+            stroke="rgba(255,255,255,0.05)" strokeWidth="0.5"
+          />
+        ))}
+        {/* area fill */}
+        <path d={areaPath} fill="url(#circGrad)" />
+        {/* staked line */}
+        <polyline points={staked} fill="none" stroke="rgba(245,158,11,0.35)" strokeWidth="1.2" strokeDasharray="3 3" />
+        {/* circulating line */}
+        <polyline points={circ} fill="none" stroke="rgba(201,165,90,0.9)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        {/* hover guide line + markers */}
+        {hover !== null && h && (
+          <>
+            <line x1={toX(hover)} y1={PAD} x2={toX(hover)} y2={H - PAD} stroke="rgba(255,255,255,0.25)" strokeWidth="0.5" />
+            <circle cx={toX(hover)} cy={toY(h.staked)} r="2.5" fill="#f59e0b" />
+            <circle cx={toX(hover)} cy={toY(h.circulating)} r="3" fill="var(--gold)" />
+          </>
+        )}
+        {/* last point dot (hidden while hovering) */}
+        {hover === null && (
+          <circle
+            cx={toX(data.length - 1).toFixed(1)}
+            cy={toY(data[data.length - 1].circulating).toFixed(1)}
+            r="3" fill="var(--gold)"
+          />
+        )}
+        {/* invisible hover bands — scale with the viewBox so mapping stays exact */}
+        {data.map((d, i) => {
+          const x0 = i === 0 ? 0 : (toX(i - 1) + toX(i)) / 2
+          const x1 = i === data.length - 1 ? W : (toX(i) + toX(i + 1)) / 2
+          return (
+            <rect key={d.date} x={x0} y={0} width={x1 - x0} height={H}
+              fill="transparent" style={{ pointerEvents: 'all' }}
+              onMouseEnter={() => setHover(i)} />
+          )
+        })}
+      </svg>
+    </div>
   )
 }
 
@@ -894,11 +973,12 @@ export default function AdminPage() {
                 </div>
 
                 {/* Row 1 — Users & Activity */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
-                  {card(platform.total_users,     'Total Users',       'ph-users',         '#6f9be5', `+${platform.new_users_today} today`)}
-                  {card(platform.active_users_7d, 'Active (7d)',        'ph-activity',      'var(--green)')}
-                  {card(platform.total_posts,     'Total Posts',       'ph-newspaper',     'var(--text)')}
-                  {card(platform.total_checkins,  'Total Check-ins',   'ph-calendar-check','var(--gold)')}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
+                  {card(platform.total_users,        'Total Users',     'ph-users',          '#6f9be5', `+${platform.new_users_today} today`)}
+                  {card(platform.active_users_7d,    'Active (7d)',      'ph-activity',       'var(--green)')}
+                  {card(platform.telegram_connected, 'Telegram Bot',    'ph-telegram-logo',  '#229ED9', `${platform.total_users > 0 ? Math.round((platform.telegram_connected / platform.total_users) * 100) : 0}% of users`)}
+                  {card(platform.total_posts,        'Total Posts',     'ph-newspaper',      'var(--text)')}
+                  {card(platform.total_checkins,     'Total Check-ins', 'ph-calendar-check', 'var(--gold)')}
                 </div>
 
                 {/* Row 2 — Engagement */}
@@ -910,9 +990,10 @@ export default function AdminPage() {
                 </div>
 
                 {/* Row 3 — ZXP */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
                   {card(zxp.total_circulating, 'ZXP Circulating', 'ph-coins',    'var(--gold)', 'balance + staked')}
                   {card(zxp.total_staked,      'ZXP Staked',       'ph-lock',     '#f59e0b', `${zxp.total_circulating > 0 ? Math.round((zxp.total_staked / zxp.total_circulating) * 100) : 0}% of circulating`)}
+                  {card(zxp.predict_locked,    'Locked in Predict','ph-scales',   '#a78bfa', `across ${zxp.predict_markets} active market${zxp.predict_markets !== 1 ? 's' : ''}`)}
                   {card(zxp.earned_today,      'ZXP Earned Today', 'ph-trend-up', 'var(--green)')}
                 </div>
 
@@ -928,7 +1009,7 @@ export default function AdminPage() {
                         {postsData.reduce((s, d) => s + d.count, 0)}
                       </div>
                     </div>
-                    <SparkBars data={postsData} color="rgba(111,155,229,0.7)" />
+                    <SparkBars data={postsData} color="rgba(111,155,229,0.7)" unit="posts" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9,
                       color: 'var(--muted2)', marginTop: 4 }}>
                       <span>{postsData[0]?.date.slice(5)}</span>
@@ -946,7 +1027,7 @@ export default function AdminPage() {
                         {checkinsData.reduce((s, d) => s + d.count, 0)}
                       </div>
                     </div>
-                    <SparkBars data={checkinsData} color="rgba(201,165,90,0.7)" />
+                    <SparkBars data={checkinsData} color="rgba(201,165,90,0.7)" unit="check-ins" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9,
                       color: 'var(--muted2)', marginTop: 4 }}>
                       <span>{checkinsData[0]?.date.slice(5)}</span>
