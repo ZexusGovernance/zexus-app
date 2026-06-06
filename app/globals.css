@@ -3456,6 +3456,38 @@ body::after {
   flex: 1;
 }
 
+/* Filter tabs + "Earn ZXP" toggle on one row */
+.feed-tabs-row { display: flex; align-items: center; gap: 8px; }
+.feed-tabs-row .feed-filter-tabs { flex: 1; min-width: 0; }
+
+/* "Earn ZXP" toggle — only when the right rail is hidden (≤900px), so it never
+   duplicates the rail's onboarding widget on desktop. */
+.earn-zxp { display: none; position: relative; flex-shrink: 0; }
+@media (max-width: 900px) { .earn-zxp { display: block; } }
+.earn-zxp-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 12px; border: none; background: transparent; cursor: pointer;
+  color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 400;
+  white-space: nowrap; transition: color 0.15s;
+}
+.earn-zxp-btn:hover { color: var(--text); }
+.earn-zxp-count { font-size: 10px; font-weight: 700; color: var(--gold); }
+.earn-zxp-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 500;
+  width: 250px; max-width: calc(100vw - 32px);
+  background: rgba(11, 10, 9, 0.96);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px; padding: 14px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+  transform-origin: top right;
+  animation: earn-pop 0.16s ease-out;
+}
+@keyframes earn-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
 /* Feed — single column (Twitter-style) */
 .feed-posts-grid {
   display: grid;

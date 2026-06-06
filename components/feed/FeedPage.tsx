@@ -6,6 +6,7 @@ import PostCard from './PostCard'
 import PostDetailModal from './PostDetailModal'
 import CreatePostModal from './CreatePostModal'
 import FeedDashboard from './FeedDashboard'
+import OnboardingButton from './OnboardingButton'
 import type { FeedPost, PostType } from '@/lib/feedData'
 import type { DbPost } from '@/lib/supabase'
 import { PROJECTS_FULL } from '@/lib/projects'
@@ -197,16 +198,19 @@ export default function FeedPage({
               </button>
             )}
           </div>
-          <div className="feed-filter-tabs">
-            {(['All', 'Verdicts', 'Updates', 'Alerts'] as FilterType[]).map(f => (
-              <button
-                key={f}
-                className={`feed-filter-tab${activeFilter === f ? ' active' : ''}`}
-                onClick={() => setActiveFilter(f)}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="feed-tabs-row">
+            <div className="feed-filter-tabs">
+              {(['All', 'Verdicts', 'Updates', 'Alerts'] as FilterType[]).map(f => (
+                <button
+                  key={f}
+                  className={`feed-filter-tab${activeFilter === f ? ' active' : ''}`}
+                  onClick={() => setActiveFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <OnboardingButton />
           </div>
         </div>
 

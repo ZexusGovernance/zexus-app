@@ -53,6 +53,7 @@ export default function ProfilePage() {
   const { open } = useAppKit()
 
   const [verdicts, setVerdicts] = useState<VerdictHistoryRow[]>([])
+  const [verdictAccuracy, setVerdictAccuracy] = useState<number | null>(null)
   const [watchlist, setWatchlist] = useState<WatchlistProject[]>([])
   const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null)
   const [loading, setLoading] = useState(false)
@@ -93,21 +94,27 @@ export default function ProfilePage() {
   const [notifZxp, setNotifZxp] = useState(s.notifZxp ?? true)
   const [notifReplies, setNotifReplies] = useState(s.notifReplies ?? true)
   const [publicProfile, setPublicProfile] = useState(s.publicProfile ?? true)
+
+  // Telegram bot connect (mirrors the desktop Nav footer — reachable on mobile here)
+  const [tgCode,    setTgCode]    = useState<string | null>(null)
+  const [tgLoading, setTgLoading] = useState(false)
+  const tgConnected = !!profile?.telegram_chat_id
   const [showLeaderboard, setShowLeaderboard] = useState(s.showLeaderboard ?? true)
   const [anonVoting, setAnonVoting] = useState(s.anonVoting ?? false)
 
   const loadData = useCallback(async (addr: string) => {
     setLoading(true)
     try {
-      const { getVerdictHistory, getTodayCheckin } = await import('@/lib/profile')
+      const { getTodayCheckin } = await import('@/lib/profile')
       const [vh, wlRes, ci, achRes, refRes] = await Promise.all([
-        getVerdictHistory(addr),
+        fetch(`/api/profile/verdicts?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { history: [], accuracy: null }),
         fetch(`/api/watchlist?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { items: [] }),
         getTodayCheckin(addr),
         fetch(`/api/achievements?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { achievements: [] }),
         fetch(`/api/referral?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { count: 0 }),
       ])
-      setVerdicts(vh)
+      setVerdicts(vh.history ?? [])
+      setVerdictAccuracy(vh.accuracy ?? null)
       setWatchlist(wlRes.items ?? [])
       setTodayCheckin(ci)
       setAchievements(achRes.achievements ?? [])
@@ -189,6 +196,45 @@ export default function ProfilePage() {
     if (s.anonVoting !== undefined) setAnonVoting(s.anonVoting)
   }, [profile])
 
+  // Poll for confirmation while a code is pending
+  useEffect(() => {
+    if (!tgCode || !address || tgConnected) return
+    const id = setInterval(() => refreshProfile(address), 3000)
+    return () => clearInterval(id)
+  }, [tgCode, address, tgConnected, refreshProfile])
+
+  async function tgConnect() {
+    if (!address) return
+    setTgLoading(true)
+    try {
+      const res = await fetch('/api/telegram/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address }),
+      })
+      setTgCode((await res.json()).code ?? null)
+    } catch { /* ignore */ }
+    setTgLoading(false)
+  }
+
+  async function tgChangeAccount() {
+    if (!address) return
+    setTgLoading(true)
+    await fetch('/api/telegram/connect', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: address }),
+    })
+    await refreshProfile(address)
+    const res = await fetch('/api/telegram/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: address }),
+    })
+    setTgCode((await res.json()).code ?? null)
+    setTgLoading(false)
+  }
+
   async function saveSetting(key: string, value: boolean) {
     if (!address) return
     const { updateSettings } = await import('@/lib/profile')
@@ -250,9 +296,9 @@ export default function ProfilePage() {
   }
   const burnRank = burnRankLabel(zxpBurned)
   const verdictsCount = verdicts.length
-  const accuracy = verdictsCount > 0
-    ? Math.round((verdicts.filter(v => v.was_correct).length / verdictsCount) * 100)
-    : 0
+  // Accuracy is computed server-side over finalized verdicts only (matches the
+  // public profile); null until at least one of the user's votes has finalized.
+  const accuracy = verdictAccuracy
 
   const filteredWatch = watchlist.filter(w => w.projects)
 
@@ -351,7 +397,7 @@ export default function ProfilePage() {
             </div>
             <div className="stat-item">
               <div className="stat-num green">
-                {verdictsCount > 0 ? `${Math.round(accuracy)}%` : '—'}
+                {accuracy != null ? `${accuracy}%` : '—'}
               </div>
               <div className="stat-lbl">Accuracy</div>
             </div>
@@ -543,7 +589,13 @@ export default function ProfilePage() {
                           </span>
                         )}
                         <span className={`vzxp ${v.zxp_earned > 0 ? 'earn' : v.was_correct === null ? 'pend' : 'lose'}`}>
-                          {v.was_correct === null ? '—' : v.zxp_earned > 0 ? `+${v.zxp_earned} ZXP` : `−${Math.abs(v.zxp_earned)} ZXP`}
+                          {v.was_correct === null
+                            ? '—'
+                            : v.zxp_earned > 0
+                              ? `+${v.zxp_earned} ZXP`
+                              : v.zxp_earned < 0
+                                ? `−${Math.abs(v.zxp_earned)} ZXP`
+                                : ''}
                         </span>
                       </div>
                     )
@@ -761,6 +813,60 @@ export default function ProfilePage() {
                       <span style={{ color: 'var(--muted2)' }}>No two wallets look alike.</span>
                     </div>
                   </div>
+                </div>
+
+                <div className="settings-group">
+                  <div className="settings-group-title">Telegram bot</div>
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <div className="settings-row-name">
+                        <i className="ph-bold ph-telegram-logo" style={{ color: '#82b4f0', marginRight: 6 }} />
+                        {tgConnected ? 'Connected' : 'Connect Telegram'}
+                      </div>
+                      <div className="settings-row-desc">
+                        {tgConnected
+                          ? 'You receive enabled notifications in the bot'
+                          : 'Get watchlist alerts, replies and rewards in Telegram'}
+                      </div>
+                    </div>
+                    {tgConnected ? (
+                      <button className="settings-btn" disabled={tgLoading} onClick={tgChangeAccount}>
+                        {tgLoading ? '…' : 'Change'}
+                      </button>
+                    ) : (
+                      <button
+                        disabled={tgLoading || !address}
+                        onClick={tgConnect}
+                        style={{
+                          padding: '7px 14px', borderRadius: 8, flexShrink: 0,
+                          border: '0.5px solid rgba(130,180,240,0.3)',
+                          background: 'rgba(130,180,240,0.08)',
+                          color: '#82b4f0', fontSize: 12, fontWeight: 600,
+                          cursor: address ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+                        }}
+                      >
+                        {tgLoading ? 'Loading…' : 'Connect'}
+                      </button>
+                    )}
+                  </div>
+                  {tgCode && !tgConnected && (
+                    <div style={{
+                      margin: '0 14px 12px', padding: '12px 14px',
+                      background: 'var(--surface2)', borderRadius: 10,
+                      border: '0.5px solid var(--border)', fontSize: 12,
+                      color: 'var(--muted)', lineHeight: 1.6,
+                    }}>
+                      Open <b style={{ color: 'var(--text)' }}>@zexusxyz_bot</b> and send:
+                      <span style={{
+                        fontSize: 18, fontWeight: 700, letterSpacing: 2,
+                        color: 'var(--text)', fontFamily: 'monospace', display: 'block', margin: '6px 0 3px',
+                        userSelect: 'all',
+                      }}>
+                        /connect {tgCode}
+                      </span>
+                      <span style={{ fontSize: 10, color: 'var(--muted2)' }}>Valid 10 min · waiting for confirmation…</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="settings-group">
