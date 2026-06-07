@@ -74,6 +74,10 @@ export default function ProfilePage() {
   const [refCount,       setRefCount]       = useState(0)
   const [refCopied,      setRefCopied]      = useState(false)
 
+  // Welcome bonus (one-time +10 ZXP)
+  const [bonusClaimed,   setBonusClaimed]   = useState<boolean | null>(null)
+  const [bonusClaiming,  setBonusClaiming]  = useState(false)
+
   const [watchFilter, setWatchFilter] = useState('All')
 
   // Project admin state
@@ -106,12 +110,13 @@ export default function ProfilePage() {
     setLoading(true)
     try {
       const { getTodayCheckin } = await import('@/lib/profile')
-      const [vh, wlRes, ci, achRes, refRes] = await Promise.all([
+      const [vh, wlRes, ci, achRes, refRes, bonusRes] = await Promise.all([
         fetch(`/api/profile/verdicts?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { history: [], accuracy: null }),
         fetch(`/api/watchlist?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { items: [] }),
         getTodayCheckin(addr),
         fetch(`/api/achievements?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { achievements: [] }),
         fetch(`/api/referral?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { count: 0 }),
+        fetch(`/api/zxp/bonus?wallet=${encodeURIComponent(addr)}`).then(r => r.ok ? r.json() : { claimed: true }),
       ])
       setVerdicts(vh.history ?? [])
       setVerdictAccuracy(vh.accuracy ?? null)
@@ -119,6 +124,7 @@ export default function ProfilePage() {
       setTodayCheckin(ci)
       setAchievements(achRes.achievements ?? [])
       setRefCount(refRes.count ?? 0)
+      setBonusClaimed(!!bonusRes.claimed)
 
       // Check if user has verified holding on any project
       const { supabase: sb } = await import('@/lib/supabase')
@@ -153,6 +159,25 @@ export default function ProfilePage() {
       setTimeout(() => setJustClaimed(null), 2800)
     } finally {
       setClaimingId(null)
+    }
+  }
+
+  async function claimBonus() {
+    if (!address || bonusClaiming || bonusClaimed) return
+    setBonusClaiming(true)
+    try {
+      const r = await fetch('/api/zxp/bonus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: address }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (r.ok || d.already_claimed) {
+        setBonusClaimed(true)
+        await refreshProfile(address)
+      }
+    } finally {
+      setBonusClaiming(false)
     }
   }
 
@@ -540,6 +565,56 @@ export default function ProfilePage() {
                     Checked in today · Day <strong>{todayCheckin.streak_day}</strong> streak
                   </span>
                   <span style={{ color: 'var(--green)', fontWeight: 600 }}>+{todayCheckin.zxp_earned} ZXP</span>
+                </div>
+              )}
+
+              {/* Welcome bonus — one-time +10 ZXP */}
+              {bonusClaimed === false && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', marginBottom: 10,
+                  background: 'rgba(201,165,90,0.08)', border: '0.5px solid rgba(201,165,90,0.3)', borderRadius: 12,
+                }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+                    background: 'rgba(201,165,90,0.14)', border: '0.5px solid rgba(201,165,90,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--gold)', fontSize: 20,
+                  }}>
+                    <i className="ph-bold ph-gift" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Welcome bonus</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.5 }}>
+                      Claim your one-time <strong style={{ color: 'var(--gold)' }}>+10 ZXP</strong> reward
+                    </div>
+                  </div>
+                  <button
+                    onClick={claimBonus}
+                    disabled={bonusClaiming}
+                    style={{
+                      padding: '8px 16px', borderRadius: 9, fontSize: 12, fontWeight: 700,
+                      fontFamily: 'inherit', flexShrink: 0,
+                      cursor: bonusClaiming ? 'not-allowed' : 'pointer',
+                      border: '0.5px solid rgba(201,165,90,0.55)',
+                      background: 'rgba(201,165,90,0.16)', color: 'var(--gold)',
+                      opacity: bonusClaiming ? 0.6 : 1,
+                      display: 'flex', alignItems: 'center', gap: 6, transition: 'opacity 0.15s',
+                    }}
+                  >
+                    {bonusClaiming
+                      ? <><i className="ph-bold ph-circle-notch" /> Claiming…</>
+                      : <><i className="ph-bold ph-coin" /> Claim 10 ZXP</>}
+                  </button>
+                </div>
+              )}
+              {bonusClaimed === true && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 10,
+                  background: 'rgba(101,191,127,0.08)', border: '0.5px solid rgba(101,191,127,0.25)', borderRadius: 10, fontSize: 12,
+                }}>
+                  <i className="ph-bold ph-gift" style={{ color: 'var(--green)', fontSize: 16 }} />
+                  <span style={{ flex: 1, color: 'var(--text)' }}>Welcome bonus claimed</span>
+                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>+10 ZXP</span>
                 </div>
               )}
 
