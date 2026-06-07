@@ -31,15 +31,21 @@ export async function GET(req: NextRequest) {
 
   const pmap = new Map((posts ?? []).map(p => [p.id as string, p]))
 
-  // Project names in a separate query (no embed → no FK-relationship dependency)
+  // Project name + avatar + slug in a separate query (no embed → no FK dependency)
   const projectIds = [...new Set((posts ?? []).map(p => p.project_id as string).filter(Boolean))]
-  const nameMap = new Map<string, string>()
+  const nameMap   = new Map<string, string>()
+  const avatarMap = new Map<string, string | null>()
+  const slugMap   = new Map<string, string | null>()
   if (projectIds.length) {
     const { data: projs } = await supabaseAdmin
       .from('projects')
-      .select('id, name')
+      .select('id, name, avatar_url, slug')
       .in('id', projectIds)
-    for (const pr of projs ?? []) nameMap.set(pr.id as string, pr.name as string)
+    for (const pr of projs ?? []) {
+      nameMap.set(pr.id as string, pr.name as string)
+      avatarMap.set(pr.id as string, (pr.avatar_url as string) ?? null)
+      slugMap.set(pr.id as string, (pr.slug as string) ?? null)
+    }
   }
 
   let finalized = 0
@@ -48,7 +54,9 @@ export async function GET(req: NextRequest) {
     const p        = pmap.get(v.post_id as string)
     const isFinal  = !!p?.voting_finalized
     const passed   = ((p?.trust_score_change as number) ?? 0) > 0
-    const projName = p?.project_id ? nameMap.get(p.project_id as string) : null
+    const projName   = p?.project_id ? nameMap.get(p.project_id as string) : null
+    const projAvatar = p?.project_id ? avatarMap.get(p.project_id as string) : null
+    const projSlug   = p?.project_id ? slugMap.get(p.project_id as string) : null
 
     let was_correct: boolean | null = null
     if (isFinal) {
@@ -60,9 +68,11 @@ export async function GET(req: NextRequest) {
     return {
       id:           v.id as string,
       post_id:      v.post_id as string,
-      post_title:   (p?.title as string) ?? null,
-      post_project: projName ?? null,
-      verdict:      v.vote === 'confirm' ? 'yes' : 'no',
+      post_title:          (p?.title as string) ?? null,
+      post_project:        projName ?? null,
+      post_project_avatar: projAvatar ?? null,
+      post_project_slug:   projSlug ?? null,
+      verdict:             v.vote === 'confirm' ? 'yes' : 'no',
       was_correct,
       zxp_earned:   0,
       created_at:   v.created_at as string,

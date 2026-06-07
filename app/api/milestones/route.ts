@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { notifyProjectPost } from '@/lib/notify'
 
 export interface Milestone {
   id:          string
@@ -162,6 +163,16 @@ export async function PATCH(req: NextRequest) {
       .single()
 
     if (postErr) return NextResponse.json({ error: postErr.message }, { status: 500 })
+
+    // Notify watchlist followers that a new community verdict opened (in-app + Telegram)
+    void notifyProjectPost({
+      projectId:   proj.id,
+      projectName: proj.name,
+      postId:      votingPost.id,
+      postType:    'voting',
+      title:       postTitle,
+      content:     postContent,
+    })
 
     return NextResponse.json({ milestone: updated, voting_post_id: votingPost.id })
   }

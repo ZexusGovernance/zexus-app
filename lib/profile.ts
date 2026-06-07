@@ -20,6 +20,8 @@ export interface VerdictHistoryRow {
   post_id: string | null
   post_title: string | null
   post_project: string | null
+  post_project_avatar?: string | null
+  post_project_slug?: string | null
   verdict: 'yes' | 'no'
   was_correct: boolean | null
   zxp_earned: number

@@ -635,12 +635,20 @@ export default function ProfilePage() {
                     const letter = (v.post_project ?? '?').slice(0, 1).toUpperCase()
                     return (
                       <div className="vrow" key={v.id}>
-                        <div
-                          className="proj-av av-blue"
-                          style={{ width: 28, height: 28, fontSize: 11, borderRadius: 7 }}
-                        >
-                          {letter}
-                        </div>
+                        {v.post_project_avatar ? (
+                          <img
+                            src={v.post_project_avatar}
+                            alt={letter}
+                            style={{ width: 28, height: 28, borderRadius: 7, objectFit: 'cover', flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div
+                            className="proj-av av-blue"
+                            style={{ width: 28, height: 28, fontSize: 11, borderRadius: 7 }}
+                          >
+                            {letter}
+                          </div>
+                        )}
                         <div className="vrow-event">
                           <div className="vrow-proj">{v.post_project ?? 'Unknown'}</div>
                           <div className="vrow-name">{v.post_title ?? 'Verdict'}</div>

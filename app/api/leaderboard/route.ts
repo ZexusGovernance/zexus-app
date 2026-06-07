@@ -5,7 +5,7 @@ import { monthStartISO, monthDaysLeft } from '@/lib/burnPool'
 // Season = current calendar month. Season XP = ZXP *earned* this month
 // (rewards, check-ins, verdicts, referrals, onboarding, predict wins, claims).
 // Computed live from zxp_transactions, no separate table or accrual system.
-const EARN_TYPES = ['reward', 'checkin', 'verdict', 'referral', 'onboarding', 'predict_win', 'claim']
+const EARN_TYPES = ['reward', 'checkin', 'verdict', 'referral', 'onboarding', 'predict_win', 'claim', 'welcome_bonus']
 const TOP_N = 50
 
 export async function GET(req: NextRequest) {

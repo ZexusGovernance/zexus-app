@@ -1,80 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import { sendTelegramMessage } from '@/lib/telegram'
+import { notifyProjectPost } from '@/lib/notify'
 import { requireAuth, unauthorized, isSuperAdmin } from '@/lib/auth'
 
 const VALID_TYPES = ['update', 'verdict', 'alert', 'voting'] as const
 type PostType = (typeof VALID_TYPES)[number]
-
-const POST_TYPE_LABEL: Record<PostType, string> = {
-  update:  'Update',
-  verdict: 'Verdict',
-  alert:   '⚠️ Alert',
-  voting:  '🗳 Vote',
-}
-
-async function fanOutNotifications(
-  projectId: string,
-  projectName: string,
-  postId: string,
-  postType: PostType,
-  title: string | undefined,
-  content: string,
-) {
-  const { data: watchers } = await supabaseAdmin
-    .from('user_watchlist')
-    .select('wallet_address')
-    .eq('project_id', projectId)
-
-  if (!watchers?.length) return
-
-  const allWallets = watchers.map(w => w.wallet_address)
-
-  // verdict/voting posts honor the "New verdicts" preference;
-  // updates & alerts honor "Watchlist alerts".
-  const prefKey = postType === 'verdict' || postType === 'voting' ? 'notifVerdicts' : 'notifWatchlist'
-
-  // Pull settings + telegram for these watchers in one query
-  const { data: profiles } = await supabaseAdmin
-    .from('profiles')
-    .select('wallet_address, telegram_chat_id, settings')
-    .in('wallet_address', allWallets)
-  const profMap = new Map((profiles ?? []).map(p => [p.wallet_address as string, p]))
-
-  // A watcher is notified unless they explicitly turned this preference off
-  const wallets = allWallets.filter(
-    w => (profMap.get(w)?.settings as Record<string, boolean> | null)?.[prefKey] !== false,
-  )
-  if (!wallets.length) return
-
-  const label   = POST_TYPE_LABEL[postType]
-  const notifTitle = `${label} · ${projectName}`
-  const notifBody  = title || content.slice(0, 80) + (content.length > 80 ? '…' : '')
-
-  // Insert in-app notifications in one batch
-  await supabaseAdmin.from('notifications').insert(
-    wallets.map(wallet_address => ({
-      wallet_address,
-      type:       postType,
-      title:      notifTitle,
-      body:       notifBody,
-      project_id: projectId,
-      post_id:    postId,
-    })),
-  )
-
-  // Send Telegram to opted-in watchers who connected it
-  const tgChatIds = wallets
-    .map(w => profMap.get(w)?.telegram_chat_id as number | null | undefined)
-    .filter((id): id is number => id != null)
-
-  if (!tgChatIds.length) return
-
-  const tgText = `🔔 <b>${notifTitle}</b>\n${notifBody}\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`
-  await Promise.allSettled(
-    tgChatIds.map(id => sendTelegramMessage(id, tgText)),
-  )
-}
 
 const AUTO_TRUST_DELTA: Record<PostType, number> = {
   verdict: 0,   // trust score only changes after voting closes, not on post creation
@@ -252,7 +182,14 @@ export async function POST(req: NextRequest) {
   }
 
   // Fan-out notifications to watchlist followers (fire-and-forget)
-  void fanOutNotifications(project.id, project.name, post.id, post_type as PostType, title as string | undefined, content as string)
+  void notifyProjectPost({
+    projectId:   project.id,
+    projectName: project.name,
+    postId:      post.id,
+    postType:    post_type as PostType,
+    title:       title as string | undefined,
+    content:     content as string,
+  })
 
   return NextResponse.json({ post }, { status: 201 })
 }
