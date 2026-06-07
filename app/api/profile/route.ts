@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { grantOnboardingReward } from '@/lib/onboarding'
+import { rankByTotalZxp } from '@/lib/rank'
 import { requireAuth, unauthorized } from '@/lib/auth'
 
 // POST /api/profile — upsert profile, return full profile data
@@ -42,15 +43,11 @@ export async function POST(req: NextRequest) {
 
   if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
-  const zxp = ((profile as Record<string, unknown>).zxp_balance as number) ?? 0
-  let count = 0
-  try {
-    const { count: c } = await supabaseAdmin
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .gt('zxp_balance', zxp)
-    count = c ?? 0
-  } catch { /* ignore */ }
+  // Rank by total ZXP (free + staked) so staking never lowers the rank
+  const myTotal =
+    (((profile as Record<string, unknown>).zxp_balance as number) ?? 0) +
+    (((profile as Record<string, unknown>).zxp_staked as number) ?? 0)
+  const rank = await rankByTotalZxp(myTotal)
 
-  return NextResponse.json({ profile: { ...profile, rank: (count ?? 0) + 1 } })
+  return NextResponse.json({ profile: { ...profile, rank } })
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { rankByTotalZxp } from '@/lib/rank'
 
 // GET /api/users/:wallet — public view of another user's profile.
 // Honors the "Public profile" privacy toggle: if the owner turned it off,
@@ -14,7 +15,7 @@ export async function GET(
 
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('wallet_address, display_name, avatar_url, zxp_balance, settings, registered_at')
+    .select('wallet_address, display_name, avatar_url, zxp_balance, zxp_staked, settings, registered_at')
     .eq('wallet_address', wallet)
     .maybeSingle()
 
@@ -31,15 +32,10 @@ export async function GET(
 
   if (!isPublic) return NextResponse.json({ profile: base })
 
-  // Rank by ZXP balance
-  let rank = 1
-  try {
-    const { count } = await supabaseAdmin
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .gt('zxp_balance', (profile.zxp_balance as number) ?? 0)
-    rank = (count ?? 0) + 1
-  } catch { /* ignore */ }
+  // Rank by total ZXP (free + staked) so staking never lowers the rank
+  const myTotal =
+    ((profile.zxp_balance as number) ?? 0) + ((profile.zxp_staked as number) ?? 0)
+  const rank = await rankByTotalZxp(myTotal)
 
   // Verdicts cast + accuracy (share of finalized votes that matched the outcome)
   const { data: votes } = await supabaseAdmin
