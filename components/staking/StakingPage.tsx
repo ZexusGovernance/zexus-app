@@ -335,6 +335,7 @@ export default function StakingPage() {
   const [historyRange,  setHistoryRange]  = useState<HistoryRange>('all')
   const [rangeMenuOpen, setRangeMenuOpen] = useState(false)
   const [stakeAmount, setStakeAmount] = useState('')
+  const [positionsExpanded, setPositionsExpanded] = useState(false)
   const [loading, setLoading]         = useState(false)
   const [actionMsg, setActionMsg]     = useState<string | null>(null)
   const [poolTotal, setPoolTotal]     = useState<number | null>(null)
@@ -608,8 +609,11 @@ export default function StakingPage() {
                 </div>
 
                 <div className="layer-body">
-                  {/* Active positions */}
-                  {positions.filter(p => p.status === 'active').map(p => (
+                  {/* Active positions — first shown, rest collapsible */}
+                  {(positionsExpanded
+                    ? positions.filter(p => p.status === 'active')
+                    : positions.filter(p => p.status === 'active').slice(0, 1)
+                  ).map(p => (
                     <div key={p.id} style={{
                       marginBottom: 8, padding: '10px 12px',
                       background: 'transparent', borderRadius: 8,
@@ -696,6 +700,29 @@ export default function StakingPage() {
                       </button>
                     </div>
                   ))}
+
+                  {/* Show all / collapse — only when more than one active position */}
+                  {positions.filter(p => p.status === 'active').length > 1 && (
+                    <button
+                      onClick={() => setPositionsExpanded(v => !v)}
+                      style={{
+                        width: '100%', padding: '8px', marginBottom: 8,
+                        fontSize: 11, fontWeight: 600,
+                        background: 'transparent', border: '0.5px solid var(--border)',
+                        borderRadius: 6, color: 'var(--muted)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }}
+                    >
+                      {positionsExpanded ? (
+                        <><i className="ph-bold ph-caret-up" /> Show less</>
+                      ) : (
+                        <>
+                          <i className="ph-bold ph-caret-down" />
+                          Show all {positions.filter(p => p.status === 'active').length} positions
+                        </>
+                      )}
+                    </button>
+                  )}
 
                   {/* Unstaking positions */}
                   {positions.filter(p => p.status === 'unstaking').map(p => {

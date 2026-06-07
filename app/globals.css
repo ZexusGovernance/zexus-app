@@ -3694,6 +3694,11 @@ body::after {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+/* The scroll is a flex column, so its cards default to flex-shrink:1 and get
+   compressed when content is tall — and .layer-card's overflow:hidden then
+   clips the bottom (stake input, "Show all" button, vote-bonus note get cut
+   off on mobile). Pin each card to its natural height; the container scrolls. */
+#page-staking .scroll > * { flex-shrink: 0; }
 #page-staking .staking-row { display: flex; gap: 8px; align-items: flex-start; }
 #page-staking .staking-row > * { flex: 1; min-width: 0; }
 /* Summary strip */
