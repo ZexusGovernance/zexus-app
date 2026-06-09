@@ -74,6 +74,54 @@ export async function notifyProjectPost(opts: {
   await Promise.allSettled(tgChatIds.map(id => sendTelegramMessage(id, tgText)))
 }
 
+// Fan out an Emergency Call event to a project's watchlist followers, in-app AND
+// Telegram (the bare notifyProjectWatchers only did Telegram). Gated by each
+// watcher's "Watchlist alerts" preference (notifWatchlist, default ON).
+export async function notifyProjectEmergency(opts: {
+  projectId: string
+  title: string
+  body: string
+  postId?: string | null
+}) {
+  const { data: watchers } = await supabaseAdmin
+    .from('user_watchlist')
+    .select('wallet_address')
+    .eq('project_id', opts.projectId)
+  if (!watchers?.length) return
+
+  const allWallets = watchers.map(w => w.wallet_address as string)
+  const { data: profiles } = await supabaseAdmin
+    .from('profiles')
+    .select('wallet_address, telegram_chat_id, settings')
+    .in('wallet_address', allWallets)
+  const profMap = new Map((profiles ?? []).map(p => [p.wallet_address as string, p]))
+
+  const wallets = allWallets.filter(
+    w => (profMap.get(w)?.settings as Record<string, boolean> | null)?.notifWatchlist !== false,
+  )
+  if (!wallets.length) return
+
+  // In-app notifications (type 'alert' is an existing, valid notification type)
+  await supabaseAdmin.from('notifications').insert(
+    wallets.map(wallet_address => ({
+      wallet_address,
+      type:       'alert',
+      title:      opts.title,
+      body:       opts.body,
+      project_id: opts.projectId,
+      post_id:    opts.postId ?? null,
+    })),
+  )
+
+  const tgIds = wallets
+    .map(w => profMap.get(w)?.telegram_chat_id as number | null | undefined)
+    .filter((id): id is number => id != null)
+  if (!tgIds.length) return
+
+  const tgText = `🚨 <b>${opts.title}</b>\n${opts.body}\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`
+  await Promise.allSettled(tgIds.map(id => sendTelegramMessage(id, tgText)))
+}
+
 // Notify the author of a comment that someone replied to it (in-app + Telegram).
 // Gated by the recipient's `notifReplies` setting (default ON). No-op for
 // self-replies. Safe to await on the request path — it's a couple of quick reads.

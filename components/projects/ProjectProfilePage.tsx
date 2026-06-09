@@ -2025,6 +2025,25 @@ export default function ProjectProfilePage() {
       <Nav />
 
       <div className="center" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+        {emergencyCall?.status === 'active' && (
+          <div
+            onClick={() => setEmergencyOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+              padding: '10px 18px', background: 'rgba(224,112,112,0.13)',
+              borderBottom: '0.5px solid rgba(224,112,112,0.4)', color: '#e07070',
+              fontSize: 12.5, fontWeight: 600, flexShrink: 0,
+            }}
+          >
+            <i className="ph-fill ph-warning-octagon em-icon-pulse" style={{ fontSize: 17, flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {emergencyPhase === 'voting'
+                ? 'Emergency Call — the community is voting on the verdict. Trust Score is under review.'
+                : 'Emergency Call ACTIVE — flagged by the community. Trust Score provisionally lowered pending the verdict.'}
+            </span>
+            <span style={{ fontSize: 12, textDecoration: 'underline', flexShrink: 0 }}>View</span>
+          </div>
+        )}
         <div className="proj-detail-header">
           <div className="back-btn" onClick={() => router.back()}>
             <i className="ph-bold ph-arrow-left" /> Back to projects

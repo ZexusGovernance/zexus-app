@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import { notifyWallet, notifyProjectWatchers } from '@/lib/telegram'
+import { notifyWallet } from '@/lib/telegram'
+import { notifyProjectEmergency } from '@/lib/notify'
 import { effectiveEmergencyConfig } from '@/lib/emergency-config'
+import { adjustTrust, PROVISIONAL_ALERT_TS } from '@/lib/emergency'
 import { requireAuth, unauthorized } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
@@ -126,7 +128,12 @@ export async function POST(req: NextRequest) {
       .update({ pool_zxp: newPool, participant_count: newCount, status: 'active', response_until: responseUntil })
       .eq('id', call_id)
 
-    // Notify all watchers + project admin that call is now ACTIVE (fire-and-forget)
+    // Fast lane: provisional Trust Score drop the moment the pool is reached.
+    // Reversed at resolution — a visible "under review" flag across the app.
+    await adjustTrust(call.project_id as string, -PROVISIONAL_ALERT_TS,
+      'Emergency Call active — provisional review')
+
+    // Notify all watchers (in-app + Telegram) + project admin (fire-and-forget)
     void (async () => {
       const { data: proj } = await supabaseAdmin
         .from('projects')
@@ -134,12 +141,11 @@ export async function POST(req: NextRequest) {
         .eq('id', call.project_id as string)
         .maybeSingle()
       const projName = (proj?.name as string) ?? 'a project'
-      const activatedText =
-        `🚨 <b>Emergency Call ACTIVE — ${projName}</b>\n` +
-        `Pool goal reached (${newPool} ZXP · ${newCount} wallets).\n` +
-        `The project has <b>48 hours</b> to respond.\n\n` +
-        `<a href="https://app.zexus.xyz">Open Zexus</a>`
-      void notifyProjectWatchers(call.project_id as string, activatedText)
+      void notifyProjectEmergency({
+        projectId: call.project_id as string,
+        title:     `Emergency Call ACTIVE — ${projName}`,
+        body:      `Community raised ${newPool} ZXP from ${newCount} wallets. Trust Score lowered pending the project's response and a community verdict.`,
+      })
       if (proj?.admin_wallet) {
         void notifyWallet(proj.admin_wallet as string,
           `🚨 <b>Emergency Call against ${projName} is now ACTIVE</b>\n` +

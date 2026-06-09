@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import { notifyProjectWatchers } from '@/lib/telegram'
+import { notifyProjectEmergency } from '@/lib/notify'
 import {
   EMERGENCY_SYSTEM_WALLET,
   EMERGENCY_OUTCOMES,
+  PROVISIONAL_ALERT_TS,
   ensureVerdictVote,
   type EmergencyCallRow,
 } from '@/lib/emergency'
@@ -228,8 +229,10 @@ async function resolveEmergencyVerdict(
 
   await refundEmergencyParticipants(call.id as string, outcome.zxp_multiplier)
 
-  if (outcome.ts_delta !== 0)
-    await applyTrustDelta(projectId, outcome.ts_delta, `Emergency Call verdict: ${outcome.status}`)
+  // Reverse the provisional alert drop, then apply the verdict delta — net effect
+  // on Trust Score equals the outcome alone (resolved −10 / ignored −20 / 0).
+  await applyTrustDelta(projectId, PROVISIONAL_ALERT_TS + outcome.ts_delta,
+    `Emergency Call verdict: ${outcome.status}`)
 
   await Promise.all([
     supabaseAdmin.from('emergency_calls')
@@ -238,13 +241,13 @@ async function resolveEmergencyVerdict(
     supabaseAdmin.from('posts').update({ voting_finalized: true }).eq('id', postId),
   ])
 
-  void notifyProjectWatchers(projectId,
-    `⚖️ <b>Emergency Call verdict: ${outcome.status.toUpperCase()}</b>\n` +
-    (outcome.status === 'expired'
-      ? 'Not enough community participation — stakes refunded in full.'
-      : `Community vote decided the outcome. Trust Score ${outcome.ts_delta}.`) +
-    `\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`,
-  )
+  void notifyProjectEmergency({
+    projectId,
+    title: `Emergency Call verdict: ${outcome.status}`,
+    body: outcome.status === 'expired'
+      ? 'Not enough community participation — stakes refunded in full and Trust Score restored.'
+      : `Community vote decided the outcome. Net Trust Score change: ${outcome.ts_delta}.`,
+  })
 }
 
 // Convert active calls whose 48h response window elapsed into community votes
@@ -262,11 +265,12 @@ async function convertExpiredEmergencyCalls(): Promise<number> {
     const res = await ensureVerdictVote(call as EmergencyCallRow)
     if (res.created) {
       created++
-      void notifyProjectWatchers(call.project_id as string,
-        `⚖️ <b>Community verdict open</b>\n` +
-        `An Emergency Call response window has closed. Stakers are now deciding the outcome.\n\n` +
-        `<a href="https://app.zexus.xyz">Vote on Zexus</a>`,
-      )
+      void notifyProjectEmergency({
+        projectId: call.project_id as string,
+        title:     'Community verdict open',
+        body:      'An Emergency Call response window has closed. Stakers are now deciding the outcome.',
+        postId:    res.post.id,
+      })
     }
   }
   return created

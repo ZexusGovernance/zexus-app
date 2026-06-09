@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { requireAuth, unauthorized, isSuperAdmin } from '@/lib/auth'
-import { notifyProjectWatchers } from '@/lib/telegram'
-import { EMERGENCY_RESPONSE_TITLE } from '@/lib/emergency'
+import { notifyProjectEmergency } from '@/lib/notify'
+import { EMERGENCY_RESPONSE_TITLE, ensureVerdictVote, type EmergencyCallRow } from '@/lib/emergency'
 
 // POST /api/emergency/respond { project_id, content }
 // The project team publicly answers an active Emergency Call. The response is
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   // ── There must be an active call to respond to ─────────────────────────────
   const { data: call } = await supabaseAdmin
     .from('emergency_calls')
-    .select('id')
+    .select('id, project_id, reason, pool_zxp, participant_count, created_at')
     .eq('project_id', project_id)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -67,11 +67,22 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 })
 
-  void notifyProjectWatchers(project_id,
-    `🗣 <b>${project.name} responded to its Emergency Call</b>\n` +
-    `${content.slice(0, 160)}${content.length > 160 ? '…' : ''}\n\n` +
-    `<a href="https://app.zexus.xyz">Read on Zexus</a>`,
-  )
+  // Early transition: a response closes the 48h window immediately and opens the
+  // community verdict vote. A responsive team doesn't wait out the full window —
+  // the 48h vote itself gives the community time to weigh the public response.
+  await supabaseAdmin
+    .from('emergency_calls')
+    .update({ response_until: new Date().toISOString() })
+    .eq('id', call.id)
 
-  return NextResponse.json({ ok: true, post_id: post.id })
+  const { post: verdict } = await ensureVerdictVote(call as EmergencyCallRow)
+
+  void notifyProjectEmergency({
+    projectId: project_id,
+    title:     `${project.name} responded — verdict vote open`,
+    body:      `${content.slice(0, 160)}${content.length > 160 ? '…' : ''}`,
+    postId:    verdict.id,
+  })
+
+  return NextResponse.json({ ok: true, post_id: post.id, verdict_post_id: verdict.id })
 }

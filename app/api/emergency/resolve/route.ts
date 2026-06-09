@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { adjustTrust, PROVISIONAL_ALERT_TS } from '@/lib/emergency'
+import { notifyProjectEmergency } from '@/lib/notify'
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? ''
 
@@ -68,23 +70,25 @@ export async function POST(req: NextRequest) {
     }))
   }
 
-  // ── 4. Apply trust score delta ────────────────────────────────────────────────
-  if (cfg.ts_delta !== 0) {
-    const { data: proj } = await supabaseAdmin
-      .from('projects').select('trust_score').eq('id', call.project_id).single()
-    if (proj) {
-      const newScore = Math.max(0, Math.min(110, (proj.trust_score as number) + cfg.ts_delta))
-      await supabaseAdmin.from('projects')
-        .update({ trust_score: newScore })
-        .eq('id', call.project_id)
-    }
-  }
+  // ── 4. Apply trust delta — reverse the provisional alert if it was applied ─────
+  // (the provisional −PROVISIONAL_ALERT_TS lands only when a call reaches 'active')
+  const wasActive = (call.status as string) === 'active'
+  const tsDelta   = (wasActive ? PROVISIONAL_ALERT_TS : 0) + cfg.ts_delta
+  await adjustTrust(call.project_id as string, tsDelta, `Emergency Call resolved: ${outcome}`)
 
   // ── 5. Mark call resolved ─────────────────────────────────────────────────────
   await supabaseAdmin
     .from('emergency_calls')
     .update({ status: outcome, resolved_at: new Date().toISOString() })
     .eq('id', call_id)
+
+  void notifyProjectEmergency({
+    projectId: call.project_id as string,
+    title:     `Emergency Call resolved: ${outcome}`,
+    body:      outcome === 'false_alarm'
+      ? 'Reviewed and dismissed as a false alarm. Trust Score restored.'
+      : `Outcome applied by review. Net Trust Score change: ${cfg.ts_delta}.`,
+  })
 
   return NextResponse.json({
     ok: true,

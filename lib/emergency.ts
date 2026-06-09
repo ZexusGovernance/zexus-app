@@ -21,6 +21,25 @@ export const EMERGENCY_SYSTEM_WALLET = '0x000000000000000000000000000000000000e9
 
 const VERDICT_VOTE_HOURS = 48
 
+// Fast lane: the moment a call reaches its pool (becomes active), the project's
+// Trust Score is provisionally lowered by this magnitude as a visible "under
+// review" signal across the app. It is fully reversed at resolution, then the
+// real verdict delta is applied — so the net effect equals the outcome alone.
+export const PROVISIONAL_ALERT_TS = 15
+
+/** Clamp-and-log a Trust Score change for a project (0–110). No-op on 0. */
+export async function adjustTrust(projectId: string, delta: number, reason: string) {
+  if (delta === 0) return
+  const { data: proj } = await supabaseAdmin
+    .from('projects').select('trust_score').eq('id', projectId).single()
+  if (!proj) return
+  const newScore = Math.max(0, Math.min(110, (proj.trust_score as number) + delta))
+  await Promise.all([
+    supabaseAdmin.from('projects').update({ trust_score: newScore }).eq('id', projectId),
+    supabaseAdmin.from('trust_score_log').insert({ project_id: projectId, delta, score_after: newScore, reason }),
+  ])
+}
+
 // Outcome economics — kept in sync with the manual resolve endpoint so the
 // automatic and backstop paths behave identically.
 //   resolved — real issue, community satisfied: half the staked ZXP returned, TS −10

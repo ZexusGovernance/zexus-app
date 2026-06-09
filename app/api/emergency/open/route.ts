@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
-import { notifyProjectWatchers } from '@/lib/telegram'
+import { notifyProjectEmergency } from '@/lib/notify'
 import { effectiveEmergencyConfig } from '@/lib/emergency-config'
+import { adjustTrust, PROVISIONAL_ALERT_TS } from '@/lib/emergency'
 import { requireAuth, unauthorized } from '@/lib/auth'
 
 const COLLECT_HOURS          = 48
-const PROJECT_COOLDOWN_DAYS  = 60
 const INITIATOR_COOLDOWN_DAYS = 14
+
+// Outcome-based project cooldown (days) before a NEW call can be opened.
+// A flat lockout is dangerous: a project could rug during it. So the cooldown
+// scales with the last outcome — false alarms get a real anti-harassment delay,
+// but genuinely-unresolved (ignored) cases let the community re-escalate at once.
+const PROJECT_COOLDOWN_DAYS: Record<string, number> = {
+  false_alarm: 30,  // was baseless — deter harassment
+  resolved:    7,   // real but handled — short breather
+  ignored:     0,   // real and neglected — re-escalate immediately
+}
+// Below this Trust Score a project is openly distrusted and gets no cooldown shield.
+const COOLDOWN_TRUST_FLOOR = 20
 
 export async function POST(req: NextRequest) {
   const wallet = requireAuth(req)
@@ -110,18 +122,33 @@ export async function POST(req: NextRequest) {
   if (activeCall)
     return NextResponse.json({ error: 'This project already has an active Emergency Call' }, { status: 409 })
 
-  const projectCooldown = new Date(Date.now() - PROJECT_COOLDOWN_DAYS * 86_400_000).toISOString()
-  const { data: recentResolved } = await supabaseAdmin
-    .from('emergency_calls')
-    .select('id')
-    .eq('project_id', project_id)
-    .in('status', ['false_alarm', 'resolved', 'ignored'])
-    .gte('resolved_at', projectCooldown)
-    .limit(1)
-    .maybeSingle()
+  // Low-trust projects are openly distrusted — no cooldown shield for them
+  const { data: projRow } = await supabaseAdmin
+    .from('projects').select('trust_score').eq('id', project_id).single()
+  const trustScore = (projRow?.trust_score as number) ?? 100
 
-  if (recentResolved)
-    return NextResponse.json({ error: 'This project had an Emergency Call resolved recently — 60-day cooldown applies' }, { status: 429 })
+  if (trustScore >= COOLDOWN_TRUST_FLOOR) {
+    const { data: lastResolved } = await supabaseAdmin
+      .from('emergency_calls')
+      .select('status, resolved_at')
+      .eq('project_id', project_id)
+      .in('status', ['false_alarm', 'resolved', 'ignored'])
+      .not('resolved_at', 'is', null)
+      .order('resolved_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (lastResolved?.resolved_at) {
+      const days = PROJECT_COOLDOWN_DAYS[lastResolved.status as string] ?? 0
+      const cooldownEnds = new Date(new Date(lastResolved.resolved_at as string).getTime() + days * 86_400_000)
+      if (days > 0 && cooldownEnds > new Date()) {
+        const daysLeft = Math.ceil((cooldownEnds.getTime() - Date.now()) / 86_400_000)
+        return NextResponse.json({
+          error: `This project's last Emergency Call (${lastResolved.status}) is on a ${days}-day cooldown — ${daysLeft}d left`,
+        }, { status: 429 })
+      }
+    }
+  }
 
   // ── 6. Create call + deduct ZXP ───────────────────────────────────────────
   const collectingUntil = new Date(Date.now() + COLLECT_HOURS * 3_600_000).toISOString()
@@ -151,25 +178,32 @@ export async function POST(req: NextRequest) {
     .eq('wallet_address', wallet)
 
   // Auto-activate if single person hits pool goal (unlikely but handled)
-  if (amount >= pool_goal) {
+  const autoActivated = amount >= pool_goal
+  if (autoActivated) {
     const responseUntil = new Date(Date.now() + COLLECT_HOURS * 3_600_000).toISOString()
     await supabaseAdmin
       .from('emergency_calls')
       .update({ status: 'active', response_until: responseUntil })
       .eq('id', call.id)
+    // Fast lane: provisional Trust Score drop on activation (reversed at resolution)
+    await adjustTrust(project_id, -PROVISIONAL_ALERT_TS, 'Emergency Call active — provisional review')
   }
 
-  // Notify watchlist followers that an Emergency Call was opened (fire-and-forget)
+  // Notify watchlist followers (in-app + Telegram) — fire-and-forget
   void (async () => {
     const { data: proj } = await supabaseAdmin
       .from('projects').select('name').eq('id', project_id).maybeSingle()
     const projName = (proj?.name as string) ?? 'a project'
-    void notifyProjectWatchers(project_id,
-      `🚨 <b>Emergency Call opened — ${projName}</b>\n` +
-      `${reason.slice(0, 120)}${reason.length > 120 ? '…' : ''}\n\n` +
-      `Pool goal: ${pool_goal} ZXP from ≥5 wallets within 48h.\n` +
-      `<a href="https://app.zexus.xyz">Open Zexus</a>`,
-    )
+    const snippet = `${reason.slice(0, 120)}${reason.length > 120 ? '…' : ''}`
+    void notifyProjectEmergency({
+      projectId: project_id,
+      title: autoActivated
+        ? `Emergency Call ACTIVE — ${projName}`
+        : `Emergency Call opened — ${projName}`,
+      body: autoActivated
+        ? `${snippet} Trust Score lowered pending verdict.`
+        : `${snippet} Pool goal: ${pool_goal} ZXP from ≥5 wallets within 48h.`,
+    })
   })()
 
   return NextResponse.json({ ok: true, call })

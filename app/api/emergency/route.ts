@@ -6,7 +6,7 @@ import {
   hasProjectResponded,
   type EmergencyCallRow,
 } from '@/lib/emergency'
-import { notifyProjectWatchers } from '@/lib/telegram'
+import { notifyProjectEmergency } from '@/lib/notify'
 
 type Phase = 'collecting' | 'responding' | 'voting' | null
 
@@ -109,11 +109,12 @@ export async function GET(req: NextRequest) {
   // Response window elapsed → open (or reuse) the community verdict vote
   const { post, created } = await ensureVerdictVote(call as unknown as EmergencyCallRow)
   if (created) {
-    void notifyProjectWatchers(project_id,
-      `⚖️ <b>Community verdict open</b>\n` +
-      `An Emergency Call response window has closed. Stakers are now deciding the outcome.\n\n` +
-      `<a href="https://app.zexus.xyz">Vote on Zexus</a>`,
-    )
+    void notifyProjectEmergency({
+      projectId: project_id,
+      title:     'Community verdict open',
+      body:      'An Emergency Call response window has closed. Stakers are now deciding the outcome.',
+      postId:    post.id,
+    })
   }
 
   const verdict = await tallyVerdict(post.id, post.voting_deadline)
