@@ -158,11 +158,25 @@ interface CommentRowProps {
   onLike: () => void
   onReply?: () => void
   isReply?: boolean
+  mine?: boolean
+  editing?: boolean
+  editValue?: string
+  onEdit?: () => void
+  onDelete?: () => void
+  onSaveEdit?: () => void
+  onCancelEdit?: () => void
+  onEditChange?: (v: string) => void
 }
 
-function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onReply, isReply }: CommentRowProps) {
+function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onReply, isReply, mine, editing, editValue, onEdit, onDelete, onSaveEdit, onCancelEdit, onEditChange }: CommentRowProps) {
   const shouldAnimate = isNew || revealed
   const animClass = isNew ? ' comment-new' : revealed ? ' comment-enter-anim' : ''
+  const isDeleted = c.text === '[deleted]'
+  const iconBtn = {
+    display: 'inline-flex', alignItems: 'center', padding: 0,
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: 'var(--muted2)', fontSize: 13, transition: 'color 0.15s',
+  } as const
   return (
     <div
       className={`comment-item${animClass}`}
@@ -186,10 +200,27 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onRe
           )}
           &nbsp;·&nbsp;{c.time}
         </div>
-        <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.55, overflowWrap: 'break-word' }}>
-          <TextWithLinks text={c.text} />
-        </div>
-        {isDbPost && (
+        {editing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <textarea
+              value={editValue ?? ''}
+              onChange={e => onEditChange?.(e.target.value)}
+              rows={2}
+              maxLength={500}
+              className="create-textarea"
+              style={{ fontSize: 13 }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={onSaveEdit} style={{ ...iconBtn, color: 'var(--green)', fontSize: 12, fontWeight: 600 }}>Save</button>
+              <button onClick={onCancelEdit} style={{ ...iconBtn, fontSize: 12 }}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 13, color: isDeleted ? 'var(--muted2)' : 'var(--text)', lineHeight: 1.55, overflowWrap: 'break-word', fontStyle: isDeleted ? 'italic' : 'normal' }}>
+            {isDeleted ? 'comment deleted' : <TextWithLinks text={c.text} />}
+          </div>
+        )}
+        {isDbPost && !editing && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: -3, marginLeft: -12 }}>
             <button
               onClick={onLike}
@@ -205,17 +236,19 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onRe
               {likeState.count > 0 && <span>{likeState.count}</span>}
             </button>
             {onReply && (
-              <button
-                onClick={onReply}
-                title="Reply"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', padding: 0,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--muted2)', fontSize: 13, transition: 'color 0.15s',
-                }}
-              >
+              <button onClick={onReply} title="Reply" style={iconBtn}>
                 <i className="ph-bold ph-arrow-bend-up-left" />
               </button>
+            )}
+            {mine && !isDeleted && (
+              <>
+                <button onClick={onEdit} title="Edit" style={iconBtn}>
+                  <i className="ph-bold ph-pencil-simple" />
+                </button>
+                <button onClick={onDelete} title="Delete" style={iconBtn}>
+                  <i className="ph-bold ph-trash" />
+                </button>
+              </>
             )}
           </div>
         )}
@@ -249,11 +282,42 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
   const [revealedIds,     setRevealedIds]      = useState<Set<string>>(new Set())
   const [commentLikes,    setCommentLikes]     = useState<Record<string, CommentLikeState>>({})
   const [replyTo,         setReplyTo]          = useState<{ parentId: string; author: string } | null>(null)
+  const [editingId,       setEditingId]        = useState<string | null>(null)
+  const [editValue,       setEditValue]        = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const startReply = (parentId: string, author: string) => {
     setReplyTo({ parentId, author })
     setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const startEdit  = (c: Comment) => { setEditingId(c.id); setEditValue(c.text) }
+  const cancelEdit = () => { setEditingId(null); setEditValue('') }
+
+  const saveEdit = async (id: string) => {
+    const text = editValue.trim()
+    if (!text) return
+    const res = await fetch('/api/comments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, content: text }),
+    })
+    if (res.ok) {
+      setDbComments(prev => prev.map(c => (c.id === id ? { ...c, text } : c)))
+      cancelEdit()
+    }
+  }
+
+  const deleteComment = async (id: string) => {
+    if (!window.confirm('Delete this comment?')) return
+    const res = await fetch(`/api/comments?id=${id}`, { method: 'DELETE' })
+    if (!res.ok) return
+    const { soft } = await res.json().catch(() => ({ soft: false })) as { soft?: boolean }
+    setDbComments(prev =>
+      soft
+        ? prev.map(c => (c.id === id ? { ...c, text: '[deleted]' } : c))
+        : prev.filter(c => c.id !== id),
+    )
   }
 
   // ── Live voting (real DB voting posts) ──────────────────────────────────────
@@ -505,6 +569,9 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
   const EMPTY_LIKE: CommentLikeState = { liked: false, count: 0, loading: false }
 
+  const myWallet = address?.toLowerCase() ?? ''
+  const ownsComment = (c: Comment) => isDbPost && !!myWallet && c.wallet?.toLowerCase() === myWallet
+
   const renderThread = (c: Comment, idx: number) => {
     const replies = repliesByParent[c.id] ?? []
     return (
@@ -518,6 +585,14 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
           likeState={commentLikes[c.id] ?? EMPTY_LIKE}
           onLike={() => toggleCommentLike(c.id)}
           onReply={() => startReply(c.id, c.author)}
+          mine={ownsComment(c)}
+          editing={editingId === c.id}
+          editValue={editValue}
+          onEdit={() => startEdit(c)}
+          onDelete={() => deleteComment(c.id)}
+          onSaveEdit={() => saveEdit(c.id)}
+          onCancelEdit={cancelEdit}
+          onEditChange={setEditValue}
         />
         {replies.length > 0 && (
           <div style={{ marginLeft: 20, paddingLeft: 14, borderLeft: '1.5px solid var(--border)' }}>
@@ -533,6 +608,14 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
                 likeState={commentLikes[r.id] ?? EMPTY_LIKE}
                 onLike={() => toggleCommentLike(r.id)}
                 onReply={() => startReply(c.id, r.author)}
+                mine={ownsComment(r)}
+                editing={editingId === r.id}
+                editValue={editValue}
+                onEdit={() => startEdit(r)}
+                onDelete={() => deleteComment(r.id)}
+                onSaveEdit={() => saveEdit(r.id)}
+                onCancelEdit={cancelEdit}
+                onEditChange={setEditValue}
               />
             ))}
           </div>

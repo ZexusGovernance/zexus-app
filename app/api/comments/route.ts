@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
 import { grantOnboardingReward } from '@/lib/onboarding'
 import { notifyCommentReply } from '@/lib/notify'
-import { requireAuth, unauthorized } from '@/lib/auth'
+import { requireAuth, unauthorized, isSuperAdmin } from '@/lib/auth'
+
+const DELETED_MARKER = '[deleted]'
 
 export async function GET(req: NextRequest) {
   const post_id = req.nextUrl.searchParams.get('post_id')
@@ -97,4 +99,68 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ comment }, { status: 201 })
+}
+
+// PATCH /api/comments  { id, content }  — edit your own comment
+export async function PATCH(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
+  let body: Record<string, string>
+  try { body = await req.json() } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const { id, content } = body
+  if (!id || !content?.trim())
+    return NextResponse.json({ error: 'id and content are required' }, { status: 400 })
+  if (content.length > 500)
+    return NextResponse.json({ error: 'Comment exceeds 500 characters' }, { status: 400 })
+
+  const { data: comment } = await supabaseAdmin
+    .from('post_comments').select('id, author_wallet').eq('id', id).maybeSingle()
+  if (!comment)
+    return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
+  if ((comment.author_wallet as string)?.toLowerCase() !== wallet.toLowerCase() && !isSuperAdmin(wallet))
+    return NextResponse.json({ error: 'You can only edit your own comment' }, { status: 403 })
+
+  const { data: updated, error } = await supabaseAdmin
+    .from('post_comments')
+    .update({ content: content.trim() })
+    .eq('id', id)
+    .select('id, parent_id, author_wallet, content, created_at')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ comment: updated })
+}
+
+// DELETE /api/comments?id=UUID  — delete your own comment.
+// If it has replies, soft-delete (keep the thread); otherwise remove the row.
+export async function DELETE(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
+  const id = req.nextUrl.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const { data: comment } = await supabaseAdmin
+    .from('post_comments').select('id, author_wallet').eq('id', id).maybeSingle()
+  if (!comment)
+    return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
+  if ((comment.author_wallet as string)?.toLowerCase() !== wallet.toLowerCase() && !isSuperAdmin(wallet))
+    return NextResponse.json({ error: 'You can only delete your own comment' }, { status: 403 })
+
+  const { count } = await supabaseAdmin
+    .from('post_comments')
+    .select('*', { count: 'exact', head: true })
+    .eq('parent_id', id)
+
+  if ((count ?? 0) > 0) {
+    await supabaseAdmin.from('post_comments').update({ content: DELETED_MARKER }).eq('id', id)
+    return NextResponse.json({ ok: true, soft: true })
+  }
+
+  await supabaseAdmin.from('post_comments').delete().eq('id', id)
+  return NextResponse.json({ ok: true, soft: false })
 }
