@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
 import Nav from '@/components/nav/Nav'
@@ -804,6 +804,18 @@ interface EmergencyConfig {
   min_amount: number
 }
 
+type EmergencyPhase = 'collecting' | 'responding' | 'voting' | null
+
+interface EmergencyVerdict {
+  post_id: string
+  voting_deadline: string | null
+  confirmWeight: number
+  disputeWeight: number
+  confirmCount: number
+  disputeCount: number
+  total: number
+}
+
 const DEFAULT_EM_CONFIG: EmergencyConfig = { pool_goal: 300, min_wallets: 5, max_amount: 60, min_amount: 5 }
 
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
@@ -955,21 +967,72 @@ function EmergencyCallModal({
   projectId,
   wallet,
   config,
+  isAdmin,
+  phase,
+  verdict,
+  responded,
   onClose,
   onUpdated,
+  onReload,
 }: {
   call: EmergencyCallData | null
   projectId: string
   wallet: string | undefined
   config: EmergencyConfig
+  isAdmin: boolean
+  phase: EmergencyPhase
+  verdict: EmergencyVerdict | null
+  responded: boolean
   onClose: () => void
   onUpdated: (c: EmergencyCallData | null) => void
+  onReload: () => void
 }) {
   const [amount,    setAmount]    = useState(config.min_amount)
   const [reason,    setReason]    = useState('')
+  const [responseText, setResponseText] = useState('')
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState<string | null>(null)
   const [success,   setSuccess]   = useState<string | null>(null)
+
+  async function submitResponse() {
+    if (!wallet || responseText.trim().length < 10) return
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch('/api/emergency/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projectId, content: responseText.trim() }),
+      })
+      const data = await res.json() as { ok?: boolean; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      setSuccess('Response published. The community will review it.')
+      onReload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function castVerdict(vote: 'confirm' | 'dispute') {
+    if (!wallet || !verdict) return
+    setLoading(true); setError(null)
+    try {
+      const res = await fetch(`/api/posts/${verdict.post_id}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote }),
+      })
+      const data = await res.json() as { ok?: boolean; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Failed')
+      setSuccess(vote === 'confirm' ? 'Voted: project addressed it.' : 'Voted: problem unresolved.')
+      onReload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const poolPct      = call ? Math.min(100, Math.round((call.pool_zxp / config.pool_goal) * 100)) : 0
   const walletNeeded = call ? Math.max(0, config.min_wallets - call.participant_count) : 0
@@ -1187,26 +1250,148 @@ function EmergencyCallModal({
             </>
           )}
 
-          {/* ── Active call (project must respond) ──────────────────── */}
-          {call?.status === 'active' && (
-            <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🚨</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#e07070', marginBottom: 8 }}>Emergency Call ACTIVE</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 12 }}>
-                The pool goal was reached. The project team has been notified and must respond within 48 hours.
+          {/* ── Active call: project response window ─────────────────── */}
+          {call?.status === 'active' && phase === 'responding' && (
+            <div style={{ padding: '8px 0' }}>
+              <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>🚨</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#e07070', marginBottom: 8 }}>Emergency Call ACTIVE</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.65 }}>
+                  The pool goal was reached. The project team must respond publicly within 48 hours — then
+                  stakers vote on the verdict.
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 10 }}>
+                  Pool: <strong style={{ color: 'var(--text)' }}>{call.pool_zxp} ZXP</strong>
+                  {' · '}{call.participant_count} participants
+                </div>
+                {call.response_until && (
+                  <div style={{ fontSize: 11, color: '#e07070', marginTop: 6 }}>
+                    {timeRemainingLabel(call.response_until)} to respond
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--muted2)' }}>
-                Pool: <strong style={{ color: 'var(--text)' }}>{call.pool_zxp} ZXP</strong>
-                {' · '}
-                {call.participant_count} participants
+
+              <div style={{ fontSize: 12, color: 'var(--muted)', borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 12, lineHeight: 1.65 }}>
+                <strong style={{ color: 'var(--text)' }}>Reason:</strong> {call.reason}
               </div>
-              {call.response_until && (
-                <div style={{ fontSize: 11, color: '#e07070', marginTop: 6 }}>
-                  {timeRemainingLabel(call.response_until)} to respond
+
+              {responded && (
+                <div style={{ fontSize: 12, color: 'var(--green)', marginTop: 12 }}>
+                  <i className="ph-bold ph-check-circle" style={{ marginRight: 5 }} />
+                  The project has posted a public response.
                 </div>
               )}
-              <div style={{ marginTop: 14, fontSize: 12, color: 'var(--muted)', borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 12, textAlign: 'left', lineHeight: 1.65 }}>
+
+              {isAdmin && !responded && (
+                <div style={{ marginTop: 14, borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.1px', textTransform: 'uppercase', color: 'var(--muted2)', display: 'block', marginBottom: 5 }}>
+                    YOUR PUBLIC RESPONSE
+                  </label>
+                  <textarea
+                    className="create-textarea"
+                    rows={4}
+                    value={responseText}
+                    onChange={e => setResponseText(e.target.value)}
+                    placeholder="Address the concern directly. Link on-chain proof, commits, or an explanation the community can verify."
+                  />
+                  {error   && <div style={{ fontSize: 12, color: 'var(--red)',   marginTop: 8 }}><i className="ph-bold ph-warning-circle" style={{ marginRight: 5 }} />{error}</div>}
+                  {success && <div style={{ fontSize: 12, color: 'var(--green)', marginTop: 8 }}><i className="ph-bold ph-check-circle"  style={{ marginRight: 5 }} />{success}</div>}
+                  {!success && (
+                    <button
+                      onClick={submitResponse}
+                      disabled={loading || responseText.trim().length < 10}
+                      style={{
+                        width: '100%', marginTop: 10, padding: '10px 16px', borderRadius: 9,
+                        background: 'rgba(111,155,229,0.14)', border: '0.5px solid rgba(111,155,229,0.45)',
+                        color: '#6f9be5', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                        cursor: (loading || responseText.trim().length < 10) ? 'not-allowed' : 'pointer',
+                        opacity: (loading || responseText.trim().length < 10) ? 0.55 : 1,
+                      }}
+                    >
+                      {loading ? 'Publishing…' : 'Publish response'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Active call: community verdict vote ──────────────────── */}
+          {call?.status === 'active' && phase === 'voting' && verdict && (
+            <div style={{ padding: '8px 0' }}>
+              <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>⚖️</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>Community Verdict</div>
+                <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6 }}>
+                  The response window has closed. Stakers now decide the outcome.
+                </div>
+                <div style={{ fontSize: 11, marginTop: 8, color: responded ? 'var(--green)' : '#e07070' }}>
+                  {responded ? '✓ Project responded' : '✗ Project did not respond'}
+                </div>
+                {verdict.voting_deadline && (
+                  <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 4 }}>
+                    {timeRemainingLabel(verdict.voting_deadline)}
+                  </div>
+                )}
+              </div>
+
+              {/* Tally bar */}
+              {(() => {
+                const tot = verdict.confirmWeight + verdict.disputeWeight
+                const confirmPct = tot > 0 ? Math.round((verdict.confirmWeight / tot) * 100) : 50
+                return (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ height: 7, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
+                      <div style={{ height: '100%', width: `${confirmPct}%`, background: 'linear-gradient(90deg,#4caf7d,#6fcf83)', borderRadius: 4, transition: 'width 0.5s' }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)' }}>
+                      <span style={{ color: '#6fcf83', fontWeight: 600 }}>✓ Addressed {confirmPct}%</span>
+                      <span style={{ color: '#e07070', fontWeight: 600 }}>{100 - confirmPct}% Unresolved ✗</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 4, textAlign: 'center' }}>
+                      {verdict.total} vote{verdict.total !== 1 ? 's' : ''} cast
+                    </div>
+                  </div>
+                )
+              })()}
+
+              <div style={{ fontSize: 12, color: 'var(--muted)', borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 12, lineHeight: 1.65, marginBottom: 14 }}>
                 <strong style={{ color: 'var(--text)' }}>Reason:</strong> {call.reason}
+              </div>
+
+              {error   && <div style={{ fontSize: 12, color: 'var(--red)',   marginBottom: 10 }}><i className="ph-bold ph-warning-circle" style={{ marginRight: 5 }} />{error}</div>}
+              {success && <div style={{ fontSize: 12, color: 'var(--green)', marginBottom: 10 }}><i className="ph-bold ph-check-circle"  style={{ marginRight: 5 }} />{success}</div>}
+
+              {!success && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => castVerdict('confirm')}
+                    disabled={loading || !wallet}
+                    style={{
+                      flex: 1, padding: '10px', borderRadius: 9,
+                      background: 'rgba(111,207,131,0.12)', border: '0.5px solid rgba(111,207,131,0.45)',
+                      color: '#6fcf83', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                      cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
+                    }}
+                  >
+                    Addressed
+                  </button>
+                  <button
+                    onClick={() => castVerdict('dispute')}
+                    disabled={loading || !wallet}
+                    style={{
+                      flex: 1, padding: '10px', borderRadius: 9,
+                      background: 'rgba(224,112,112,0.12)', border: '0.5px solid rgba(224,112,112,0.45)',
+                      color: '#e07070', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                      cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
+                    }}
+                  >
+                    Unresolved
+                  </button>
+                </div>
+              )}
+              <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 8, textAlign: 'center' }}>
+                Voting requires ≥10 ZXP staked · costs 1 ZXP
               </div>
             </div>
           )}
@@ -1314,6 +1499,9 @@ export default function ProjectProfilePage() {
   // Emergency Call
   const [emergencyCall,    setEmergencyCall]    = useState<EmergencyCallData | null>(null)
   const [emergencyConfig,  setEmergencyConfig]  = useState<EmergencyConfig>(DEFAULT_EM_CONFIG)
+  const [emergencyPhase,   setEmergencyPhase]   = useState<EmergencyPhase>(null)
+  const [emergencyVerdict, setEmergencyVerdict] = useState<EmergencyVerdict | null>(null)
+  const [emergencyResponded, setEmergencyResponded] = useState(false)
   const [emergencyOpen,    setEmergencyOpen]    = useState(false)
 
   // Analytics (admin only)
@@ -1528,16 +1716,27 @@ export default function ProjectProfilePage() {
   }, [projectDbId])
 
   // Load emergency call for this project
-  useEffect(() => {
+  const reloadEmergency = useCallback(() => {
     if (!projectDbId) return
     fetch(`/api/emergency?project_id=${projectDbId}`)
       .then(r => r.json())
-      .then(({ call, config }: { call: EmergencyCallData | null; config?: EmergencyConfig }) => {
+      .then(({ call, config, phase, verdict, responded }: {
+        call: EmergencyCallData | null
+        config?: EmergencyConfig
+        phase?: EmergencyPhase
+        verdict?: EmergencyVerdict | null
+        responded?: boolean
+      }) => {
         setEmergencyCall(call ?? null)
         if (config) setEmergencyConfig(config)
+        setEmergencyPhase(phase ?? null)
+        setEmergencyVerdict(verdict ?? null)
+        setEmergencyResponded(!!responded)
       })
       .catch(() => {})
   }, [projectDbId])
+
+  useEffect(() => { reloadEmergency() }, [reloadEmergency])
 
   // Load analytics when admin switches to analytics tab
   useEffect(() => {
@@ -2315,8 +2514,13 @@ export default function ProjectProfilePage() {
           projectId={projectDbId}
           wallet={address}
           config={emergencyConfig}
+          isAdmin={isAdmin}
+          phase={emergencyPhase}
+          verdict={emergencyVerdict}
+          responded={emergencyResponded}
           onClose={() => setEmergencyOpen(false)}
           onUpdated={c => setEmergencyCall(c)}
+          onReload={reloadEmergency}
         />
       )}
       {selectedPost && (
@@ -2391,7 +2595,10 @@ export default function ProjectProfilePage() {
               {emergencyCall?.status === 'collecting' && (
                 <span className="em-badge em-badge-live">Live</span>
               )}
-              {emergencyCall?.status === 'active' && (
+              {emergencyCall?.status === 'active' && emergencyPhase === 'voting' && (
+                <span className="em-badge em-badge-active">Voting</span>
+              )}
+              {emergencyCall?.status === 'active' && emergencyPhase !== 'voting' && (
                 <span className="em-badge em-badge-active">Active</span>
               )}
             </div>
@@ -2414,7 +2621,13 @@ export default function ProjectProfilePage() {
               </div>
             )}
 
-            {emergencyCall?.status === 'active' && (
+            {emergencyCall?.status === 'active' && emergencyPhase === 'voting' && (
+              <div className="em-active-row">
+                <i className="ph-bold ph-scales" style={{ fontSize: 11 }} />
+                Community is deciding the verdict
+              </div>
+            )}
+            {emergencyCall?.status === 'active' && emergencyPhase !== 'voting' && (
               <div className="em-active-row">
                 <i className="ph-bold ph-clock" style={{ fontSize: 11 }} />
                 Project has 48h to respond

@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { notifyProjectWatchers } from '@/lib/telegram'
+import {
+  EMERGENCY_SYSTEM_WALLET,
+  EMERGENCY_OUTCOMES,
+  ensureVerdictVote,
+  type EmergencyCallRow,
+} from '@/lib/emergency'
 
 const CRON_SECRET       = process.env.CRON_SECRET ?? ''
 const MISSED_PENALTY    = -10  // trust score hit when a milestone deadline passes with no submission
@@ -39,7 +46,7 @@ async function applyTrustDelta(projectId: string, delta: number, reason: string)
 async function finalizeExpiredVotes(): Promise<number> {
   const { data: expiredPosts } = await supabaseAdmin
     .from('posts')
-    .select('id, project_id, voting_delta, milestone_id')
+    .select('id, project_id, voting_delta, milestone_id, author_wallet')
     .eq('post_type', 'voting')
     .eq('voting_finalized', false)
     .lt('voting_deadline', new Date().toISOString())
@@ -61,6 +68,16 @@ async function finalizeExpiredVotes(): Promise<number> {
     const votePassed    = quorumReached && confirmWeight > disputeWeight
     const delta         = (post.voting_delta as number) ?? 5
     const milestoneId   = post.milestone_id as string | null
+
+    // Emergency Call verdict — resolved by community vote, not the generic path
+    if ((post.author_wallet as string) === EMERGENCY_SYSTEM_WALLET) {
+      await resolveEmergencyVerdict(
+        post.id as string, post.project_id as string,
+        confirmWeight, disputeWeight, quorumReached,
+      )
+      count++
+      continue
+    }
 
     if (milestoneId) {
       if (votePassed) {
@@ -150,6 +167,111 @@ async function penalizeMissedMilestones(): Promise<number> {
   return count
 }
 
+// Refund staked ZXP to a call's participants at the given multiplier
+async function refundEmergencyParticipants(callId: string, multiplier: number) {
+  if (multiplier <= 0) return
+  const { data: parts } = await supabaseAdmin
+    .from('emergency_participants')
+    .select('wallet_address, amount')
+    .eq('call_id', callId)
+
+  for (const p of parts ?? []) {
+    const returnAmount = Math.floor((p.amount as number) * multiplier)
+    if (returnAmount <= 0) continue
+    const { data: prof } = await supabaseAdmin
+      .from('profiles').select('zxp_balance').eq('wallet_address', p.wallet_address).single()
+    if (!prof) continue
+    const newBalance = (prof.zxp_balance as number) + returnAmount
+    await Promise.all([
+      supabaseAdmin.from('profiles')
+        .update({ zxp_balance: newBalance })
+        .eq('wallet_address', p.wallet_address),
+      supabaseAdmin.from('zxp_transactions').insert({
+        wallet_address: p.wallet_address,
+        type:           'reward',
+        amount:         returnAmount,
+        note:           'Emergency Call verdict',
+        balance_after:  newBalance,
+      }),
+    ])
+  }
+}
+
+// Map a finalized verdict vote to an Emergency Call outcome and apply it
+async function resolveEmergencyVerdict(
+  postId: string,
+  projectId: string,
+  confirmWeight: number,
+  disputeWeight: number,
+  quorumReached: boolean,
+) {
+  // The in-flight call for this project (status stays 'active' through voting)
+  const { data: call } = await supabaseAdmin
+    .from('emergency_calls')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!call) {
+    await supabaseAdmin.from('posts').update({ voting_finalized: true }).eq('id', postId)
+    return
+  }
+
+  const outcome = !quorumReached
+    ? EMERGENCY_OUTCOMES.neutral
+    : confirmWeight > disputeWeight
+      ? EMERGENCY_OUTCOMES.resolved
+      : EMERGENCY_OUTCOMES.ignored
+
+  await refundEmergencyParticipants(call.id as string, outcome.zxp_multiplier)
+
+  if (outcome.ts_delta !== 0)
+    await applyTrustDelta(projectId, outcome.ts_delta, `Emergency Call verdict: ${outcome.status}`)
+
+  await Promise.all([
+    supabaseAdmin.from('emergency_calls')
+      .update({ status: outcome.status, resolved_at: new Date().toISOString() })
+      .eq('id', call.id),
+    supabaseAdmin.from('posts').update({ voting_finalized: true }).eq('id', postId),
+  ])
+
+  void notifyProjectWatchers(projectId,
+    `⚖️ <b>Emergency Call verdict: ${outcome.status.toUpperCase()}</b>\n` +
+    (outcome.status === 'expired'
+      ? 'Not enough community participation — stakes refunded in full.'
+      : `Community vote decided the outcome. Trust Score ${outcome.ts_delta}.`) +
+    `\n\n<a href="https://app.zexus.xyz">Open Zexus</a>`,
+  )
+}
+
+// Convert active calls whose 48h response window elapsed into community votes
+async function convertExpiredEmergencyCalls(): Promise<number> {
+  const { data: calls } = await supabaseAdmin
+    .from('emergency_calls')
+    .select('id, project_id, reason, pool_zxp, participant_count, created_at')
+    .eq('status', 'active')
+    .lt('response_until', new Date().toISOString())
+
+  if (!calls?.length) return 0
+
+  let created = 0
+  for (const call of calls) {
+    const res = await ensureVerdictVote(call as EmergencyCallRow)
+    if (res.created) {
+      created++
+      void notifyProjectWatchers(call.project_id as string,
+        `⚖️ <b>Community verdict open</b>\n` +
+        `An Emergency Call response window has closed. Stakers are now deciding the outcome.\n\n` +
+        `<a href="https://app.zexus.xyz">Vote on Zexus</a>`,
+      )
+    }
+  }
+  return created
+}
+
 // GET /api/cron/finalize-votes  — called by Vercel Cron every hour
 export async function GET(req: NextRequest) {
   const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret') ?? ''
@@ -157,10 +279,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // Convert first so a newly-opened vote isn't finalized in the same pass
+  const emergencyVotesOpened = await convertExpiredEmergencyCalls()
+
   const [votesFinalized, missedPenalized] = await Promise.all([
     finalizeExpiredVotes(),
     penalizeMissedMilestones(),
   ])
 
-  return NextResponse.json({ ok: true, votesFinalized, missedPenalized })
+  return NextResponse.json({ ok: true, votesFinalized, missedPenalized, emergencyVotesOpened })
 }
