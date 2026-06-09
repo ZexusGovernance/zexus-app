@@ -1025,7 +1025,7 @@ function EmergencyCallModal({
       })
       const data = await res.json() as { ok?: boolean; error?: string }
       if (!res.ok) throw new Error(data.error ?? 'Failed')
-      setSuccess(vote === 'confirm' ? 'Voted: project addressed it.' : 'Voted: problem unresolved.')
+      setSuccess(vote === 'confirm' ? 'Voted: Resolved.' : 'Voted: Unresolved.')
       onReload()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error')
@@ -1345,7 +1345,7 @@ function EmergencyCallModal({
                       <div style={{ height: '100%', width: `${confirmPct}%`, background: 'linear-gradient(90deg,#4caf7d,#6fcf83)', borderRadius: 4, transition: 'width 0.5s' }} />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)' }}>
-                      <span style={{ color: '#6fcf83', fontWeight: 600 }}>✓ Addressed {confirmPct}%</span>
+                      <span style={{ color: '#6fcf83', fontWeight: 600 }}>✓ Resolved {confirmPct}%</span>
                       <span style={{ color: '#e07070', fontWeight: 600 }}>{100 - confirmPct}% Unresolved ✗</span>
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 4, textAlign: 'center' }}>
@@ -1363,32 +1363,37 @@ function EmergencyCallModal({
               {success && <div style={{ fontSize: 12, color: 'var(--green)', marginBottom: 10 }}><i className="ph-bold ph-check-circle"  style={{ marginRight: 5 }} />{success}</div>}
 
               {!success && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => castVerdict('confirm')}
-                    disabled={loading || !wallet}
-                    style={{
-                      flex: 1, padding: '10px', borderRadius: 9,
-                      background: 'rgba(111,207,131,0.12)', border: '0.5px solid rgba(111,207,131,0.45)',
-                      color: '#6fcf83', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-                      cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
-                    }}
-                  >
-                    Addressed
-                  </button>
-                  <button
-                    onClick={() => castVerdict('dispute')}
-                    disabled={loading || !wallet}
-                    style={{
-                      flex: 1, padding: '10px', borderRadius: 9,
-                      background: 'rgba(224,112,112,0.12)', border: '0.5px solid rgba(224,112,112,0.45)',
-                      color: '#e07070', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-                      cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
-                    }}
-                  >
-                    Unresolved
-                  </button>
-                </div>
+                <>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 8 }}>
+                    Did the project resolve this concern?
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => castVerdict('confirm')}
+                      disabled={loading || !wallet}
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 9,
+                        background: 'rgba(111,207,131,0.12)', border: '0.5px solid rgba(111,207,131,0.45)',
+                        color: '#6fcf83', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                        cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
+                      }}
+                    >
+                      ✓ Resolved
+                    </button>
+                    <button
+                      onClick={() => castVerdict('dispute')}
+                      disabled={loading || !wallet}
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 9,
+                        background: 'rgba(224,112,112,0.12)', border: '0.5px solid rgba(224,112,112,0.45)',
+                        color: '#e07070', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                        cursor: (loading || !wallet) ? 'not-allowed' : 'pointer', opacity: (loading || !wallet) ? 0.55 : 1,
+                      }}
+                    >
+                      ✗ Unresolved
+                    </button>
+                  </div>
+                </>
               )}
               <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 8, textAlign: 'center' }}>
                 Voting requires ≥10 ZXP staked · costs 1 ZXP

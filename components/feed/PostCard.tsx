@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import type { FeedPost } from '@/lib/feedData'
 import { supabase } from '@/lib/supabase'
 import { useAppKitAccount } from '@reown/appkit/react'
+import { isEmergencyVerdict, verdictVoteLabel } from '@/lib/emergency-labels'
 
 interface PostCardProps {
   post:              FeedPost
@@ -529,7 +530,9 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
               disabled={voteCasting}
             >
               <i className="ph-bold ph-check" style={{ fontSize: 10 }} />
-              {voteData?.userVote === 'confirm' ? 'Confirmed' : 'Confirm'}
+              {isEmergencyVerdict(post.title)
+                ? verdictVoteLabel('confirm', voteData?.userVote === 'confirm')
+                : voteData?.userVote === 'confirm' ? 'Confirmed' : 'Confirm'}
             </button>
             <button
               style={{
@@ -545,7 +548,9 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
               disabled={voteCasting}
             >
               <i className="ph-bold ph-x" style={{ fontSize: 10 }} />
-              {voteData?.userVote === 'dispute' ? 'Disputed' : 'Dispute'}
+              {isEmergencyVerdict(post.title)
+                ? verdictVoteLabel('dispute', voteData?.userVote === 'dispute')
+                : voteData?.userVote === 'dispute' ? 'Disputed' : 'Dispute'}
             </button>
           </div>
         )}

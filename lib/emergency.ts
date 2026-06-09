@@ -1,4 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase-server'
+import { EMERGENCY_VERDICT_TITLE, EMERGENCY_RESPONSE_TITLE } from '@/lib/emergency-labels'
+
+export { EMERGENCY_VERDICT_TITLE, EMERGENCY_RESPONSE_TITLE }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Emergency Call → community-verdict adjudication.
@@ -15,9 +18,6 @@ import { supabaseAdmin } from '@/lib/supabase-server'
 // the cron distinguish an emergency verdict from an ordinary milestone/verdict
 // vote without a schema change. `posts.author_wallet` is plain TEXT (no FK).
 export const EMERGENCY_SYSTEM_WALLET = '0x000000000000000000000000000000000000e911'
-
-export const EMERGENCY_RESPONSE_TITLE = 'Response to Emergency Call'
-export const EMERGENCY_VERDICT_TITLE  = 'Emergency Call — Community Verdict'
 
 const VERDICT_VOTE_HOURS = 48
 
@@ -97,9 +97,9 @@ export async function ensureVerdictVote(
     `(${call.pool_zxp} ZXP from ${call.participant_count} wallets).\n\n` +
     `Reason: ${call.reason.slice(0, 600)}\n\n` +
     `The project ${responded ? 'posted a public response' : 'did NOT respond within 48h'}. ` +
-    `The community now decides the verdict:\n` +
-    `• Confirm — the project adequately addressed this (matter resolved)\n` +
-    `• Dispute — the problem is real and was left unresolved`
+    `The community now decides the verdict — vote:\n` +
+    `• Resolved — the project adequately addressed this concern\n` +
+    `• Unresolved — the problem is real and was left unaddressed`
 
   const { data: post } = await supabaseAdmin
     .from('posts')

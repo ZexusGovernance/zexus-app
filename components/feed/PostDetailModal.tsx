@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { FeedPost } from '@/lib/feedData'
 import { supabase } from '@/lib/supabase'
+import { isEmergencyVerdict, verdictVoteLabel } from '@/lib/emergency-labels'
 import Avatar from 'boring-avatars'
 
 const AVATAR_COLORS = ['#0a0a0f', '#3b82f6', '#a855f7', '#22d3ee', '#65bf7f']
@@ -675,7 +676,9 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
                     disabled={voteCasting}
                     style={{ opacity: voteData.userVote && voteData.userVote !== 'confirm' ? 0.45 : 1 }}
                   >
-                    <i className="ph-bold ph-thumbs-up" /> {voteData.userVote === 'confirm' ? 'Confirmed' : 'Confirm'}
+                    <i className="ph-bold ph-thumbs-up" /> {isEmergencyVerdict(post.title)
+                      ? verdictVoteLabel('confirm', voteData.userVote === 'confirm')
+                      : voteData.userVote === 'confirm' ? 'Confirmed' : 'Confirm'}
                   </button>
                   <button
                     className="bet-btn bb-no"
@@ -683,7 +686,9 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
                     disabled={voteCasting}
                     style={{ opacity: voteData.userVote && voteData.userVote !== 'dispute' ? 0.45 : 1 }}
                   >
-                    <i className="ph-bold ph-thumbs-down" /> {voteData.userVote === 'dispute' ? 'Disputed' : 'Dispute'}
+                    <i className="ph-bold ph-thumbs-down" /> {isEmergencyVerdict(post.title)
+                      ? verdictVoteLabel('dispute', voteData.userVote === 'dispute')
+                      : voteData.userVote === 'dispute' ? 'Disputed' : 'Dispute'}
                   </button>
                   {voteData.timeLeft && (
                     <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--gold-dim)' }}>
