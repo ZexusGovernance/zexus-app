@@ -139,7 +139,7 @@ async function doShare(post: FeedPost, setCopied: (v: boolean) => void) {
 
 interface Comment {
   id: string; author: string; letter: string; av: string; text: string; time: string; wallet: string
-  parentId: string | null; avatarUrl: string | null
+  parentId: string | null; avatarUrl: string | null; edited?: boolean
 }
 
 interface CommentLikeState {
@@ -199,6 +199,7 @@ function CommentRow({ c, idx, isNew, revealed, isDbPost, likeState, onLike, onRe
             <span style={{ color: 'var(--text)', fontWeight: 500 }}>{c.author}</span>
           )}
           &nbsp;·&nbsp;{c.time}
+          {c.edited && !isDeleted && <span style={{ color: 'var(--muted2)' }}>&nbsp;·&nbsp;edited</span>}
         </div>
         {editing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -303,7 +304,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
       body: JSON.stringify({ id, content: text }),
     })
     if (res.ok) {
-      setDbComments(prev => prev.map(c => (c.id === id ? { ...c, text } : c)))
+      setDbComments(prev => prev.map(c => (c.id === id ? { ...c, text, edited: true } : c)))
       cancelEdit()
     }
   }
@@ -403,7 +404,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
       fetch(`/api/comments?post_id=${post.id}`)
         .then(r => r.json())
-        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string; avatar_url: string | null }[] }) => {
+        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string; avatar_url: string | null; edited_at?: string | null }[] }) => {
           if (!comments) return
           const mapped = comments.map(c => ({
             id:        c.id,
@@ -415,6 +416,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
             wallet:    c.author_wallet,
             parentId:  c.parent_id ?? null,
             avatarUrl: c.avatar_url ?? null,
+            edited:    !!c.edited_at,
           }))
           setDbComments(mapped)
           mapped.forEach(c => {

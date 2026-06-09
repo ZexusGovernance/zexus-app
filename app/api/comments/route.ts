@@ -10,13 +10,24 @@ export async function GET(req: NextRequest) {
   const post_id = req.nextUrl.searchParams.get('post_id')
   if (!post_id) return NextResponse.json({ error: 'post_id is required' }, { status: 400 })
 
-  const { data: comments, error } = await supabaseAdmin
+  // Prefer selecting edited_at; fall back if the column hasn't been added yet.
+  let res = await supabaseAdmin
     .from('post_comments')
-    .select('id, parent_id, author_wallet, content, created_at')
+    .select('id, parent_id, author_wallet, content, created_at, edited_at')
     .eq('post_id', post_id)
     .order('created_at', { ascending: true })
     .limit(200)
 
+  if (res.error) {
+    res = await supabaseAdmin
+      .from('post_comments')
+      .select('id, parent_id, author_wallet, content, created_at')
+      .eq('post_id', post_id)
+      .order('created_at', { ascending: true })
+      .limit(200) as typeof res
+  }
+
+  const { data: comments, error } = res
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const list = comments ?? []
@@ -124,15 +135,26 @@ export async function PATCH(req: NextRequest) {
   if ((comment.author_wallet as string)?.toLowerCase() !== wallet.toLowerCase() && !isSuperAdmin(wallet))
     return NextResponse.json({ error: 'You can only edit your own comment' }, { status: 403 })
 
-  const { data: updated, error } = await supabaseAdmin
+  // Stamp edited_at when available; fall back to content-only if the column
+  // hasn't been added yet (the UI still flags the edit optimistically).
+  let res = await supabaseAdmin
     .from('post_comments')
-    .update({ content: content.trim() })
+    .update({ content: content.trim(), edited_at: new Date().toISOString() })
     .eq('id', id)
-    .select('id, parent_id, author_wallet, content, created_at')
+    .select('id, parent_id, author_wallet, content, created_at, edited_at')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ comment: updated })
+  if (res.error) {
+    res = await supabaseAdmin
+      .from('post_comments')
+      .update({ content: content.trim() })
+      .eq('id', id)
+      .select('id, parent_id, author_wallet, content, created_at')
+      .single() as typeof res
+  }
+
+  if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 })
+  return NextResponse.json({ comment: res.data })
 }
 
 // DELETE /api/comments?id=UUID  — delete your own comment.
