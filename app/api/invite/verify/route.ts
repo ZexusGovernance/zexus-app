@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-server'
+import {
+  ACCESS_COOKIE,
+  ACCESS_TTL_SECONDS,
+  createAccessToken,
+} from '@/lib/gate'
 
 export async function POST(req: Request) {
   const { code } = (await req.json()) as { code?: string }
@@ -27,5 +32,14 @@ export async function POST(req: Request) {
     .eq('code', normalized)
     .is('used_at', null)
 
-  return NextResponse.json({ valid: true, project: data.project_name })
+  // Grant access: signed, httpOnly cookie the middleware checks on every route.
+  const res = NextResponse.json({ valid: true, project: data.project_name })
+  res.cookies.set(ACCESS_COOKIE, await createAccessToken(), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: ACCESS_TTL_SECONDS,
+  })
+  return res
 }
