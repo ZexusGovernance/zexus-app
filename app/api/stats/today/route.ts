@@ -25,7 +25,13 @@ export async function GET() {
 
   const posts_today    = postsRes.count ?? 0
   const projects_total = projectsRes.count ?? 0
-  const zxp_today      = (zxpRes.data ?? []).reduce((sum, r) => sum + (Number(r.amount) || 0), 0)
+  // Only count ZXP credited to users today (rewards, claims, referrals, wins).
+  // Spends (stake/burn/predict_bet) are stored as negative amounts — including
+  // them would net out earnings and hide how much ZXP was actually received.
+  const zxp_today      = (zxpRes.data ?? []).reduce((sum, r) => {
+    const amt = Number(r.amount) || 0
+    return amt > 0 ? sum + amt : sum
+  }, 0)
 
   // Union all wallet-connected activity today, ignore device UUIDs
   const wallets = new Set<string>([
