@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
+import { getTheme, applyTheme, type Theme } from '@/lib/theme'
 import Avatar from 'boring-avatars'
 
 const AVATAR_COLORS = ['#0a0a0f', '#3b82f6', '#a855f7', '#22d3ee', '#65bf7f']
@@ -105,6 +106,40 @@ export default function ProfilePage() {
   const tgConnected = !!profile?.telegram_chat_id
   const [showLeaderboard, setShowLeaderboard] = useState(s.showLeaderboard ?? true)
   const [anonVoting, setAnonVoting] = useState(s.anonVoting ?? false)
+
+  // Appearance (light/dark) — persisted in localStorage, applied instantly
+  const [theme, setTheme] = useState<Theme>('dark')
+  useEffect(() => { setTheme(getTheme()) }, [])
+  function switchTheme(next: Theme) { setTheme(next); applyTheme(next) }
+
+  // Username — set once, then permanent
+  const [username,   setUsername]   = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const [nameErr,    setNameErr]    = useState<string | null>(null)
+  const hasUsername = !!profile?.display_name
+
+  async function saveUsername() {
+    if (!address || savingName) return
+    const name = username.trim()
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(name)) {
+      setNameErr('3–20 characters: letters, numbers, underscore only')
+      return
+    }
+    setSavingName(true); setNameErr(null)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: name }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setNameErr(d.error ?? 'Could not save username'); return }
+      await refreshProfile(address)
+      setUsername('')
+    } finally {
+      setSavingName(false)
+    }
+  }
 
   const loadData = useCallback(async (addr: string) => {
     setLoading(true)
@@ -370,8 +405,10 @@ export default function ProfilePage() {
               <div className="avatar">{avatarLetter}</div>
             )}
             <div style={{ flex: 1 }}>
-              <div className="prof-name">{shortAddr}</div>
-              <div className="prof-wallet">Connected · Base Mainnet</div>
+              <div className="prof-name">{profile?.display_name || shortAddr}</div>
+              <div className="prof-wallet">
+                {profile?.display_name ? `${shortAddr} · ` : ''}Connected · Base Mainnet
+              </div>
               <div className="badge-row">
                 {adminProject ? (
                   <span
@@ -895,6 +932,76 @@ export default function ProfilePage() {
                       Your avatar is unique to your wallet — generated automatically.<br />
                       <span style={{ color: 'var(--muted2)' }}>No two wallets look alike.</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Username — set once, permanent */}
+                <div className="settings-group">
+                  <div className="settings-group-title">Username</div>
+                  {hasUsername ? (
+                    <div className="settings-row">
+                      <div className="settings-row-info">
+                        <div className="settings-row-name">@{profile?.display_name}</div>
+                        <div className="settings-row-desc">Your username is permanent and can&apos;t be changed</div>
+                      </div>
+                      <i className="ph-bold ph-lock-simple" style={{ color: 'var(--muted2)', fontSize: 16, flexShrink: 0 }} />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '10px 14px 14px' }}>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 10 }}>
+                        Pick a username to show instead of your wallet address.{' '}
+                        <strong style={{ color: 'var(--text)' }}>This is permanent</strong> — choose carefully.
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          className="create-input"
+                          placeholder="username"
+                          value={username}
+                          maxLength={20}
+                          onChange={e => { setUsername(e.target.value); setNameErr(null) }}
+                          onKeyDown={e => { if (e.key === 'Enter') saveUsername() }}
+                          style={{ flex: 1 }}
+                        />
+                        <button className="settings-btn" disabled={savingName || !username.trim()} onClick={saveUsername}>
+                          {savingName ? '…' : 'Save'}
+                        </button>
+                      </div>
+                      {nameErr && (
+                        <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 7, display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <i className="ph-bold ph-warning-circle" /> {nameErr}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 10, color: 'var(--muted2)', marginTop: 7 }}>
+                        3–20 characters · letters, numbers, underscore
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Appearance — light / dark theme */}
+                <div className="settings-group">
+                  <div className="settings-group-title">Appearance</div>
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <div className="settings-row-name">Light mode</div>
+                      <div className="settings-row-desc">Switch between the dark and light theme</div>
+                    </div>
+                    <div
+                      className={`settings-toggle${theme === 'light' ? ' on' : ''}`}
+                      onClick={() => switchTheme(theme === 'light' ? 'dark' : 'light')}
+                    ></div>
+                  </div>
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <div className="settings-row-name">Platform tour</div>
+                      <div className="settings-row-desc">Replay the interactive walkthrough of the main features</div>
+                    </div>
+                    <button
+                      className="settings-btn"
+                      onClick={() => window.dispatchEvent(new Event('zx:start-tour'))}
+                    >
+                      Replay
+                    </button>
                   </div>
                 </div>
 

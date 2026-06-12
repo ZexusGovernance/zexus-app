@@ -46,6 +46,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Apply the saved theme before paint to avoid a flash of the wrong mode */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('zx_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();`,
+          }}
+        />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" />
         {/* iOS PWA */}
@@ -60,7 +66,7 @@ export default function RootLayout({
           margin: 0,
           padding: 0,
           overflow: 'hidden',
-          background: '#0b0a09',
+          background: 'var(--bg)',
         }}
         suppressHydrationWarning
       >

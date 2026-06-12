@@ -16,7 +16,371 @@
   --red: #e07070;
   --amber: #d4924a;
   --purple: #8a6fc9;
+  color-scheme: dark;
 }
+
+/* ── Light theme (token-based first pass) ──────────────────────────────
+   Swaps the core design tokens. Components that use these CSS variables
+   adapt automatically; a few inline rgba(255,255,255,…) overlays stay
+   subtle on light and can be polished in a follow-up pass. */
+:root[data-theme='light'] {
+  --bg: #f7f6f2;        /* page + bars (airy warm white) */
+  --surface: #ffffff;   /* cards / panels / inputs */
+  --surface2: #f0eee8;  /* hover / pills / subtle fills */
+  --border: #e9e6dd;
+  --border2: #d9d4c7;
+  --gold: #8e7223;      /* deeper bronze-gold — readable on white */
+  --gold-dim: #b3974f;
+  --text: #23211c;
+  --muted: #6e6a61;
+  --muted2: #a39d91;
+  --green: #1e8f58;
+  --blue: #3a63b0;
+  --red: #c84f4f;
+  --amber: #b06f24;
+  --purple: #6b50ad;
+  color-scheme: light;
+}
+
+/* ── Light theme — structural fixes ────────────────────────────────────
+   The app ships a dark "Premium governance" skin that force-paints .shell /
+   .center near-black and makes every card transparent with !important, plus a
+   gold grid on body::before. In light mode we must beat those !important rules
+   and repaint surfaces white. Scoped to [data-theme='light'] so dark is
+   untouched. */
+
+/* No grid in light mode — drop the background pattern entirely for a clean
+   solid light surface. */
+:root[data-theme='light'] body::before {
+  display: none !important;
+}
+
+/* Solid light bars (left nav, center, right rail) instead of the dark glass —
+   cards (white) sit on top and stand out against these. */
+:root[data-theme='light'] .shell,
+:root[data-theme='light'] .center,
+:root[data-theme='light'] .nav,
+:root[data-theme='light'] .right {
+  background: var(--bg) !important;
+}
+
+/* Repaint every card/panel surface white with a visible border + soft shadow
+   (the skin forces them transparent with vanishing white borders). */
+:root[data-theme='light'] .card,
+:root[data-theme='light'] .panel,
+:root[data-theme='light'] .context-panel,
+:root[data-theme='light'] .proj-list-card,
+:root[data-theme='light'] .apy-block,
+:root[data-theme='light'] .layer-card,
+:root[data-theme='light'] .sum-card,
+:root[data-theme='light'] .info-item,
+:root[data-theme='light'] .vhist-card,
+:root[data-theme='light'] .watch-card,
+:root[data-theme='light'] .pcard,
+:root[data-theme='light'] .prof-settings-section,
+:root[data-theme='light'] .ach-full-card,
+:root[data-theme='light'] .feed-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  box-shadow: 0 1px 2px rgba(35, 30, 20, 0.035), 0 6px 20px rgba(35, 30, 20, 0.045) !important;
+}
+:root[data-theme='light'] .feed-card:hover {
+  background: var(--surface) !important;
+  border-color: var(--border2) !important;
+  box-shadow: 0 2px 4px rgba(35, 30, 20, 0.05), 0 10px 26px rgba(35, 30, 20, 0.07) !important;
+}
+
+/* Dividers/borders the skin sets to vanishing white → token borders. */
+:root[data-theme='light'] .settings-group { border-bottom-color: var(--border) !important; }
+:root[data-theme='light'] .ach-full-row { border-top-color: var(--border) !important; }
+:root[data-theme='light'] .vhist-head { border-bottom-color: var(--border) !important; }
+:root[data-theme='light'] .fd-section {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Mobile chrome → light bars. */
+:root[data-theme='light'] .mobile-topbar,
+:root[data-theme='light'] .mobile-bottom-nav {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Modals / popovers with hardcoded dark fills → repaint light. */
+:root[data-theme='light'] .post-modal,
+:root[data-theme='light'] .post-modal-foot,
+:root[data-theme='light'] .search-modal,
+:root[data-theme='light'] .notif-popup,
+:root[data-theme='light'] .earn-zxp-pop {
+  background: var(--surface) !important;
+}
+:root[data-theme='light'] .post-modal {
+  border-color: var(--border2) !important;
+  box-shadow: 0 20px 60px rgba(40, 34, 24, 0.18) !important;
+}
+:root[data-theme='light'] .post-modal-foot {
+  border-top-color: var(--border) !important;
+}
+:root[data-theme='light'] .post-modal-overlay,
+:root[data-theme='light'] .checkin-overlay,
+:root[data-theme='light'] .search-overlay {
+  background: rgba(40, 34, 24, 0.28);
+}
+
+/* ── Light theme — colour polish ───────────────────────────────────────
+   Pleasant-to-the-eye pass: soft warm tints on the page, coloured accent
+   underlines on tabs, gold-tinted active nav, and solid button fills where
+   the dark theme used white washes. */
+
+/* Page: faint warm radial tints (light version of the dark skin's glow). */
+:root[data-theme='light'] body {
+  background:
+    radial-gradient(circle at 78% 6%, rgba(142, 114, 35, 0.05), transparent 36%),
+    radial-gradient(circle at 28% 94%, rgba(30, 143, 88, 0.04), transparent 38%),
+    var(--bg) !important;
+}
+
+/* Coloured accent underlines on tabs (gold = brand accent). */
+:root[data-theme='light'] .feed-filter-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--gold);
+}
+:root[data-theme='light'] .tab.active {
+  border-bottom-color: var(--blue);
+}
+
+/* Active nav item: warm gold tint instead of flat grey. */
+:root[data-theme='light'] .nav-item.active {
+  background: rgba(142, 114, 35, 0.08);
+  border-color: rgba(142, 114, 35, 0.22);
+}
+:root[data-theme='light'] .nav-item:hover:not(.active) {
+  background: var(--surface2);
+}
+
+/* Buttons built on white washes → readable solid fills on light. */
+:root[data-theme='light'] .create-post-btn,
+:root[data-theme='light'] .publish-btn {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+:root[data-theme='light'] .create-post-btn:hover,
+:root[data-theme='light'] .publish-btn:hover:not(:disabled) {
+  background: var(--border);
+}
+:root[data-theme='light'] .settings-btn {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* Inputs: white field on the light page so they read as editable. */
+:root[data-theme='light'] .zxp-input,
+:root[data-theme='light'] .create-input,
+:root[data-theme='light'] .create-textarea,
+:root[data-theme='light'] .comment-input {
+  background: var(--surface);
+  border-color: var(--border2);
+}
+
+/* ── Welcome gate (first wallet connect: username + tour offer) ───────── */
+@keyframes welcome-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes welcome-pop {
+  0%   { transform: scale(0.97) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.welcome-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(8, 7, 5, 0.7);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: welcome-fade 0.45s ease both;
+}
+.welcome-modal {
+  width: 100%; max-width: 360px;
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 18px;
+  padding: 30px 26px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  animation: welcome-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.welcome-phase {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: 100%;
+  animation: tour-content-in 0.45s ease both;
+}
+.welcome-logo {
+  width: 52px; height: 52px; border-radius: 15px;
+  background: rgba(201, 165, 90, 0.12);
+  border: 1px solid rgba(201, 165, 90, 0.35);
+  color: var(--gold); font-size: 26px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.welcome-check {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(76, 175, 125, 0.12);
+  border: 1px solid rgba(76, 175, 125, 0.4);
+  color: var(--green); font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.welcome-title { font-size: 18px; font-weight: 700; color: var(--text); }
+.welcome-sub { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+.welcome-input {
+  width: 100%; padding: 12px 14px; border-radius: 10px;
+  border: 0.5px solid var(--border2); background: var(--bg);
+  color: var(--text); font-size: 14px; text-align: center;
+  letter-spacing: 0.5px; outline: none; font-family: inherit;
+}
+.welcome-input:focus { border-color: rgba(201, 165, 90, 0.5); }
+.welcome-err {
+  font-size: 11.5px; color: var(--red);
+  display: flex; align-items: center; gap: 5px;
+}
+.welcome-hint { font-size: 10.5px; color: var(--muted2); }
+.welcome-btn-primary {
+  width: 100%; padding: 12px; border-radius: 10px; border: none;
+  background: var(--gold); color: #14110a;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.welcome-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+.welcome-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.welcome-btn-ghost {
+  width: 100%; padding: 10px; border-radius: 10px;
+  border: 0.5px solid var(--border2); background: transparent;
+  color: var(--muted); font-size: 12px; font-family: inherit; cursor: pointer;
+  transition: color 0.15s;
+}
+.welcome-btn-ghost:hover { color: var(--text); }
+
+/* ── Spotlight tour ───────────────────────────────────────────────────── */
+@keyframes tour-ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(5, 4, 3, 0.68), 0 0 0 0 rgba(201, 165, 90, 0.55); }
+  50%      { box-shadow: 0 0 0 9999px rgba(5, 4, 3, 0.68), 0 0 0 7px rgba(201, 165, 90, 0); }
+}
+@keyframes tour-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes tour-content-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tour-root {
+  position: fixed; inset: 0; z-index: 9500; pointer-events: none;
+  animation: tour-fade-in 0.5s ease both; /* the whole layer eases in */
+}
+.tour-block { position: fixed; inset: 0; pointer-events: all; }
+.tour-highlight {
+  position: fixed;
+  border-radius: 12px;
+  border: 1.5px solid rgba(201, 165, 90, 0.9);
+  animation: tour-ring-pulse 1.8s ease-in-out infinite;
+  transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              width 0.55s cubic-bezier(0.22, 1, 0.36, 1), height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+/* The card itself persists between steps and GLIDES to its next position —
+   only the inner content cross-fades. No remount, no pop. */
+.tour-tooltip {
+  position: fixed;
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  pointer-events: all;
+  transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tour-tip-content {
+  animation: tour-content-in 0.45s ease 0.12s both;
+}
+.tour-tip-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.tour-tip-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: rgba(201, 165, 90, 0.12); border: 0.5px solid rgba(201, 165, 90, 0.3);
+  color: var(--gold); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.tour-tip-title { font-size: 14px; font-weight: 700; color: var(--text); flex: 1; }
+.tour-skip {
+  background: none; border: none; color: var(--muted2); font-size: 11px;
+  cursor: pointer; font-family: inherit; padding: 2px 4px; flex-shrink: 0;
+  min-height: 0 !important; /* skin forces 42px buttons */
+}
+.tour-skip:hover { color: var(--muted); }
+.tour-tip-text { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+.tour-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tour-dots { display: flex; gap: 5px; }
+.tour-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2); transition: background 0.2s, transform 0.2s;
+}
+.tour-dot.on   { background: var(--gold); transform: scale(1.25); }
+.tour-dot.done { background: var(--gold-dim); }
+.tour-btn {
+  padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 0.5px solid var(--border2); background: transparent;
+  color: var(--muted); cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 0 !important; /* the dark skin forces 42px on all buttons */
+}
+.tour-btn-primary {
+  background: var(--gold); border-color: var(--gold); color: #14110a;
+}
+.tour-btn-primary:hover { opacity: 0.9; }
+
+/* ── Avatar rings ──────────────────────────────────────────────────────
+   White / light project avatars (e.g. Zexus) blend into white cards. A thin
+   token border outlines every avatar so it stays visible on any surface.
+   box-sizing:border-box is global, so this adds no layout shift. Applies in
+   both themes (subtle on dark, defining on light). */
+.card-head img,
+.fd-row img,
+.wrow img,
+.vrow img,
+.comment-item img,
+.proj-av,
+.avatar,
+.fd-avatar {
+  border: 1px solid var(--border2);
+}
+
+/* Light mode: avatar art is often near-white on a transparent background
+   (logo.svg & the Zexus pfp are #F8F7F4). A dark chip behind the image keeps
+   that art visible; opaque photo avatars simply cover it. */
+:root[data-theme='light'] .card-head img,
+:root[data-theme='light'] .fd-row img,
+:root[data-theme='light'] .wrow img,
+:root[data-theme='light'] .vrow img,
+:root[data-theme='light'] .comment-item img {
+  background: #1c1a15;
+}
+/* Nav brand logo is the same white art — give it a dark chip in light mode. */
+:root[data-theme='light'] .nav-logo {
+  background: #1c1a15;
+  border-radius: 7px;
+  padding: 3px 5px;
+  height: 28px;
+}
+
+/* Light mode: type badges were tuned for dark (pale text on faint fills) —
+   deepen text and fills so they read on white. */
+:root[data-theme='light'] .tb-update  { background: rgba(58, 99, 176, 0.1);  color: var(--blue); }
+:root[data-theme='light'] .tb-verdict { background: rgba(30, 143, 88, 0.1);  color: var(--green); }
+:root[data-theme='light'] .tb-alert   { background: rgba(176, 111, 36, 0.12); color: var(--amber); }
+:root[data-theme='light'] .tb-new,
+:root[data-theme='light'] .tb-invest  { background: rgba(107, 80, 173, 0.1); color: var(--purple); }
 * {
   box-sizing: border-box;
   margin: 0;
@@ -5180,4 +5544,18 @@ input[data-burn-slider]::-moz-range-thumb {
   /* Feed scroll + page padding */
   .scroll { padding: 8px 10px 10px; gap: 8px; }
   .page-header { padding: 8px 10px 0; }
+}
+
+/* ── Page scroll fix (desktop/tablet two-column layout) ──────────────────
+   .page is a fixed-height (100dvh) grid with no explicit row track, so the
+   single implicit row sizes to its content. When a column's content is
+   taller than the viewport the row grows past 100dvh and .page (overflow:
+   hidden) clips it — so neither the center .scroll nor the right sidebar can
+   scroll natively. Bounding the row to the page height lets each column's
+   overflow:auto child scroll on its own (center feed AND the right command
+   center / staking sidebar, which holds the daily check-in button). */
+@media (min-width: 721px) {
+  .page.active {
+    grid-template-rows: minmax(0, 1fr);
+  }
 }

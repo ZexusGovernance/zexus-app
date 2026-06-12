@@ -7,6 +7,7 @@ import Nav from '@/components/nav/Nav'
 import NotifPopup from '@/components/notif/NotifPopup'
 import SearchOverlay from '@/components/search/SearchOverlay'
 import CheckInModal from '@/components/feed/CheckInModal'
+import WelcomeGate from '@/components/onboarding/WelcomeGate'
 import { useNotifs } from '@/lib/useNotifs'
 import { AppShellContext } from '@/lib/appShell'
 
@@ -171,6 +172,7 @@ export default function MainLayout({
             </button>
             <button
               className="mob-btn mob-btn-checkin"
+              data-tour="mob-checkin"
               onClick={() => setCheckInOpen(true)}
               aria-label="Daily check-in"
             >
@@ -207,6 +209,7 @@ export default function MainLayout({
           {bottomNav.map((item) => (
             <button
               key={item.page}
+              data-tour={`mobnav-${item.page}`}
               className={[
                 'mob-nav-item',
                 !item.isCompose && currentPage === item.page ? 'active' : '',
@@ -228,6 +231,9 @@ export default function MainLayout({
         </nav>
 
         {checkInOpen && <CheckInModal onClose={() => setCheckInOpen(false)} />}
+
+        {/* First-connect registration: username + interactive tour */}
+        <WelcomeGate />
 
         <SearchOverlay
           isOpen={searchOpen}

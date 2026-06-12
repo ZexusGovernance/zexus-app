@@ -125,7 +125,7 @@ export default function Nav({ isOpen }: NavProps) {
       <div className={`nav-item${isActive('projects') ? ' active' : ''}`} onClick={() => router.push('/projects')}>
         <i className="ph-bold ph-buildings nav-icon" /> Projects
       </div>
-      <div className={`nav-item${isActive('staking')  ? ' active' : ''}`} onClick={() => router.push('/staking')}>
+      <div className={`nav-item${isActive('staking')  ? ' active' : ''}`} data-tour="nav-staking" onClick={() => router.push('/staking')}>
         <i className="ph-bold ph-coin nav-icon" /> Staking ZXP
       </div>
       <div className={`nav-item${isActive('leaderboard') ? ' active' : ''}`} onClick={() => router.push('/leaderboard')}>
@@ -136,7 +136,7 @@ export default function Nav({ isOpen }: NavProps) {
       </div>
 
       <div style={{ padding: '10px 0 4px' }}>
-        <div onClick={() => router.push('/predict')} className={`nav-item${isActive('predict') ? ' active' : ''}`}>
+        <div onClick={() => router.push('/predict')} data-tour="nav-predict" className={`nav-item${isActive('predict') ? ' active' : ''}`}>
           <i className="ph-bold ph-trend-up nav-icon" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--gold)' }}>Predict</div>

@@ -142,6 +142,10 @@ export default function FeedPage({
       const scroll = scrollRef.current
       if (!scroll) return
       if (modalOpenRef.current) return
+      // Don't hijack wheel events that belong to the right command-center
+      // column — it scrolls independently (and holds the daily check-in).
+      const target = e.target as Element | null
+      if (target?.closest('.right')) return
       let delta = e.deltaY
       if (e.deltaMode === 1) delta *= 28   // lines → px
       if (e.deltaMode === 2) delta *= 400  // pages → px
@@ -199,10 +203,11 @@ export default function FeedPage({
             )}
           </div>
           <div className="feed-tabs-row">
-            <div className="feed-filter-tabs">
+            <div className="feed-filter-tabs" data-tour="feed-tabs">
               {(['All', 'Verdicts', 'Updates', 'Alerts'] as FilterType[]).map(f => (
                 <button
                   key={f}
+                  data-tour={f === 'Verdicts' ? 'tab-verdicts' : undefined}
                   className={`feed-filter-tab${activeFilter === f ? ' active' : ''}`}
                   onClick={() => setActiveFilter(f)}
                 >
