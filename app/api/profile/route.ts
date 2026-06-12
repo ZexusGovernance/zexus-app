@@ -51,3 +51,56 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ profile: { ...profile, rank } })
 }
+
+const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+
+// PATCH /api/profile  { username }  — set a username once. It's permanent:
+// once display_name is set it can't be changed, and must be unique.
+export async function PATCH(req: NextRequest) {
+  const wallet = requireAuth(req)
+  if (!wallet) return unauthorized()
+
+  let body: { username?: string }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const username = (body.username ?? '').trim()
+  if (!USERNAME_RE.test(username)) {
+    return NextResponse.json(
+      { error: '3–20 characters: letters, numbers, underscore only' },
+      { status: 400 },
+    )
+  }
+
+  // Locked once set
+  const { data: current } = await supabaseAdmin
+    .from('profiles')
+    .select('display_name')
+    .eq('wallet_address', wallet)
+    .maybeSingle()
+  if (current?.display_name) {
+    return NextResponse.json({ error: 'Username is already set and cannot be changed' }, { status: 409 })
+  }
+
+  // Case-insensitive uniqueness
+  const { data: taken } = await supabaseAdmin
+    .from('profiles')
+    .select('wallet_address')
+    .ilike('display_name', username)
+    .neq('wallet_address', wallet)
+    .maybeSingle()
+  if (taken) {
+    return NextResponse.json({ error: 'That username is taken' }, { status: 409 })
+  }
+
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ display_name: username, updated_at: new Date().toISOString() })
+    .eq('wallet_address', wallet)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ ok: true, display_name: username })
+}

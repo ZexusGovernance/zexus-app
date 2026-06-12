@@ -331,12 +331,20 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
 
       {/* Header */}
       <div className="card-head">
-        {post.avatarUrl ? (
-          <img src={post.avatarUrl} alt={post.project}
-            style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
-        ) : (
-          <div className={`proj-av ${post.av}`}>{post.letter}</div>
-        )}
+        {(() => {
+          const avatar = post.avatarUrl ? (
+            <img src={post.avatarUrl} alt={post.project}
+              style={{ width: 36, height: 36, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
+          ) : (
+            <div className={`proj-av ${post.av}`}>{post.letter}</div>
+          )
+          return post.projectSlug ? (
+            <a href={`/projects/${post.projectSlug}`} onClick={e => e.stopPropagation()}
+              title={`View ${post.project}`} style={{ display: 'flex', flexShrink: 0 }}>
+              {avatar}
+            </a>
+          ) : avatar
+        })()}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <div style={{ minWidth: 0 }}>

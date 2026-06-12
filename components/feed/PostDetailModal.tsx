@@ -404,11 +404,11 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
       fetch(`/api/comments?post_id=${post.id}`)
         .then(r => r.json())
-        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string; avatar_url: string | null; edited_at?: string | null }[] }) => {
+        .then(({ comments }: { comments: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string; avatar_url: string | null; edited_at?: string | null; display_name?: string | null }[] }) => {
           if (!comments) return
           const mapped = comments.map(c => ({
             id:        c.id,
-            author:    `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
+            author:    c.display_name || `${c.author_wallet.slice(0, 6)}...${c.author_wallet.slice(-4)}`,
             letter:    c.author_wallet.slice(2, 3).toUpperCase(),
             av:        walletAv(c.author_wallet),
             text:      c.content,
@@ -455,7 +455,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
         const { comment } = await res.json() as { comment: { id: string; parent_id: string | null; author_wallet: string; content: string; created_at: string } }
         const newC: Comment = {
           id:        comment.id,
-          author:    `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
+          author:    profile?.display_name || `${comment.author_wallet.slice(0, 6)}...${comment.author_wallet.slice(-4)}`,
           letter:    comment.author_wallet.slice(2, 3).toUpperCase(),
           av:        walletAv(comment.author_wallet),
           text:      comment.content,
@@ -669,19 +669,32 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
 
           {/* Project row */}
           <div className="card-head" style={{ marginBottom: 16, padding: 0 }}>
-            {post.avatarUrl ? (
-              <img
-                src={post.avatarUrl}
-                alt={post.project}
-                style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}
-              />
-            ) : (
-              <div className={`proj-av ${post.av}`} style={{ width: 38, height: 38, fontSize: 15, borderRadius: 10 }}>
-                {post.letter}
-              </div>
-            )}
+            {(() => {
+              const avatar = post.avatarUrl ? (
+                <img
+                  src={post.avatarUrl}
+                  alt={post.project}
+                  style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}
+                />
+              ) : (
+                <div className={`proj-av ${post.av}`} style={{ width: 38, height: 38, fontSize: 15, borderRadius: 10 }}>
+                  {post.letter}
+                </div>
+              )
+              return post.projectSlug ? (
+                <Link href={`/projects/${post.projectSlug}`} title={`View ${post.project}`} style={{ display: 'flex', flexShrink: 0 }}>
+                  {avatar}
+                </Link>
+              ) : avatar
+            })()}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{post.project}</div>
+              {post.projectSlug ? (
+                <Link href={`/projects/${post.projectSlug}`} style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', textDecoration: 'none' }}>
+                  {post.project}
+                </Link>
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{post.project}</div>
+              )}
               <div style={{ fontSize: 11, color: 'var(--muted)' }}>{post.sub}</div>
             </div>
             <span className={`type-badge ${votingOutcome ? '' : TYPE_BADGE[post.type]}`} style={badgeStyle}>

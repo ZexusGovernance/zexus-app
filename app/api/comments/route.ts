@@ -36,13 +36,21 @@ export async function GET(req: NextRequest) {
   const wallets = [...new Set(list.map(c => c.author_wallet))]
   const { data: profiles } = await supabaseAdmin
     .from('profiles')
-    .select('wallet_address, avatar_url')
+    .select('wallet_address, avatar_url, display_name')
     .in('wallet_address', wallets)
   const avatarMap: Record<string, string | null> = {}
-  for (const p of profiles ?? []) avatarMap[p.wallet_address] = p.avatar_url
+  const nameMap: Record<string, string | null> = {}
+  for (const p of profiles ?? []) {
+    avatarMap[p.wallet_address] = p.avatar_url
+    nameMap[p.wallet_address] = p.display_name
+  }
 
   return NextResponse.json({
-    comments: list.map(c => ({ ...c, avatar_url: avatarMap[c.author_wallet] ?? null })),
+    comments: list.map(c => ({
+      ...c,
+      avatar_url: avatarMap[c.author_wallet] ?? null,
+      display_name: nameMap[c.author_wallet] ?? null,
+    })),
   })
 }
 
