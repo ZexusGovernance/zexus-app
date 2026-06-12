@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
+import { localDateStr } from '@/lib/localDate'
 
 interface Props {
   onClose: () => void
@@ -21,7 +22,7 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
 
   useEffect(() => {
     if (!address) return
-    const today = new Date().toISOString().slice(0, 10)
+    const today = localDateStr()
     import('@/lib/supabase').then(({ supabase }) => {
       supabase
         .from('daily_checkins')
@@ -43,7 +44,7 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
       const res = await fetch('/api/zxp/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet: address }),
+        body: JSON.stringify({ wallet: address, date: localDateStr() }),
       })
       const d = await res.json()
       if (d.already_claimed) {

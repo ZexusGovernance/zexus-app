@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { localDateStr } from './localDate'
 
 export interface Profile {
   wallet_address: string
@@ -79,7 +80,7 @@ export async function recordCheckin(_walletAddress: string): Promise<number> {
 }
 
 export async function getTodayCheckin(walletAddress: string): Promise<DailyCheckin | null> {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const { data } = await supabase
     .from('daily_checkins')
     .select('id, checkin_date, streak_day, zxp_earned, created_at')

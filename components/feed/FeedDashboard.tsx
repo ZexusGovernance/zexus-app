@@ -5,6 +5,7 @@ import { useAppKitAccount } from '@reown/appkit/react'
 import type { FeedPost } from '@/lib/feedData'
 import OnboardingWidget from './OnboardingWidget'
 import CheckInModal from './CheckInModal'
+import { localDateStr } from '@/lib/localDate'
 
 interface Props {
   posts: FeedPost[]
@@ -85,7 +86,7 @@ export default function FeedDashboard({ posts, onNavigate, onOpenPost }: Props) 
   }, [address])
 
   const fetchCheckin = useCallback((addr: string) => {
-    fetch(`/api/zxp/claim?wallet=${encodeURIComponent(addr)}`)
+    fetch(`/api/zxp/claim?wallet=${encodeURIComponent(addr)}&date=${localDateStr()}`)
       .then(r => r.json())
       .then(({ checked_in, zxp_earned, streak_day }) => {
         setCheckedIn(!!checked_in)
@@ -234,7 +235,7 @@ export default function FeedDashboard({ posts, onNavigate, onOpenPost }: Props) 
 
         {/* Daily Check-in */}
         {address && (
-          <div style={{ marginTop: 10, borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
+          <div data-tour="checkin" style={{ marginTop: 10, borderTop: '0.5px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
             {checkedIn ? (
               <div
                 onClick={() => setCheckInOpen(true)}
