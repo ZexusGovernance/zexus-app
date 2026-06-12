@@ -122,7 +122,7 @@ export default function Nav({ isOpen }: NavProps) {
       <div className="nav-item" onClick={openSearch}>
         <i className="ph-bold ph-magnifying-glass nav-icon" /> Search
       </div>
-      <div className={`nav-item${isActive('projects') ? ' active' : ''}`} onClick={() => router.push('/projects')}>
+      <div className={`nav-item${isActive('projects') ? ' active' : ''}`} data-tour="nav-projects" onClick={() => router.push('/projects')}>
         <i className="ph-bold ph-buildings nav-icon" /> Projects
       </div>
       <div className={`nav-item${isActive('staking')  ? ' active' : ''}`} data-tour="nav-staking" onClick={() => router.push('/staking')}>

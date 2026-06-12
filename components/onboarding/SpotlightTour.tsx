@@ -53,7 +53,15 @@ const STEPS: TourStep[] = [
     title:   'Daily check-in',
     text:    'Check in once a day to earn ZXP and build a streak. ZXP is the platform currency — you also earn it from likes, comments, verdicts and referrals.',
   },
-  // ── Staking (the tour navigates there) ──
+  // ── Staking (point at the menu first, then travel there) ──
+  {
+    route:   '/feed',
+    desktop: '[data-tour="nav-staking"]',
+    mobile:  '[data-tour="mobnav-staking"]',
+    icon:    'ph-coin',
+    title:   'Staking lives here',
+    text:    'This menu item opens Staking ZXP. Hit Next and we’ll go take a look together.',
+  },
   {
     route:   '/staking',
     desktop: '[data-tour="staking-stats"]',
@@ -80,6 +88,14 @@ const STEPS: TourStep[] = [
   },
   // ── Projects ──
   {
+    route:   '/staking',
+    desktop: '[data-tour="nav-projects"]',
+    mobile:  '[data-tour="mobnav-projects"]',
+    icon:    'ph-buildings',
+    title:   'Next: Projects',
+    text:    'The project registry is right here in the menu. Let’s open it.',
+  },
+  {
     route:   '/projects',
     desktop: '.proj-list-card',
     mobile:  '.proj-list-card',
@@ -88,6 +104,14 @@ const STEPS: TourStep[] = [
     text:    'Every project has a community-driven Trust Score built from verdicts. Open a project to see its profile, milestones and post history.',
   },
   // ── Predict ──
+  {
+    route:   '/projects',
+    desktop: '[data-tour="nav-predict"]',
+    mobile:  '[data-tour="mobnav-predict"]',
+    icon:    'ph-trend-up',
+    title:   'Last stop: Predict',
+    text:    'Prediction markets live here. One more click.',
+  },
   {
     route:   '/predict',
     desktop: '.pcard',
@@ -107,6 +131,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
   const [missing, setMissing] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const [tipH, setTipH] = useState(190)
   const targetRef = useRef<Element | null>(null)
   const tipRef = useRef<HTMLDivElement>(null)
@@ -131,11 +156,6 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     setMissing(false)
 
     const navigated = window.location.pathname !== STEPS[step].route
-    if (navigated) {
-      targetRef.current = null
-      setRect(null) // hide the layer while travelling to the next page
-      router.push(STEPS[step].route)
-    }
 
     // After a page change wait generously (compile + data fetch); on the same
     // page a missing target means it just isn't rendered — skip fast.
@@ -154,13 +174,30 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
         setMissing(true) // target never appeared → auto-advance
       }
     }
-    find()
+
+    if (navigated) {
+      // Ease the layer out first, then travel — no abrupt jump cuts.
+      setLeaving(true)
+      setTimeout(() => {
+        if (cancelled) return
+        setLeaving(false)
+        targetRef.current = null
+        setRect(null)
+        router.push(STEPS[step].route)
+        find()
+      }, 380)
+    } else {
+      find()
+    }
     return () => { cancelled = true }
   }, [step, measure, router])
 
-  // Skip steps whose target doesn't exist in this layout
+  // Skip steps whose target doesn't exist in this layout. Reset the flag in
+  // the same batch — otherwise this effect re-fires on the next step while
+  // `missing` is still true and skips TWO steps at once.
   useEffect(() => {
     if (!missing) return
+    setMissing(false)
     if (step < STEPS.length - 1) setStep(s => s + 1)
     else onClose()
   }, [missing, step, onClose])
@@ -203,7 +240,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const tipLeft = Math.max(12, Math.min(rect.left + rect.width / 2 - tipW / 2, vw - tipW - 12))
 
   return (
-    <div className="tour-root">
+    <div className={`tour-root${leaving ? ' tour-leaving' : ''}`}>
       {/* click-blocker so the page underneath can't be interacted with */}
       <div className="tour-block" onClick={e => e.stopPropagation()} />
 
