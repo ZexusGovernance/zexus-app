@@ -537,7 +537,7 @@ export default function StakingPage() {
         <div className="page-header">
           <div className="page-title">Staking ZXP</div>
           <div className="page-sub">Off-chain · Pool APY · Recalculated each epoch</div>
-          <div style={{ display: 'flex', gap: 2, marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 2, marginTop: 10 }} data-tour="staking-tabs">
             {(['My stake', 'History', 'Epoch'] as StakingTab[]).map(t => (
               <button
                 key={t}
@@ -557,7 +557,7 @@ export default function StakingPage() {
         <div className="scroll" style={{ paddingBottom: 24 }}>
 
           {/* Stat row — always visible */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }} data-tour="staking-stats">
             {[
               { label: 'Staked',  value: String(profile?.zxp_staked ?? '—'), sub: 'ZXP locked',    dot: '#6f9be5',       color: 'var(--text)' },
               { label: 'APY',     value: `${apyPct}%`,                         sub: 'pool rate',     dot: 'var(--green)',  color: 'var(--green)' },
@@ -781,7 +781,7 @@ export default function StakingPage() {
                   )}
 
                   {/* Stake input */}
-                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }} data-tour="stake-input">
                     <input
                       className="zxp-input"
                       type="number"

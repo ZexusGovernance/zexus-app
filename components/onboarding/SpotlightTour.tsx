@@ -1,14 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 // ── Spotlight tour ──────────────────────────────────────────────────────
 // Dims the page and cuts a "hole" over a real UI element (box-shadow trick),
-// with an animated highlight ring and an explainer tooltip. Steps declare
-// separate desktop / mobile selectors since the layouts differ (sidebar nav
-// vs bottom bar). Steps whose target is missing are skipped automatically.
+// with an animated highlight ring and an explainer tooltip. The tour walks
+// across PAGES: each step declares its route and the engine navigates there
+// before spotlighting. Steps declare separate desktop / mobile selectors
+// where the layouts differ; steps whose target never appears are skipped.
 
 interface TourStep {
+  route: string            // page the step lives on
   desktop: string          // CSS selector on desktop/tablet
   mobile: string           // CSS selector on phones (≤720px)
   title: string
@@ -17,7 +20,9 @@ interface TourStep {
 }
 
 const STEPS: TourStep[] = [
+  // ── Feed ──
   {
+    route:   '/feed',
     desktop: '[data-tour="feed-tabs"]',
     mobile:  '[data-tour="feed-tabs"]',
     icon:    'ph-squares-four',
@@ -25,6 +30,7 @@ const STEPS: TourStep[] = [
     text:    'Every project event lands here — updates, alerts and community verdicts. Use the filters to see only what matters to you.',
   },
   {
+    route:   '/feed',
     desktop: '.feed-card',
     mobile:  '.feed-card',
     icon:    'ph-newspaper',
@@ -32,6 +38,7 @@ const STEPS: TourStep[] = [
     text:    'Tap a card to read the full post, like it and join the discussion. The ☆ star in the header adds the project to your watchlist — you’ll get alerts about it.',
   },
   {
+    route:   '/feed',
     desktop: '[data-tour="tab-verdicts"]',
     mobile:  '[data-tour="tab-verdicts"]',
     icon:    'ph-shield-check',
@@ -39,25 +46,55 @@ const STEPS: TourStep[] = [
     text:    'Projects make claims — the community votes Confirm or Dispute. Votes move the project’s Trust Score, and correct verdicts earn you ZXP.',
   },
   {
+    route:   '/feed',
     desktop: '[data-tour="checkin"]',
     mobile:  '[data-tour="mob-checkin"]',
     icon:    'ph-flame',
     title:   'Daily check-in',
     text:    'Check in once a day to earn ZXP and build a streak. ZXP is the platform currency — you also earn it from likes, comments, verdicts and referrals.',
   },
+  // ── Staking (the tour navigates there) ──
   {
-    desktop: '[data-tour="nav-staking"]',
-    mobile:  '[data-tour="mobnav-staking"]',
+    route:   '/staking',
+    desktop: '[data-tour="staking-stats"]',
+    mobile:  '[data-tour="staking-stats"]',
     icon:    'ph-coin',
-    title:   'Staking ZXP',
-    text:    'Stake your ZXP to earn APY. The longer you stake, the bigger your vote weight multiplier — long-term holders have a louder voice.',
+    title:   'Staking — your numbers',
+    text:    'This is the Staking page. Staked = ZXP you’ve locked, APY = the pool rate it grows at, Rewards = what it has already earned for you.',
   },
   {
-    desktop: '[data-tour="nav-predict"]',
-    mobile:  '[data-tour="mobnav-predict"]',
+    route:   '/staking',
+    desktop: '[data-tour="stake-input"]',
+    mobile:  '[data-tour="stake-input"]',
+    icon:    'ph-arrow-circle-down',
+    title:   'How to stake',
+    text:    'Type an amount (or hit MAX) and press Stake — off-chain, no gas, instant. Unstaking has a short cooldown. The longer you stay staked, the bigger your vote weight multiplier.',
+  },
+  {
+    route:   '/staking',
+    desktop: '[data-tour="staking-tabs"]',
+    mobile:  '[data-tour="staking-tabs"]',
+    icon:    'ph-clock-counter-clockwise',
+    title:   'History & Epoch',
+    text:    'History lists every ZXP transaction. Epoch shows the 6-month governance cycle and the Community Burn Pool — burning ZXP together raises everyone’s APY.',
+  },
+  // ── Projects ──
+  {
+    route:   '/projects',
+    desktop: '.proj-list-card',
+    mobile:  '.proj-list-card',
+    icon:    'ph-buildings',
+    title:   'Projects & Trust Score',
+    text:    'Every project has a community-driven Trust Score built from verdicts. Open a project to see its profile, milestones and post history.',
+  },
+  // ── Predict ──
+  {
+    route:   '/predict',
+    desktop: '.pcard',
+    mobile:  '.pcard',
     icon:    'ph-trend-up',
     title:   'Predict',
-    text:    'Bet ZXP on project outcomes. Call it right and you take a share of the pool. That’s the tour — welcome aboard!',
+    text:    'Bet ZXP on project outcomes — call it right and you take a share of the pool. That’s the tour — welcome aboard!',
   },
 ]
 
@@ -66,6 +103,7 @@ const PAD = 6 // px of breathing room around the highlighted element
 interface Rect { top: number; left: number; width: number; height: number }
 
 export default function SpotlightTour({ onClose }: { onClose: () => void }) {
+  const router = useRouter()
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<Rect | null>(null)
   const [missing, setMissing] = useState(false)
@@ -84,19 +122,33 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
   }, [])
 
-  // Acquire the target for the current step (poll briefly — it may render late)
+  // Acquire the target for the current step. If the step lives on another
+  // page, navigate there first (the tour layer hides and fades back in once
+  // the new target is found). Poll generously — pages compile and fetch data.
   useEffect(() => {
     let cancelled = false
     let tries = 0
     setMissing(false)
+
+    const navigated = window.location.pathname !== STEPS[step].route
+    if (navigated) {
+      targetRef.current = null
+      setRect(null) // hide the layer while travelling to the next page
+      router.push(STEPS[step].route)
+    }
+
+    // After a page change wait generously (compile + data fetch); on the same
+    // page a missing target means it just isn't rendered — skip fast.
+    const maxTries = navigated ? 60 : 15
     const find = () => {
       if (cancelled) return
-      const el = document.querySelector(selectorFor(STEPS[step]))
+      const onRoute = window.location.pathname === STEPS[step].route
+      const el = onRoute ? document.querySelector(selectorFor(STEPS[step])) : null
       if (el) {
         targetRef.current = el
         el.scrollIntoView({ block: 'center', behavior: 'smooth' })
         setTimeout(() => { if (!cancelled) measure() }, 350)
-      } else if (++tries < 20) {
+      } else if (++tries < maxTries) {
         setTimeout(find, 150)
       } else {
         setMissing(true) // target never appeared → auto-advance
@@ -104,7 +156,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     }
     find()
     return () => { cancelled = true }
-  }, [step, measure])
+  }, [step, measure, router])
 
   // Skip steps whose target doesn't exist in this layout
   useEffect(() => {

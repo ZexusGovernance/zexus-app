@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 import SpotlightTour from './SpotlightTour'
@@ -15,8 +14,6 @@ import SpotlightTour from './SpotlightTour'
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
 export default function WelcomeGate() {
-  const router = useRouter()
-  const pathname = usePathname()
   const { address } = useAppKitAccount()
   const { profile, refreshProfile } = useProfile()
 
@@ -31,14 +28,12 @@ export default function WelcomeGate() {
   const show = needsName || phase === 'offer'
 
   // Settings → "Replay tutorial" re-runs the tour from anywhere
+  // (the tour navigates between pages on its own)
   useEffect(() => {
-    const start = () => {
-      if (pathname !== '/feed') router.push('/feed')
-      setTimeout(() => setTourOn(true), pathname !== '/feed' ? 700 : 0)
-    }
+    const start = () => setTourOn(true)
     window.addEventListener('zx:start-tour', start)
     return () => window.removeEventListener('zx:start-tour', start)
-  }, [pathname, router])
+  }, [])
 
   async function saveUsername() {
     if (saving) return
@@ -65,12 +60,7 @@ export default function WelcomeGate() {
 
   function startTour() {
     setPhase('name'); setDismissed(true)
-    if (pathname !== '/feed') {
-      router.push('/feed')
-      setTimeout(() => setTourOn(true), 700) // let the feed mount its targets
-    } else {
-      setTourOn(true)
-    }
+    setTourOn(true) // the tour navigates to each step's page itself
   }
 
   function skipTour() {
