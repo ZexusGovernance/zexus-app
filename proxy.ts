@@ -4,7 +4,7 @@ import { ACCESS_COOKIE, verifyAccessToken } from '@/lib/gate'
 
 // Paths reachable without a valid access cookie: the locked screen itself
 // and the endpoint that validates the invite code (which sets the cookie).
-const PUBLIC = ['/locked', '/api/invite/verify']
+const PUBLIC = ['/locked', '/api/invite/verify', '/api/telegram/webhook']
 
 function isPublic(pathname: string): boolean {
   return PUBLIC.some((p) => pathname === p || pathname.startsWith(p + '/'))
