@@ -39,7 +39,7 @@ export default function WelcomeGate() {
     if (saving) return
     const name = username.trim()
     if (!USERNAME_RE.test(name)) {
-      setErr('3–20 characters: letters, numbers, underscore only')
+      setErr('3-20 characters: letters, numbers, underscore only')
       return
     }
     setSaving(true); setErr(null)
@@ -79,7 +79,7 @@ export default function WelcomeGate() {
             <div className="welcome-title">Welcome to Zexus</div>
             <div className="welcome-sub">
               Pick a username for the platform. It’s shown instead of your wallet
-              address and <strong>can’t be changed later</strong> — choose carefully.
+              address and <strong>can’t be changed later</strong> - choose carefully.
             </div>
             <div className="welcome-input-wrap">
               <span className="welcome-input-at">@</span>
@@ -98,7 +98,7 @@ export default function WelcomeGate() {
                 <i className="ph-bold ph-warning-circle" /> {err}
               </div>
             )}
-            <div className="welcome-hint">3–20 characters · letters, numbers, underscore</div>
+            <div className="welcome-hint">3-20 characters · letters, numbers, underscore</div>
             <button
               className="welcome-btn-primary"
               disabled={saving || !username.trim()}
@@ -112,7 +112,7 @@ export default function WelcomeGate() {
             <div className="welcome-check"><i className="ph-bold ph-check" /></div>
             <div className="welcome-title">You’re in, @{profile?.display_name}</div>
             <div className="welcome-sub">
-              Take a quick interactive tour — we’ll walk through the feed,
+              Take a quick interactive tour - we’ll walk through the feed,
               verdicts, staking and Predict, and you’ll{' '}
               <strong style={{ color: 'var(--text)' }}>earn your first ZXP</strong>{' '}
               along the way.
@@ -121,7 +121,7 @@ export default function WelcomeGate() {
               <i className="ph-bold ph-play" style={{ fontSize: 12 }} /> Show me around
             </button>
             <button className="welcome-btn-ghost" onClick={skipTour}>
-              Skip — I’ll figure it out
+              Skip - I’ll figure it out
             </button>
             <div className="welcome-hint" style={{ marginTop: 2 }}>
               You can replay it anytime from Settings

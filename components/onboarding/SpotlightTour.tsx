@@ -30,7 +30,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="feed-tabs"]',
     icon:    'ph-squares-four',
     title:   'The Feed',
-    text:    'Every project event lands here — updates, alerts and community verdicts. Use the filters to see only what matters to you.',
+    text:    'Every project event lands here - updates, alerts and community verdicts. Use the filters to see only what matters to you.',
   },
   {
     route:   '/feed',
@@ -38,7 +38,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="like-btn"]',
     icon:    'ph-heart',
     title:   'Like a post',
-    text:    'Posts are how projects talk to you — tap a card to read and discuss. Small actions earn ZXP through the starter tasks. Let’s grab your first one:',
+    text:    'Posts are how projects talk to you - tap a card to read and discuss. Small actions earn ZXP through the starter tasks. Let’s grab your first one:',
     action:  { key: 'reaction', hint: 'Tap the ♥ heart · +1 ZXP' },
   },
   {
@@ -47,7 +47,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="watch-btn"]',
     icon:    'ph-star',
     title:   'Your watchlist',
-    text:    'The ☆ star tracks a project — its alerts and updates reach you first. Star one now:',
+    text:    'The ☆ star tracks a project - its alerts and updates reach you first. Star one now:',
     action:  { key: 'watchlist', hint: 'Tap the ☆ star · +1 ZXP' },
   },
   {
@@ -56,7 +56,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="tab-verdicts"]',
     icon:    'ph-shield-check',
     title:   'Verdicts & voting',
-    text:    'Projects make claims — the community votes Confirm or Dispute. Votes move the project’s Trust Score, and correct verdicts earn you ZXP.',
+    text:    'Projects make claims - the community votes Confirm or Dispute. Votes move the project’s Trust Score, and correct verdicts earn you ZXP.',
   },
   {
     route:   '/feed',
@@ -81,7 +81,7 @@ const STEPS: TourStep[] = [
     desktop: '[data-tour="staking-stats"]',
     mobile:  '[data-tour="staking-stats"]',
     icon:    'ph-coin',
-    title:   'Staking — your numbers',
+    title:   'Staking - your numbers',
     text:    'This is the Staking page. Staked = ZXP you’ve locked, APY = the pool rate it grows at, Rewards = what it has already earned for you.',
   },
   {
@@ -90,7 +90,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="stake-input"]',
     icon:    'ph-arrow-circle-down',
     title:   'Stake your first ZXP',
-    text:    'You’ve already earned ZXP during this tour. Staking is off-chain — no gas, instant, short cooldown to unstake — and the longer you stake, the bigger your vote weight. Try it:',
+    text:    'You’ve already earned ZXP during this tour. Staking is off-chain - no gas, instant, short cooldown to unstake - and the longer you stake, the bigger your vote weight. Try it:',
     action:  { key: 'stake', hint: 'Type 1 (or MAX) → press Stake' },
   },
   {
@@ -99,7 +99,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="staking-tabs"]',
     icon:    'ph-clock-counter-clockwise',
     title:   'History & Epoch',
-    text:    'History lists every ZXP transaction. Epoch is the 6-month governance cycle — it sets action prices like the Emergency Call cost, and its Community Burn Pool raises everyone’s APY.',
+    text:    'History lists every ZXP transaction. Epoch is the 6-month governance cycle - it sets action prices like the Emergency Call cost, and its Community Burn Pool raises everyone’s APY.',
   },
   // ── Projects ──
   {
@@ -133,7 +133,7 @@ const STEPS: TourStep[] = [
     mobile:  '.pcard',
     icon:    'ph-trend-up',
     title:   'Predict',
-    text:    'Bet ZXP on project outcomes — call it right and you take a share of the pool. That’s the tour — welcome aboard!',
+    text:    'Bet ZXP on project outcomes - call it right and you take a share of the pool. That’s the tour - welcome aboard!',
   },
 ]
 
@@ -150,6 +150,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const [done, setDone] = useState(false)          // current step's task completed
   const [modalHidden, setModalHidden] = useState(false) // an app modal (check-in) is open
   const [tipH, setTipH] = useState(190)
+  const [closing, setClosing] = useState(false)
   const targetRef = useRef<Element | null>(null)
   const tipRef = useRef<HTMLDivElement>(null)
   const isMobile = () =>
@@ -163,6 +164,13 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     const r = el.getBoundingClientRect()
     setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
   }, [])
+
+  // Close the tour with a gentle fade-out instead of an instant unmount, so the
+  // card eases away rather than snapping shut.
+  const endTour = useCallback(() => {
+    setClosing(true)
+    window.setTimeout(onClose, 460)
+  }, [onClose])
 
   // Acquire the target for the current step. If the step lives on another
   // page, navigate there first (the tour layer hides and fades back in once
@@ -186,8 +194,15 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
       const el = onRoute ? document.querySelector(selectorFor(STEPS[step])) : null
       if (el) {
         targetRef.current = el
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
-        setTimeout(() => { if (!cancelled) measure() }, 350)
+        // Instant (not smooth) scroll: every step centres its target, so after
+        // the jump the spotlight glides ONCE from the previous centred spot to
+        // the new one via its CSS transition. A smooth scroll instead made the
+        // overlay chase the moving target frame-by-frame — the laggy, stuttery
+        // feel between e.g. like → watchlist and within Staking.
+        el.scrollIntoView({ block: 'center', behavior: 'auto' })
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => { if (!cancelled) measure() })
+        })
       } else if (++tries < maxTries) {
         setTimeout(find, 150)
       } else {
@@ -219,8 +234,8 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     if (!missing) return
     setMissing(false)
     if (step < STEPS.length - 1) setStep(s => s + 1)
-    else onClose()
-  }, [missing, step, onClose])
+    else endTour()
+  }, [missing, step, endTour])
 
   // Track layout shifts while the tour is open
   useEffect(() => {
@@ -236,10 +251,10 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
 
   // Esc closes
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') endTour() }
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
-  }, [onClose])
+  }, [endTour])
 
   // Interactive tasks: complete when the matching zx:onboarding detail fires
   useEffect(() => {
@@ -258,10 +273,10 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     if (!done) return
     const t = setTimeout(() => {
       if (step < STEPS.length - 1) setStep(s => s + 1)
-      else onClose()
+      else endTour()
     }, 1300)
     return () => clearTimeout(t)
-  }, [done, step, onClose])
+  }, [done, step, endTour])
 
   // The check-in modal opens on top of the page but UNDER the tour layer —
   // hide the tour while any cooperating modal announces itself.
@@ -307,7 +322,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const tipLeft = Math.max(12, Math.min(rect.left + rect.width / 2 - tipW / 2, vw - tipW - 12))
 
   return (
-    <div className={`tour-root${leaving ? ' tour-leaving' : ''}${modalHidden ? ' tour-hidden' : ''}`}>
+    <div className={`tour-root${leaving ? ' tour-leaving' : ''}${modalHidden ? ' tour-hidden' : ''}${closing ? ' tour-closing' : ''}`}>
       {/* Click-blocker. On task steps it splits into four strips AROUND the
           spotlight hole so the highlighted control itself stays clickable. */}
       {interactive ? (
@@ -338,20 +353,24 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
         <div className="tour-tip-head">
           <span className="tour-tip-icon"><i className={`ph-bold ${s.icon}`} /></span>
           <span className="tour-tip-title">{s.title}</span>
-          <button className="tour-skip" onClick={onClose}>Skip</button>
+          <button className="tour-skip" onClick={endTour}>Skip</button>
         </div>
         <div className="tour-tip-text">{s.text}</div>
         {s.action && (
           <div className={`tour-task${done ? ' done' : ''}`}>
             <i className={`ph-bold ${done ? 'ph-check-circle' : 'ph-hand-tap'}`} />
-            {done ? 'Nice — task complete!' : s.action.hint}
+            {done ? 'Nice - task complete!' : s.action.hint}
           </div>
         )}
         <div className="tour-tip-foot">
-          <div className="tour-dots">
-            {STEPS.map((_, i) => (
-              <span key={i} className={`tour-dot${i === step ? ' on' : i < step ? ' done' : ''}`} />
-            ))}
+          <div className="tour-progress">
+            <div className="tour-progress-track">
+              <div
+                className="tour-progress-fill"
+                style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+              />
+            </div>
+            <span className="tour-progress-count">{step + 1}/{STEPS.length}</span>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             {step > 0 && (
@@ -362,7 +381,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
                 {interactive ? 'Skip' : 'Next'} <i className="ph-bold ph-arrow-right" style={{ fontSize: 11 }} />
               </button>
             ) : (
-              <button className="tour-btn tour-btn-primary" onClick={onClose}>
+              <button className="tour-btn tour-btn-primary" onClick={endTour}>
                 <i className="ph-bold ph-check" style={{ fontSize: 11 }} /> Done
               </button>
             )}

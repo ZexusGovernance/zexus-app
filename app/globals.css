@@ -329,6 +329,11 @@
 .tour-root.tour-leaving {
   animation: tour-fade-out 0.38s ease both;
 }
+/* Closing the tour (Skip / Done / Esc): ease the whole layer away gently
+   instead of snapping shut — paired with a matching unmount delay in JS. */
+.tour-root.tour-closing {
+  animation: tour-fade-out 0.44s ease both;
+}
 /* An app modal (daily check-in) is open on top — get out of the way */
 .tour-root.tour-hidden {
   animation: tour-fade-out 0.3s ease both;
@@ -337,12 +342,12 @@
 .tour-root.tour-hidden .tour-block { pointer-events: none; }
 .tour-root.tour-hidden .tour-tooltip { pointer-events: none; }
 @keyframes tour-content-in {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .tour-root {
   position: fixed; inset: 0; z-index: 9500; pointer-events: none;
-  animation: tour-fade-in 0.5s ease both; /* the whole layer eases in */
+  animation: tour-fade-in 0.7s ease both; /* the whole layer eases in, unhurried */
 }
 .tour-block { position: fixed; inset: 0; pointer-events: all; }
 .tour-highlight {
@@ -358,7 +363,9 @@
    only the inner content cross-fades. No remount, no pop. */
 .tour-tooltip {
   position: fixed;
-  background: var(--surface);
+  /* Match the staking stat widgets: deep matte var(--bg) on dark (the panels
+     use the same), repainted to white var(--surface) in light mode below. */
+  background: var(--bg);
   border: 0.5px solid var(--border2);
   border-radius: 14px;
   padding: 14px 16px 12px;
@@ -367,8 +374,15 @@
   transition: top 0.55s cubic-bezier(0.22, 1, 0.36, 1), left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
               width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
+:root[data-theme='light'] .tour-tooltip {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: 0 18px 50px rgba(40, 34, 24, 0.18);
+}
 .tour-tip-content {
-  animation: tour-content-in 0.45s ease 0.12s both;
+  /* Slower, softer rise so each step's text eases in gracefully (not a snap),
+     and starts after the card has begun gliding into place. */
+  animation: tour-content-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
 }
 .tour-tip-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
 .tour-tip-icon {
@@ -407,27 +421,54 @@
   animation: tour-task-pop 0.35s ease;
 }
 :root[data-theme='light'] .tour-task { color: var(--blue); }
-.tour-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.tour-dots { display: flex; gap: 5px; }
-.tour-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--border2); transition: background 0.2s, transform 0.2s;
+.tour-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* Step indicator: a slim gold progress meter (like the staking bars) with a
+   tabular count — replaces the row of dots, scales to any step total and
+   animates as you advance. */
+.tour-progress { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; max-width: 170px; }
+.tour-progress-track {
+  flex: 1; height: 4px; border-radius: 3px;
+  background: var(--border2); overflow: hidden;
 }
-.tour-dot.on   { background: var(--gold); transform: scale(1.25); }
-.tour-dot.done { background: var(--gold-dim); }
+.tour-progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tour-progress-count {
+  font-size: 10.5px; font-weight: 700; color: var(--muted2);
+  font-variant-numeric: tabular-nums; letter-spacing: 0.3px; flex-shrink: 0;
+}
 .tour-btn {
   padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 600;
   border: 0.5px solid var(--border2); background: transparent;
   color: var(--muted); cursor: pointer; font-family: inherit;
   display: inline-flex; align-items: center; gap: 5px;
   min-height: 0 !important; /* the dark skin forces 42px on all buttons */
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-/* Primary follows the theme (dark button on dark, light on light) — no gold */
+.tour-btn:hover { color: var(--text); background: var(--surface2); }
+/* Primary CTA: restrained matte gold (the staking accent) — deep on dark,
+   soft on light — pairs with the gold progress meter. */
 .tour-btn-primary {
-  background: var(--surface2); border-color: var(--border2); color: var(--text);
+  background: rgba(201, 165, 90, 0.1);
+  border-color: rgba(201, 165, 90, 0.3);
+  color: var(--gold);
   font-weight: 700;
 }
-.tour-btn-primary:hover { background: var(--border); }
+.tour-btn-primary:hover {
+  background: rgba(201, 165, 90, 0.16);
+  border-color: rgba(201, 165, 90, 0.45);
+  color: var(--gold);
+}
+:root[data-theme='light'] .tour-btn-primary {
+  background: rgba(142, 114, 35, 0.1);
+  border-color: rgba(142, 114, 35, 0.32);
+}
+:root[data-theme='light'] .tour-btn-primary:hover {
+  background: rgba(142, 114, 35, 0.16);
+  border-color: rgba(142, 114, 35, 0.48);
+}
 
 /* ── Avatar rings ──────────────────────────────────────────────────────
    White / light project avatars (e.g. Zexus) blend into white cards. A thin
@@ -4665,6 +4706,28 @@ input[data-burn-slider]::-moz-range-thumb {
   .stat-item:last-child { border-right: none; }
   .stat-num { font-size: 15px; font-weight: 600; }
   .stat-lbl { font-size: 9px; }
+
+  /* Profile: the header (avatar, stats, badges, tabs) is tall — as a fixed,
+     non-scrolling block it squeezed the inner .scroll to almost nothing and
+     pushed content out of view on phones. Collapse the page to ONE natural
+     scroll so the whole profile, including the very top, is always reachable;
+     keep the tabs pinned so navigation stays in reach while scrolling. */
+  #page-profile > .center {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  #page-profile .prof-header-inner { flex-shrink: 0; }
+  #page-profile .scroll {
+    overflow: visible !important;
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+  }
+  #page-profile #profile-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+  }
 
   /* Verdict bar: hide count to save space */
   .vb-count { display: none; }
