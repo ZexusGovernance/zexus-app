@@ -174,9 +174,12 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
 
     const navigated = window.location.pathname !== STEPS[step].route
 
-    // After a page change wait generously (compile + data fetch); on the same
-    // page a missing target means it just isn't rendered — skip fast.
-    const maxTries = navigated ? 60 : 15
+    // After a page change wait generously (compile + data fetch). Interactive
+    // task steps target async content (feed posts, stake input) that renders
+    // late on slower phones, so give them the same long window even on the same
+    // page — otherwise the activity gets skipped and never appears on mobile.
+    // Plain info steps whose target is simply absent in this layout skip fast.
+    const maxTries = navigated ? 80 : STEPS[step].action ? 60 : 28
     const find = () => {
       if (cancelled) return
       const onRoute = window.location.pathname === STEPS[step].route
@@ -286,10 +289,21 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const interactive = !!s.action && !done
   const vw = window.innerWidth
   const vh = window.innerHeight
+  // On phones the fixed top bar (56px + notch) and the floating bottom nav
+  // (~76px) overlay the page. The tooltip carries the interactive task chip,
+  // so keep it inside the visible band — otherwise the activity hides behind a
+  // bar and looks like it was never there.
+  const mob = isMobile()
+  const topInset = mob ? 70 : 12
+  const bottomInset = mob ? 98 : 12
   const tipW = Math.min(330, vw - 24)
   const below = rect.top + rect.height + 12
-  const placeBelow = below + tipH + 12 < vh // enough room under the target?
-  const tipTop = placeBelow ? below : Math.max(12, rect.top - tipH - 12)
+  const placeBelow = below + tipH + 12 < vh - bottomInset // room under the target?
+  let tipTop = placeBelow ? below : rect.top - tipH - 12
+  tipTop = Math.min(
+    Math.max(tipTop, topInset),
+    Math.max(topInset, vh - bottomInset - tipH),
+  )
   const tipLeft = Math.max(12, Math.min(rect.left + rect.width / 2 - tipW / 2, vw - tipW - 12))
 
   return (

@@ -24,7 +24,9 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
   // while we're open)
   useEffect(() => {
     window.dispatchEvent(new Event('zx:modal-open'))
-    return () => window.dispatchEvent(new Event('zx:modal-closed'))
+    return () => {
+      window.dispatchEvent(new Event('zx:modal-closed'))
+    }
   }, [])
 
   useEffect(() => {
