@@ -17,6 +17,9 @@ interface TourStep {
   title: string
   text: string
   icon: string             // phosphor icon class
+  // Interactive task: the spotlight hole becomes clickable and the step
+  // completes when zx:onboarding fires with this detail key.
+  action?: { key: string; hint: string }
 }
 
 const STEPS: TourStep[] = [
@@ -31,11 +34,21 @@ const STEPS: TourStep[] = [
   },
   {
     route:   '/feed',
-    desktop: '.feed-card',
-    mobile:  '.feed-card',
-    icon:    'ph-newspaper',
-    title:   'Project posts',
-    text:    'Tap a card to read the full post, like it and join the discussion. The ☆ star in the header adds the project to your watchlist — you’ll get alerts about it.',
+    desktop: '[data-tour="like-btn"]',
+    mobile:  '[data-tour="like-btn"]',
+    icon:    'ph-heart',
+    title:   'Like a post',
+    text:    'Posts are how projects talk to you — tap a card to read and discuss. Small actions earn ZXP through the starter tasks. Let’s grab your first one:',
+    action:  { key: 'reaction', hint: 'Tap the ♥ heart · +1 ZXP' },
+  },
+  {
+    route:   '/feed',
+    desktop: '[data-tour="watch-btn"]',
+    mobile:  '[data-tour="watch-btn"]',
+    icon:    'ph-star',
+    title:   'Your watchlist',
+    text:    'The ☆ star tracks a project — its alerts and updates reach you first. Star one now:',
+    action:  { key: 'watchlist', hint: 'Tap the ☆ star · +1 ZXP' },
   },
   {
     route:   '/feed',
@@ -51,7 +64,8 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="mob-checkin"]',
     icon:    'ph-flame',
     title:   'Daily check-in',
-    text:    'Check in once a day to earn ZXP and build a streak. ZXP is the platform currency — you also earn it from likes, comments, verdicts and referrals.',
+    text:    'Once a day, check in to earn ZXP and build a streak. Your first one is one tap away:',
+    action:  { key: 'checkin', hint: 'Check in now · +1 ZXP' },
   },
   // ── Staking (point at the menu first, then travel there) ──
   {
@@ -75,8 +89,9 @@ const STEPS: TourStep[] = [
     desktop: '[data-tour="stake-input"]',
     mobile:  '[data-tour="stake-input"]',
     icon:    'ph-arrow-circle-down',
-    title:   'How to stake',
-    text:    'Type an amount (or hit MAX) and press Stake — off-chain, no gas, instant. Unstaking has a short cooldown. The longer you stay staked, the bigger your vote weight multiplier.',
+    title:   'Stake your first ZXP',
+    text:    'You’ve already earned ZXP during this tour. Staking is off-chain — no gas, instant, short cooldown to unstake — and the longer you stake, the bigger your vote weight. Try it:',
+    action:  { key: 'stake', hint: 'Type 1 (or MAX) → press Stake' },
   },
   {
     route:   '/staking',
@@ -84,7 +99,7 @@ const STEPS: TourStep[] = [
     mobile:  '[data-tour="staking-tabs"]',
     icon:    'ph-clock-counter-clockwise',
     title:   'History & Epoch',
-    text:    'History lists every ZXP transaction. Epoch shows the 6-month governance cycle and the Community Burn Pool — burning ZXP together raises everyone’s APY.',
+    text:    'History lists every ZXP transaction. Epoch is the 6-month governance cycle — it sets action prices like the Emergency Call cost, and its Community Burn Pool raises everyone’s APY.',
   },
   // ── Projects ──
   {
@@ -132,6 +147,8 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const [rect, setRect] = useState<Rect | null>(null)
   const [missing, setMissing] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  const [done, setDone] = useState(false)          // current step's task completed
+  const [modalHidden, setModalHidden] = useState(false) // an app modal (check-in) is open
   const [tipH, setTipH] = useState(190)
   const targetRef = useRef<Element | null>(null)
   const tipRef = useRef<HTMLDivElement>(null)
@@ -221,6 +238,41 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
     return () => document.removeEventListener('keydown', h)
   }, [onClose])
 
+  // Interactive tasks: complete when the matching zx:onboarding detail fires
+  useEffect(() => {
+    setDone(false)
+    const act = STEPS[step].action
+    if (!act) return
+    const h = (e: Event) => {
+      if ((e as CustomEvent).detail === act.key) setDone(true)
+    }
+    window.addEventListener('zx:onboarding', h)
+    return () => window.removeEventListener('zx:onboarding', h)
+  }, [step])
+
+  // Task done → celebrate briefly, then move on
+  useEffect(() => {
+    if (!done) return
+    const t = setTimeout(() => {
+      if (step < STEPS.length - 1) setStep(s => s + 1)
+      else onClose()
+    }, 1300)
+    return () => clearTimeout(t)
+  }, [done, step, onClose])
+
+  // The check-in modal opens on top of the page but UNDER the tour layer —
+  // hide the tour while any cooperating modal announces itself.
+  useEffect(() => {
+    const open = () => setModalHidden(true)
+    const close = () => { setModalHidden(false); measure() }
+    window.addEventListener('zx:modal-open', open)
+    window.addEventListener('zx:modal-closed', close)
+    return () => {
+      window.removeEventListener('zx:modal-open', open)
+      window.removeEventListener('zx:modal-closed', close)
+    }
+  }, [measure])
+
   // Track the tooltip's real height so the card glides (top is always
   // animatable) instead of flipping between top/bottom anchoring.
   useEffect(() => {
@@ -231,6 +283,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   if (!rect) return null
 
   const s = STEPS[step]
+  const interactive = !!s.action && !done
   const vw = window.innerWidth
   const vh = window.innerHeight
   const tipW = Math.min(330, vw - 24)
@@ -240,9 +293,19 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
   const tipLeft = Math.max(12, Math.min(rect.left + rect.width / 2 - tipW / 2, vw - tipW - 12))
 
   return (
-    <div className={`tour-root${leaving ? ' tour-leaving' : ''}`}>
-      {/* click-blocker so the page underneath can't be interacted with */}
-      <div className="tour-block" onClick={e => e.stopPropagation()} />
+    <div className={`tour-root${leaving ? ' tour-leaving' : ''}${modalHidden ? ' tour-hidden' : ''}`}>
+      {/* Click-blocker. On task steps it splits into four strips AROUND the
+          spotlight hole so the highlighted control itself stays clickable. */}
+      {interactive ? (
+        <>
+          <div className="tour-block" style={{ top: 0, left: 0, right: 0, height: Math.max(0, rect.top), bottom: 'auto' }} />
+          <div className="tour-block" style={{ top: rect.top + rect.height, left: 0, right: 0, bottom: 0 }} />
+          <div className="tour-block" style={{ top: rect.top, left: 0, width: Math.max(0, rect.left), height: rect.height, right: 'auto', bottom: 'auto' }} />
+          <div className="tour-block" style={{ top: rect.top, left: rect.left + rect.width, right: 0, height: rect.height, bottom: 'auto' }} />
+        </>
+      ) : (
+        <div className="tour-block" onClick={e => e.stopPropagation()} />
+      )}
 
       {/* spotlight hole + pulsing ring */}
       <div
@@ -264,6 +327,12 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
           <button className="tour-skip" onClick={onClose}>Skip</button>
         </div>
         <div className="tour-tip-text">{s.text}</div>
+        {s.action && (
+          <div className={`tour-task${done ? ' done' : ''}`}>
+            <i className={`ph-bold ${done ? 'ph-check-circle' : 'ph-hand-tap'}`} />
+            {done ? 'Nice — task complete!' : s.action.hint}
+          </div>
+        )}
         <div className="tour-tip-foot">
           <div className="tour-dots">
             {STEPS.map((_, i) => (
@@ -276,7 +345,7 @@ export default function SpotlightTour({ onClose }: { onClose: () => void }) {
             )}
             {step < STEPS.length - 1 ? (
               <button className="tour-btn tour-btn-primary" onClick={() => setStep(s2 => s2 + 1)}>
-                Next <i className="ph-bold ph-arrow-right" style={{ fontSize: 11 }} />
+                {interactive ? 'Skip' : 'Next'} <i className="ph-bold ph-arrow-right" style={{ fontSize: 11 }} />
               </button>
             ) : (
               <button className="tour-btn tour-btn-primary" onClick={onClose}>

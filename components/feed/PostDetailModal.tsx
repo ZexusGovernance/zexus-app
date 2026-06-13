@@ -470,7 +470,7 @@ export default function PostDetailModal({ post, onClose, scrollToComments }: Pos
         setCommentLikes(prev => ({ ...prev, [newC.id]: { liked: false, count: 0, loading: false } }))
         setShowAllComments(true)
         setReplyTo(null)
-        window.dispatchEvent(new Event('zx:onboarding'))
+        window.dispatchEvent(new CustomEvent('zx:onboarding', { detail: 'comment' }))
       }
     }
 

@@ -459,6 +459,7 @@ export default function StakingPage() {
     if (!res.ok) { toast(d.error ?? 'Stake failed'); return }
     toast(`Staked ${amt} ZXP!`)
     setStakeAmount('')
+    window.dispatchEvent(new CustomEvent('zx:onboarding', { detail: 'stake' }))
     await loadPositions(address)
     await refreshProfile(address)
   }

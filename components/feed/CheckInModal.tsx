@@ -20,6 +20,13 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
   const [claiming, setClaiming]       = useState(false)
   const [msg, setMsg]                 = useState<string | null>(null)
 
+  // Announce to the spotlight tour (it sits above this modal and hides itself
+  // while we're open)
+  useEffect(() => {
+    window.dispatchEvent(new Event('zx:modal-open'))
+    return () => window.dispatchEvent(new Event('zx:modal-closed'))
+  }, [])
+
   useEffect(() => {
     if (!address) return
     const today = localDateStr()
@@ -55,6 +62,7 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
         setMsg(`+${d.zxp_earned} ZXP · Streak: ${d.new_streak} days!`)
         if (address) await refreshProfile(address)
         onClaimed?.()
+        window.dispatchEvent(new CustomEvent('zx:onboarding', { detail: 'checkin' }))
       } else {
         setMsg(d.error ?? 'Claim failed')
       }

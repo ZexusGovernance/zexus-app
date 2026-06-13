@@ -258,7 +258,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
       body: JSON.stringify({ wallet: address, project_id: post.projectId }),
     }).catch(() => null)
     if (!res?.ok) setWatchlisted(prev)
-    else if (!prev) window.dispatchEvent(new Event('zx:onboarding'))
+    else if (!prev) window.dispatchEvent(new CustomEvent('zx:onboarding', { detail: 'watchlist' }))
     setWatchLoading(false)
   }
 
@@ -285,7 +285,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
     else {
       const d = await res.json().catch(() => null)
       if (d?.count !== undefined) setLikeCount(d.count)
-      if (!wasLiked) window.dispatchEvent(new Event('zx:onboarding'))
+      if (!wasLiked) window.dispatchEvent(new CustomEvent('zx:onboarding', { detail: 'reaction' }))
     }
   }
 
@@ -360,7 +360,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
               </div>
             </div>
             {!post.isEmergency && post.type !== 'alert' && !isVotingOpen && (
-              <button className="card-watch-mini" onClick={toggleWatch}
+              <button className="card-watch-mini" data-tour="watch-btn" onClick={toggleWatch}
                 title={watchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
                 style={{ padding: 0, lineHeight: 1, flexShrink: 0 }}>
                 {watchLoading
@@ -575,6 +575,7 @@ export default function PostCard({ post, onClick, onCommentClick, index = 0, onV
         <div style={{ position: 'relative', display: 'inline-flex' }}>
           <button
             className="foot-btn"
+            data-tour="like-btn"
             style={{ color: liked ? 'var(--red)' : undefined, opacity: !address && isDbPost ? 0.5 : 1 }}
             onClick={toggleLike}
             title={!address && isDbPost ? 'Connect wallet to like' : undefined}

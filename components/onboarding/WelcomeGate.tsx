@@ -81,15 +81,18 @@ export default function WelcomeGate() {
               Pick a username for the platform. It’s shown instead of your wallet
               address and <strong>can’t be changed later</strong> — choose carefully.
             </div>
-            <input
-              className="welcome-input"
-              placeholder="username"
-              value={username}
-              maxLength={20}
-              autoFocus
-              onChange={e => { setUsername(e.target.value); setErr(null) }}
-              onKeyDown={e => { if (e.key === 'Enter') saveUsername() }}
-            />
+            <div className="welcome-input-wrap">
+              <span className="welcome-input-at">@</span>
+              <input
+                className="welcome-input"
+                placeholder="username"
+                value={username}
+                maxLength={20}
+                autoFocus
+                onChange={e => { setUsername(e.target.value); setErr(null) }}
+                onKeyDown={e => { if (e.key === 'Enter') saveUsername() }}
+              />
+            </div>
             {err && (
               <div className="welcome-err">
                 <i className="ph-bold ph-warning-circle" /> {err}
@@ -109,8 +112,10 @@ export default function WelcomeGate() {
             <div className="welcome-check"><i className="ph-bold ph-check" /></div>
             <div className="welcome-title">You’re in, @{profile?.display_name}</div>
             <div className="welcome-sub">
-              Want a 1-minute tour? We’ll walk you through the feed, verdicts,
-              daily ZXP, staking and Predict — right on the live interface.
+              Take a quick interactive tour — we’ll walk through the feed,
+              verdicts, staking and Predict, and you’ll{' '}
+              <strong style={{ color: 'var(--text)' }}>earn your first ZXP</strong>{' '}
+              along the way.
             </div>
             <button className="welcome-btn-primary" onClick={startTour}>
               <i className="ph-bold ph-play" style={{ fontSize: 12 }} /> Show me around
