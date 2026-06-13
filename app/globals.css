@@ -5463,6 +5463,18 @@ input[data-burn-slider]::-moz-range-thumb {
   transition: background 0.14s, color 0.14s;
 }
 .checkin-close:hover { background: var(--surface2); color: var(--text); }
+/* Drag handle — only on the mobile bottom-sheet; signals swipe-to-dismiss. */
+.checkin-grabber { display: none; }
+@media (max-width: 479px) {
+  .checkin-grabber {
+    display: block;
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border2);
+    margin: -14px auto 8px;
+  }
+}
 .checkin-flame-icon {
   font-size: 40px;
   color: var(--amber);
@@ -5545,15 +5557,18 @@ input[data-burn-slider]::-moz-range-thumb {
   gap: 7px;
   margin-top: 6px;
   transition: opacity 0.14s, transform 0.14s;
-  background: var(--gold);
+  /* Brighter than flat gold: a soft white sheen over the gold token lightens
+     the button (theme-aware — works on the dark sheet and the light one). */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.03) 55%), var(--gold);
   color: #0b0a09;
 }
 .checkin-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.7;
   cursor: not-allowed;
-  background: var(--surface2);
-  color: var(--muted);
-  border: 0.5px solid var(--border2);
+  /* Claimed: a light gold tint instead of dead dark grey. */
+  background: rgba(201, 165, 90, 0.16);
+  color: var(--gold);
+  border: 0.5px solid rgba(201, 165, 90, 0.32);
 }
 .checkin-btn:not(:disabled):hover { opacity: 0.88; }
 .checkin-btn:not(:disabled):active { transform: scale(0.97); }

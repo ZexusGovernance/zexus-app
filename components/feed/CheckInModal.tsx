@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useProfile } from '@/lib/profileContext'
 import { localDateStr } from '@/lib/localDate'
@@ -19,6 +19,27 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
   const [todayEarned, setTodayEarned] = useState<number | null>(null)
   const [claiming, setClaiming]       = useState(false)
   const [msg, setMsg]                 = useState<string | null>(null)
+
+  // Mobile bottom-sheet: drag down to dismiss
+  const [dragY, setDragY]       = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [touched, setTouched]   = useState(false)
+  const dragStartY = useRef(0)
+
+  function onSheetTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY
+    setDragging(true)
+    setTouched(true)
+  }
+  function onSheetTouchMove(e: React.TouchEvent) {
+    const dy = e.touches[0].clientY - dragStartY.current
+    setDragY(dy > 0 ? dy : 0)
+  }
+  function onSheetTouchEnd() {
+    setDragging(false)
+    if (dragY > 90) onClose()
+    else setDragY(0)
+  }
 
   // Announce to the spotlight tour (it sits above this modal and hides itself
   // while we're open)
@@ -77,7 +98,19 @@ export default function CheckInModal({ onClose, onClaimed }: Props) {
 
   return (
     <div className="checkin-overlay" onClick={onClose}>
-      <div className="checkin-modal" onClick={e => e.stopPropagation()}>
+      <div
+        className="checkin-modal"
+        onClick={e => e.stopPropagation()}
+        onTouchStart={onSheetTouchStart}
+        onTouchMove={onSheetTouchMove}
+        onTouchEnd={onSheetTouchEnd}
+        style={{
+          transform: dragY ? `translateY(${dragY}px)` : undefined,
+          transition: dragging ? 'none' : 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
+          animation: touched ? 'none' : undefined,
+        }}
+      >
+        <div className="checkin-grabber" aria-hidden />
         <button className="checkin-close" onClick={onClose} aria-label="Close">
           <i className="ph-bold ph-x" />
         </button>
